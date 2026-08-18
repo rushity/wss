@@ -9,24 +9,65 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: read
-
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 2
 
-      - name: Configure Git
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Dependencies
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "github-actions@github.com"
+          pip install -U huggingface_hub hf_xet
 
-      - name: Push to Hugging Face Space
+      - name: Upload Changed Files
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         run: |
-          git remote add hf https://oauth2:${HF_TOKEN}@huggingface.co/spaces/larxius/SentinelScan-WSS
+          python << 'EOF'
+          import os
+          import subprocess
+          from huggingface_hub import HfApi
 
-          git push hf HEAD:main --force
+          api = HfApi(token=os.environ["HF_TOKEN"])
+
+          repo_id = "larxius/SentinelScan-WSS"
+
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", "HEAD~1", "HEAD"],
+              text=True
+          ).splitlines()
+
+          ignore = (
+              ".git/",
+              ".github/",
+              "__pycache__/",
+          )
+
+          uploaded = 0
+
+          for file in changed:
+              if not os.path.isfile(file):
+                  continue
+
+              if any(file.startswith(i) for i in ignore):
+                  continue
+
+              print(f"Uploading: {file}")
+
+              api.upload_file(
+                  path_or_fileobj=file,
+                  path_in_repo=file,
+                  repo_id=repo_id,
+                  repo_type="space",
+                  commit_message=f"Update {file}"
+              )
+
+              uploaded += 1
+
+          print(f"\nUploaded {uploaded} file(s).")
+          EOF
