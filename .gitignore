@@ -1,0 +1,77 @@
+# === Secrets / Credentials ===
+.env
+serviceAccountKey.json
+*.pem
+*.key
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+*.pyd
+
+# === Virtual Environments ===
+venv/
+.venv/
+env/
+ENV/
+
+# === IDE ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Logs ===
+*.log
+security_events.log
+
+# === Pytest / Coverage ===
+.pytest_cache/
+.coverage
+htmlcov/
+
+# === Database (local SQLite) ===
+*.db
+*.sqlite3
+
+# === Uploads (moved to Firebase Storage) ===
+uploads/
+
+# === Frontend build/dist ===
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# === Migrations (unused scaffolding) ===
+migrations/
+
+# === Tools (scanner binaries, download at runtime) ===
+Tools/
+
+# === Brand assets (not runtime) ===
+larxiius logo.jpg
+
+# === Large doc artifacts ===
+docs/*.pdf
+docs/*.docx
+
+# === Node ===
+node_modules/
+
+# === Misc ===
+*.local
+*.bak
+*.tmp
+*.orig

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Completed Successfully</title>
+    <style>
+
+        /* LarShield Premium Email Design System */
+        body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; color: #0f172a; -webkit-font-smoothing: antialiased; }
+        .wrapper { width: 100%; table-layout: fixed; background-color: #f8fafc; padding: 40px 0; }
+        .main { background-color: #ffffff; margin: 0 auto; width: 100%; max-width: 600px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01); overflow: hidden; }
+        .header { padding: 40px 30px; text-align: center; color: white; position: relative; overflow: hidden; }
+        .header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%); z-index: 1; }
+        .header-content { position: relative; z-index: 2; }
+        .header.blue { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); }
+        .header.green { background: linear-gradient(135deg, #064e3b 0%, #10b981 100%); }
+        .header.red { background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%); }
+        .header.purple { background: linear-gradient(135deg, #4c1d95 0%, #8b5cf6 100%); }
+        
+        .header h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: -0.02em; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .logo { max-height: 48px; width: auto; margin-bottom: 24px; display: block; margin-left: auto; margin-right: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
+        
+        .content { padding: 40px 40px 30px; }
+        .content p { font-size: 16px; line-height: 1.7; color: #334155; margin-bottom: 24px; }
+        .content strong { color: #0f172a; font-weight: 600; }
+        
+        .alert-box { background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 16px 20px; border-radius: 0 8px 8px 0; margin-bottom: 24px; }
+        .alert-box p { color: #991b1b; margin: 0; font-size: 15px; font-weight: 500; }
+        
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 30px; }
+        .stat-card { background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 16px; text-align: center; }
+        .stat-card.full-width { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; text-align: left; }
+        .stat-label { display: block; color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+        .stat-value { display: block; color: #0f172a; font-size: 20px; font-weight: 700; }
+        .stat-value.critical { color: #dc2626; }
+        .stat-value.high { color: #ea580c; }
+        .stat-value.medium { color: #d97706; }
+        .stat-value.low { color: #2563eb; }
+        
+        .btn-wrapper { text-align: center; margin: 36px 0; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 16px; padding: 16px 32px; border-radius: 12px; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.2s, box-shadow 0.2s; }
+        .btn.red { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3); }
+        
+        .signature { margin-top: 40px; margin-bottom: 0; padding-top: 24px; border-top: 1px solid #e2e8f0; }
+        .footer { text-align: center; padding: 24px 30px; color: #94a3b8; font-size: 13px; line-height: 1.6; }
+        .footer a { color: #64748b; text-decoration: underline; }
+        
+        @media (prefers-color-scheme: dark) {
+            body, .wrapper { background-color: #020617; color: #f8fafc; }
+            .main { background-color: #0f172a; border-color: #1e293b; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+            .content p { color: #cbd5e1; }
+            .content strong { color: #f8fafc; }
+            .stat-card { background-color: #1e293b; border-color: #334155; }
+            .stat-label { color: #94a3b8; }
+            .stat-value { color: #f8fafc; }
+            .signature { border-color: #334155; }
+            .alert-box { background-color: #450a0a; border-color: #dc2626; }
+            .alert-box p { color: #fecaca; }
+        }
+        @media (max-width: 600px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .content { padding: 30px 20px; }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <div class="main">
+            <div class="header green">
+                <div class="header-content">
+                    <img src="{{ logo_url }}" alt="LarShield Logo" class="logo">
+                    <h1>Scan Completed</h1>
+                </div>
+            </div>
+            <div class="content">
+                <p>Hello <strong>{{ user_name }}</strong>,</p>
+        <p>The security scan on your application has finished successfully. The LarShield engine has compiled a comprehensive security report detailing all findings.</p>
+        
+        <div class="stat-card full-width" style="margin-bottom: 16px;">
+            <div>
+                <span class="stat-label">Target Analyzed</span>
+                <span class="stat-value" style="font-size: 16px;"><a href="{{ target_url }}" style="color: #10b981; text-decoration: none;">{{ target_url }}</a></span>
+            </div>
+            <div style="text-align: right;">
+                <span class="stat-label">Duration</span>
+                <span class="stat-value" style="font-size: 16px;">{{ duration }}</span>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">Critical</span>
+                <span class="stat-value critical">{{ crit_count }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">High</span>
+                <span class="stat-value high">{{ high_count }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Medium</span>
+                <span class="stat-value medium">{{ med_count }}</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">Low</span>
+                <span class="stat-value low">{{ low_count }}</span>
+            </div>
+        </div>
+        
+        <div class="stat-card full-width" style="background-color: transparent; border: 2px dashed #e2e8f0; justify-content: center; margin-bottom: 24px;">
+            <div style="text-align: center;">
+                <span class="stat-label">Total Vulnerabilities Detected</span>
+                <span class="stat-value" style="font-size: 24px;">{{ vulns_count }}</span>
+            </div>
+        </div>
+
+        <p>Please review the full report to access actionable remediation steps and secure your application against these threats.</p>
+        
+        <div class="btn-wrapper">
+            <a href="{{ report_link }}" class="btn" style="background: linear-gradient(135deg, #064e3b 0%, #10b981 100%); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);">View Security Report</a>
+        </div>
+                <p class="signature">Securely yours,<br><strong>The LarShield Defense Team</strong></p>
+            </div>
+        </div>
+        <div class="footer">
+            &copy; {{ year }} LarShield Security. All rights reserved.<br>
+            Automated platform notification. For assistance, contact <a href="mailto:{{ support_email }}">{{ support_email }}</a>.
+        </div>
+    </div>
+</body>
+</html>

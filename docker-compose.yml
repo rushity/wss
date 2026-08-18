@@ -1,0 +1,49 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: sentinel_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sentinel_backend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - DATABASE_URL=sqlite:///wss.db
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET required}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - FRONTEND_URL=http://localhost:3000
+      - SCANNER_RATE_LIMIT=60
+      - SCANNER_RATE_WINDOW=60
+    depends_on:
+      - redis
+    volumes:
+      - backend_data:/app/instance
+      - backend_data:/app/security_events.log
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sentinel_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  redis_data:
+  backend_data:

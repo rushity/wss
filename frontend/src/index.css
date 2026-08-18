@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-size: 14px; /* Decreased from default 16px */
+  }
+  :root {
+    --on-surface: #1e1e1e;
+    --on-primary-container: #1e3a8a;
+    --inverse-on-surface: #f4f0ef;
+    --error-container: #ffdad6;
+    --on-secondary: #ffffff;
+    --surface-container: #efedec;
+    --surface-tint: #2563eb;
+    --secondary: #7c3aed;
+    --surface-container-low: #f4f3f2;
+    --surface-variant: #dfe2eb;
+    --on-error: #ffffff;
+    --secondary-container: #e0e7ff;
+    --surface-bright: #f9f9f9;
+    --surface-dim: #ded8d7;
+    --tertiary-container: #f3e8ff;
+    --surface-container-high: #e9e8e7;
+    --error: #ba1a1a;
+    --inverse-surface: #313030;
+    --on-tertiary-container: #581c87;
+    --surface-container-highest: #e3e2e1;
+    --surface-container-lowest: #ffffff;
+    --on-secondary-container: #3730a3;
+    --outline-variant: #c3c7cf;
+    --primary-container: #dbeafe;
+    --on-surface-variant: #43474e;
+    --tertiary: #9333ea;
+    --surface: #faf9f8;
+    --on-primary: #ffffff;
+    --on-tertiary: #ffffff;
+    --primary: #2563eb;
+  }
+}
+
+.brand-gradient {
+  background: linear-gradient(to right, #0a1128 0%, #2563eb 45%, #9333ea 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+/* Custom UI Animations */
+@keyframes fade-in {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+
+@keyframes slide-up {
+  0% { opacity: 0; transform: translateY(30px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+.animate-float {
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float-delayed {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(20px) rotate(-2deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+.animate-float-delayed {
+  animation: float-delayed 10s ease-in-out infinite;
+}
+
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.dark .glass-panel {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
