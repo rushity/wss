@@ -6,7 +6,7 @@ colorTo: red
 sdk: docker
 pinned: true
 ---
-# 🛡️ SentinelScan — Website Security Scanner (WSS)
+# 🛡️ SentinelScan — Website Security Scanner (WSS) by larxius
 
 SentinelScan is a full-stack, enterprise-grade **Dynamic Application Security Testing (DAST)** platform designed to automate vulnerability detection across target domains and web APIs. Featuring a highly modular architecture, SentinelScan orchestrates a pipeline of custom security scanning agents concurrently, storing findings in a structured database and presenting them in a premium, real-time dashboard.
 
