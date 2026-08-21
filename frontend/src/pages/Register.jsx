@@ -94,12 +94,6 @@ export const Register = () => {
         {/* Value Proposition */}
         <div className="z-10 max-w-md text-left animate-slide-up" style={{ animationDelay: '100ms' }}>
           
-          {/* Top Pill Badge */}
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-semibold mb-6 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
-            <span>Enterprise Security Suite</span>
-          </div>
-
           {/* Seamless 3D Shield Podium Graphic - Shifted right & zero background mismatch */}
           <div className="mb-6 flex justify-center lg:justify-center relative group pl-4 lg:pl-8">
             <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-2xl transform scale-75 group-hover:scale-90 transition-transform duration-500"></div>
@@ -166,19 +160,19 @@ export const Register = () => {
 
             {/* Error Alert Box */}
             {error && (
-              <div className="flex gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm mb-6 items-center animate-fade-in">
+              <div className="mb-6 flex gap-3 bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm items-center animate-fade-in">
                 <span className="material-symbols-outlined text-red-500">warning</span>
                 <div>{error}</div>
               </div>
             )}
 
             {/* Registration Form */}
-            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
               
               {/* Row 1: Identity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="fullName">Full Name</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="fullName">Full Name <span className="text-red-500">*</span></label>
                   <input 
                     className="h-12 px-4 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
                     id="fullName" 
@@ -190,7 +184,7 @@ export const Register = () => {
                   />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="companyName">Organization</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="companyName">Organization <span className="text-red-500">*</span></label>
                   <input 
                     className="h-12 px-4 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all placeholder:text-slate-400" 
                     id="companyName" 
@@ -205,7 +199,7 @@ export const Register = () => {
 
               {/* Row 2: Email */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="email">Work Email</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="email">Work Email <span className="text-red-500">*</span></label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600 text-slate-400">
                     <span className="material-symbols-outlined text-[20px]">mail</span>
@@ -225,7 +219,7 @@ export const Register = () => {
               {/* Row 3: Passwords */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="password">Password</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="password">Password <span className="text-red-500">*</span></label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600 text-slate-400">
                       <span className="material-symbols-outlined text-[20px]">lock</span>
@@ -252,7 +246,7 @@ export const Register = () => {
                   </div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="confirmPassword">Confirm Password</label>
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="confirmPassword">Confirm Password <span className="text-red-500">*</span></label>
                   <div className="relative group">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600 text-slate-400">
                       <span className="material-symbols-outlined text-[20px]">verified_user</span>

@@ -94,7 +94,9 @@ export const Login = () => {
         <form className="flex flex-col gap-5 relative z-10" onSubmit={handleSubmit}>
           
           <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="email">Email Address</label>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="email">
+              Email Address <span className="text-red-500">*</span>
+            </label>
             <div className="relative group">
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors group-focus-within:text-blue-600 text-slate-400">
                 <span className="material-symbols-outlined text-[20px]">mail</span>
@@ -113,7 +115,9 @@ export const Login = () => {
 
           <div className="flex flex-col gap-2">
             <div className="flex justify-between items-center">
-              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="password">Password</label>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest" htmlFor="password">
+                Password <span className="text-red-500">*</span>
+              </label>
               <a className="text-xs text-blue-600 hover:text-blue-700 hover:underline transition-colors font-medium" href="#">Forgot password?</a>
             </div>
             <div className="relative group">
