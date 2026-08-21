@@ -358,7 +358,7 @@ export const Dashboard = () => {
 
           <div
             ref={logContainerRef}
-            className="p-md font-mono text-[12.5px] leading-relaxed h-56 overflow-y-auto flex flex-col gap-[2px] scroll-smooth"
+            className="p-md font-mono text-[12.5px] leading-relaxed h-56 overflow-y-auto flex flex-col gap-[2px] scroll-smooth custom-scrollbar"
           >
             {liveLogs.length === 0 ? (
               <div className="text-slate-500 animate-pulse">⏳ Spawning audit worker threads...</div>
