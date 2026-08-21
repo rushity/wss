@@ -94,50 +94,13 @@ export const Register = () => {
         {/* Value Proposition */}
         <div className="z-10 max-w-md text-left animate-slide-up" style={{ animationDelay: '100ms' }}>
           
-          {/* Security Theme Visual Showcase */}
-          <div className="mb-8 relative">
-            {/* Pill Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold mb-6 shadow-sm">
-              <div className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
-              </div>
-              <span>Next-Gen Web Security Scanner</span>
-            </div>
-
-            {/* Interactive Security Cards Stack */}
-            <div className="space-y-3.5">
-              {/* Card 1: Active Shield Monitor */}
-              <div className="p-4.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 transform hover:-translate-y-0.5 transition-transform duration-300">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-xl bg-white/20 p-1.5 rounded-lg">verified_user</span>
-                    <span className="font-bold text-sm tracking-tight">Active Infrastructure Shield</span>
-                  </div>
-                  <span className="text-[11px] font-semibold bg-emerald-400/20 text-emerald-300 px-2.5 py-0.5 rounded-full border border-emerald-400/30">Live 24/7</span>
-                </div>
-                <p className="text-xs text-blue-100/90 leading-relaxed">Continuous automated vulnerability scanning across endpoints and API servers.</p>
-              </div>
-
-              {/* Grid 2 Column for Feature Pills */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-colors">
-                  <div className="flex items-center gap-2 text-slate-900 font-bold text-xs mb-1">
-                    <span className="material-symbols-outlined text-blue-600 text-[18px]">bug_report</span>
-                    <span>Zero-Day Scans</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-tight">Instant OWASP threat detection</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 hover:border-blue-300 transition-colors">
-                  <div className="flex items-center gap-2 text-slate-900 font-bold text-xs mb-1">
-                    <span className="material-symbols-outlined text-indigo-600 text-[18px]">picture_as_pdf</span>
-                    <span>Audit Reports</span>
-                  </div>
-                  <p className="text-[11px] text-slate-500 leading-tight">Executive PDF export ready</p>
-                </div>
-              </div>
-            </div>
+          {/* Security Graphic Image */}
+          <div className="mb-6 flex justify-center lg:justify-start">
+            <img 
+              src="/shield-3d-podium.png" 
+              alt="LarShield Enterprise Graphic" 
+              className="w-72 max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300" 
+            />
           </div>
 
           <h2 className="text-3xl font-bold text-slate-900 mb-4 leading-tight">Secure your infrastructure with confidence.</h2>
