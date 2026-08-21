@@ -20,6 +20,14 @@ const CustomBarTooltip = ({ active, payload, label }) => {
     );
   }
   return null;
+const getCleanDomain = (url) => {
+  if (!url) return '';
+  try {
+    const u = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return u.hostname || url;
+  } catch (_) {
+    return url.replace(/^https?:\/\//, '').split('/')[0];
+  }
 };
 
 export const Dashboard = () => {
@@ -359,50 +367,115 @@ export const Dashboard = () => {
 
       {/* ── Live Scan Terminal ── */}
       {activeScan && (
-        <div className="w-full bg-[#020617] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl">
-          <div className="bg-[#0f172a] px-md py-sm border-b border-[#1e293b] flex items-center justify-between">
-            <div className="flex items-center gap-sm">
-              <span className="relative flex h-3 w-3">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-              </span>
-              <span className="font-label-md text-label-md text-white font-bold tracking-tight ml-1">
-                LIVE AUDIT — {activeScan.target_url}
-              </span>
-            </div>
-            <div className="flex items-center gap-sm">
-              <span className="font-label-sm text-label-sm text-slate-400 bg-slate-800 px-sm py-[2px] rounded uppercase">
-                {activeScan.scan_type} Scan
-              </span>
-              {recentScans.filter(s => (s.status === 'scanning' || s.status === 'queued') && s.id !== activeScan.id).length > 0 && (
-                <span className="font-label-sm text-label-sm text-sky-400 bg-sky-950/40 border border-sky-800/40 px-sm py-[2px] rounded uppercase">
-                  +{recentScans.filter(s => (s.status === 'scanning' || s.status === 'queued') && s.id !== activeScan.id).length} Queued Next
+        (() => {
+          const runningScansList = recentScans.filter(
+            s => (s.status === 'scanning' || s.status === 'queued') && s.id !== completedScanIdRef.current
+          );
+
+          return (
+            <div className="w-full bg-[#020617] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl">
+              <div className="bg-[#0f172a] px-md py-sm border-b border-[#1e293b] flex flex-wrap items-center justify-between gap-sm">
+                <div className="flex items-center gap-sm">
+                  <span className="relative flex h-3 w-3">
+                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${activeScan.status === 'scanning' ? 'bg-red-400' : 'bg-yellow-400'} opacity-75`}></span>
+                    <span className={`relative inline-flex rounded-full h-3 w-3 ${activeScan.status === 'scanning' ? 'bg-red-500' : 'bg-yellow-500'}`}></span>
+                  </span>
+                  <span className="font-label-md text-label-md text-white font-bold tracking-tight ml-1">
+                    LIVE AUDIT — {activeScan.target_url}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-sm flex-wrap">
+                  {/* Interactive Scan Tabs when multiple scans are active or queued */}
+                  {runningScansList.length > 1 && (
+                    <div className="flex items-center gap-1 bg-[#020617] p-1 rounded-lg border border-[#1e293b]">
+                      {runningScansList.map((s) => {
+                        const isSelected = activeScan.id === s.id;
+                        const domainName = getCleanDomain(s.target_url);
+                        return (
+                          <button
+                            key={s.id}
+                            onClick={() => {
+                              if (activeScan.id !== s.id) {
+                                setActiveScan(s);
+                                activeScanRef.current = s;
+                                setLiveLogs([]);
+                                startLogPolling(s);
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold shadow-sm shadow-sky-500/20'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent'
+                            }`}
+                            title={`Click to inspect audit logs for ${s.target_url}`}
+                          >
+                            <span className={`h-2 w-2 rounded-full ${s.status === 'scanning' ? 'bg-emerald-400 animate-pulse' : 'bg-yellow-400'}`} />
+                            <span className="max-w-[130px] truncate">{domainName}</span>
+                            <span className="text-[10px] uppercase opacity-75">
+                              [{s.status === 'scanning' ? 'Active' : 'Queued'}]
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <span className="font-label-sm text-label-sm text-slate-400 bg-slate-800 px-sm py-[2px] rounded uppercase">
+                    {activeScan.scan_type} Scan
+                  </span>
+
+                  {/* Clickable +N Queued Next button to switch to the next queued scan */}
+                  {runningScansList.filter(s => s.id !== activeScan.id).length > 0 && (
+                    <button
+                      onClick={() => {
+                        const remaining = runningScansList.filter(s => s.id !== activeScan.id);
+                        if (remaining.length > 0) {
+                          const nextTarget = remaining[0];
+                          setActiveScan(nextTarget);
+                          activeScanRef.current = nextTarget;
+                          setLiveLogs([]);
+                          startLogPolling(nextTarget);
+                        }
+                      }}
+                      className="font-label-sm text-label-sm text-sky-400 bg-sky-950/40 border border-sky-800/60 hover:bg-sky-900/60 hover:border-sky-700 px-sm py-[2px] rounded uppercase cursor-pointer transition-colors flex items-center gap-1 group"
+                      title="Click to view next queued scan in audit terminal"
+                    >
+                      <span>+{runningScansList.filter(s => s.id !== activeScan.id).length} Queued Next</span>
+                      <span className="material-symbols-outlined text-xs group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+                    </button>
+                  )}
+
+                  <span className={`font-label-sm text-label-sm ${activeScan.status === 'scanning' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' : 'text-sky-400 bg-sky-400/10 border-sky-400/20'} border px-sm py-[2px] rounded uppercase animate-pulse`}>
+                    ● {activeScan.status === 'scanning' ? 'Running' : 'Queued'}
+                  </span>
+                </div>
+              </div>
+
+              <div
+                ref={logContainerRef}
+                className="p-md font-mono text-[12.5px] leading-relaxed h-56 overflow-y-auto flex flex-col gap-[2px] scroll-smooth custom-scrollbar"
+              >
+                {liveLogs.length === 0 ? (
+                  <div className="text-slate-500 animate-pulse">
+                    {activeScan.status === 'queued' ? '⏳ Waiting in execution queue (prior scan running)...' : '⏳ Spawning audit worker threads...'}
+                  </div>
+                ) : (
+                  liveLogs.map((log, i) => (
+                    <div key={i} className={`${getLogColor(log)} leading-snug`}>{log}</div>
+                  ))
+                )}
+              </div>
+
+              <div className="bg-[#0a0f1e] border-t border-[#1e293b] px-md py-xs flex items-center justify-between">
+                <span className="font-label-sm text-label-sm text-slate-500">{liveLogs.length} log entries</span>
+                <span className="text-slate-400 text-xs animate-pulse">
+                  ● {activeScan.status === 'scanning' ? 'Scanning in progress...' : 'Queued — awaiting execution...'}
                 </span>
-              )}
-              <span className="font-label-sm text-label-sm text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-sm py-[2px] rounded uppercase animate-pulse">
-                ● Running
-              </span>
+              </div>
             </div>
-          </div>
-
-          <div
-            ref={logContainerRef}
-            className="p-md font-mono text-[12.5px] leading-relaxed h-56 overflow-y-auto flex flex-col gap-[2px] scroll-smooth custom-scrollbar"
-          >
-            {liveLogs.length === 0 ? (
-              <div className="text-slate-500 animate-pulse">⏳ Spawning audit worker threads...</div>
-            ) : (
-              liveLogs.map((log, i) => (
-                <div key={i} className={`${getLogColor(log)} leading-snug`}>{log}</div>
-              ))
-            )}
-          </div>
-
-          <div className="bg-[#0a0f1e] border-t border-[#1e293b] px-md py-xs flex items-center justify-between">
-            <span className="font-label-sm text-label-sm text-slate-500">{liveLogs.length} log entries</span>
-            <span className="text-slate-400 text-xs animate-pulse">● Scanning in progress...</span>
-          </div>
-        </div>
+          );
+        })()
       )}
 
       {/* ── Scan Complete Banner ── */}
