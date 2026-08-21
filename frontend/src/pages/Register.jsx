@@ -123,9 +123,9 @@ export const Register = () => {
             {/* Shield Logo Graphic above Create an Account */}
             <div className="flex justify-center mb-6">
               <img 
-                src="/shield-graphic.png" 
-                alt="LarShield Graphic Logo" 
-                className="w-44 sm:w-52 h-auto object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300"
+                src="/LarShield Symbol logo.png" 
+                alt="LarShield Symbol Logo" 
+                className="w-20 sm:w-24 h-auto object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300"
               />
             </div>
 
