@@ -111,6 +111,16 @@ MAX_LOGIN_ATTEMPTS = 5
 LOCKOUT_MINUTES = 15
 
 
+def format_iso_timestamp(dt):
+    if not dt:
+        return None
+    if isinstance(dt, str):
+        return dt
+    if dt.tzinfo is not None:
+        return dt.isoformat()
+    return dt.isoformat() + 'Z'
+
+
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -1101,7 +1111,7 @@ def get_global_stats(current_user):
             'user_email': user_email,
             'target_id': a.target_id,
             'target_name': target_name,
-            'timestamp': a.created_at.isoformat() + 'Z'
+            'timestamp': format_iso_timestamp(a.created_at)
         })
         
     # Get all users for Members tab
@@ -1186,7 +1196,7 @@ def get_all_audit_logs(current_user):
                 'user_email': user_email,
                 'target_id': a.target_id,
                 'target_name': target_name,
-                'timestamp': a.created_at.isoformat() + 'Z'
+                'timestamp': format_iso_timestamp(a.created_at)
             }
 
             if search_query:
@@ -1547,7 +1557,7 @@ def create_scan(current_user):
                         "target_url": new_scan.target_url,
                         "scan_type": new_scan.scan_type,
                         "status": new_scan.status,
-                        "started_at": new_scan.started_at.isoformat() + "Z",
+                        "started_at": format_iso_timestamp(new_scan.started_at),
                     },
                 }
             ),
@@ -1632,10 +1642,8 @@ def get_scans_history(current_user):
                     "org_id": s.org_id,
                     "org_name": org_map.get(s.org_id, "Unknown"),
                     "security_score": effective_score,
-                    "started_at": s.started_at.isoformat() + "Z",
-                    "completed_at": (
-                        s.completed_at.isoformat() + "Z"
-                    ) if s.completed_at else None,
+                    "started_at": format_iso_timestamp(s.started_at),
+                    "completed_at": format_iso_timestamp(s.completed_at),
                     "vulnerabilities_count": {
                         "critical": counts["critical"],
                         "high": counts["high"],

@@ -28,7 +28,9 @@ import ipaddress
 import threading
 import urllib.request
 import urllib.error
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+
+IST = timezone(timedelta(hours=5, minutes=30))
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlparse, urljoin, urlencode, quote
 from utils.vuln_classifier import enrich as _classify_enrich
@@ -139,7 +141,7 @@ def get_scan_logs(scan_id: str) -> list[str]:
 
 
 def add_log(scan_id: str, level: str, message: str) -> None:
-    timestamp = datetime.now().strftime("%H:%M:%S")
+    timestamp = datetime.now(timezone.utc).astimezone(IST).strftime("%H:%M:%S")
     safe_msg  = _mask_secrets(message)
     log_line  = f"[{timestamp}] [{level}] {safe_msg}"
 
@@ -405,7 +407,7 @@ class BaseScanner:
         emit_scan_progress(self.scan_id, 'scan_log', {
             'level': level,
             'message': message,
-            'timestamp': datetime.now(timezone.utc).isoformat()
+            'timestamp': datetime.now(timezone.utc).astimezone(IST).isoformat()
         })
 
     # ── Vulnerability reporting ──────────────────────────────────────────
@@ -460,7 +462,7 @@ class BaseScanner:
             'cvss_score': cvss_score,
             'confidence': confidence,
             'scanner_key': getattr(self, "_SCANNER_KEY", "unknown"),
-            'timestamp': datetime.now(timezone.utc).isoformat()
+            'timestamp': datetime.now(timezone.utc).astimezone(IST).isoformat()
         })
 
     def run(self) -> list[dict]:
