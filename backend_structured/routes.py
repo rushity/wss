@@ -1490,10 +1490,24 @@ def create_scan(current_user):
     if not is_valid_target_url(target_url):
         return jsonify({"message": "Invalid target URL. Please enter a valid public domain or IP address."}), 400
 
+    effective_org_id = current_user.org_id
+    if not effective_org_id:
+        first_org = Organization.query.first()
+        if not first_org:
+            first_org = Organization(name="Default System Tenant", subscription_tier="enterprise")
+            db.session.add(first_org)
+            db.session.commit()
+        effective_org_id = first_org.id
+        current_user.org_id = effective_org_id
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
     try:
         new_scan = Scan(
             user_id=current_user.id,
-            org_id=current_user.org_id,
+            org_id=effective_org_id,
             target_url=target_url,
             scan_type=scan_type,
             status="queued",
@@ -1506,7 +1520,7 @@ def create_scan(current_user):
         if quota and not is_unlimited:
             quota.used_count += 1
 
-        log = AuditLog(admin_id=current_user.id, action=f"Initiated manual {scan_type} scan for {target_url}", target_id=current_user.org_id)
+        log = AuditLog(admin_id=current_user.id, action=f"Initiated manual {scan_type} scan for {target_url}", target_id=effective_org_id)
         db.session.add(log)
         
         db.session.commit()
