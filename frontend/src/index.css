@@ -106,9 +106,9 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2563eb;
   border-radius: 8px;
-  border: 2px solid #020617;
+  border: 1px solid #020617;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -126,7 +126,7 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #2563eb;
   border-radius: 8px;
   border: 1px solid #0f172a;
 }
@@ -134,4 +134,5 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #38bdf8;
 }
+
 
