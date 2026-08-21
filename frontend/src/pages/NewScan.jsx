@@ -183,7 +183,10 @@ export const NewScan = () => {
         const data = await res.json();
         if (res.ok) {
           if (data.scan) {
-            localStorage.setItem('wss_active_scan', JSON.stringify(data.scan));
+            const existingActive = localStorage.getItem('wss_active_scan');
+            if (!existingActive) {
+              localStorage.setItem('wss_active_scan', JSON.stringify(data.scan));
+            }
           }
           toast.success('Scan pipeline initiated successfully!');
           navigate('/dashboard');

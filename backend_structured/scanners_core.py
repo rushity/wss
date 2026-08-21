@@ -73,7 +73,7 @@ import jwt
 import math
 import os
 import re
-import re, time, ipaddress, os, hashlib, threading
+import re, time, ipaddress, os, hashlib, threading, queue
 import requests
 import socket
 import sqlite3
@@ -762,31 +762,79 @@ if CELERY_AVAILABLE and celery:
                 run_background_scan_task.delay(new_scan.id)
 
 
-# â”€â”€ Thread-based launcher (always available, no Redis required) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# ── Thread-based launcher with Sequential FIFO Queue (One scan at a time) ──
+
+_scan_queue = queue.Queue()
+_queue_worker_started = False
+_queue_lock = threading.Lock()
+
+def _scan_queue_worker(app):
+    print("[ScanQueueWorker] Sequential background worker thread started.", flush=True)
+    while True:
+        try:
+            sid = _scan_queue.get()
+            if sid is None:
+                break
+
+            print(f"[ScanQueueWorker] Beginning execution of queued scan {sid}...", flush=True)
+            with app.app_context():
+                try:
+                    s = Scan.query.get(sid)
+                    if s:
+                        s.status = 'scanning'
+                        s.started_at = datetime.now(timezone.utc)
+                        db.session.commit()
+                        add_log(sid, f"[INFO] Target: {s.target_url} ({s.scan_type} Scan)")
+                        add_log(sid, "[INFO] Sequential scan worker starting active audit execution...")
+
+                    _run_scan_job(sid)
+                except Exception as ex:
+                    print(f"[ScanQueueWorker] Error executing scan {sid}: {ex}", flush=True)
+                    traceback.print_exc()
+                finally:
+                    _scan_queue.task_done()
+        except Exception as e:
+            print(f"[ScanQueueWorker] Queue worker exception: {e}", flush=True)
+            time.sleep(1)
 
 def launch_scan(app, scan_id: str) -> bool:
     """
-    Launch a scan using threading or Celery.
-    Defaults to fast background threading unless USE_CELERY=true is explicitly set.
+    Launch a scan using a sequential FIFO queue.
+    Ensures only ONE active scan executes at any given time.
+    Subsequent scans wait in 'queued' state and run automatically when the current scan finishes.
     """
+    global _queue_worker_started
+
     use_celery = os.getenv('USE_CELERY', 'false').lower() == 'true'
     if use_celery and CELERY_AVAILABLE and celery:
         run_background_scan_task.delay(scan_id)
         print(f"[Scanner] Background scan dispatched to Celery for scan {scan_id}", flush=True)
         return True
-        
-    print(f"[Scanner] Spawning background scan thread for scan {scan_id}...", flush=True)
-    def thread_target(application, sid):
-        with application.app_context():
-            try:
-                _run_scan_job(sid)
-            except Exception as ex:
-                print(f"[Scanner] Background thread crashed for scan {sid}: {ex}", flush=True)
-                traceback.print_exc()
 
-    thread = threading.Thread(target=thread_target, args=(app, scan_id), daemon=True)
-    thread.start()
-    print(f"[Scanner] Background thread started for scan {scan_id}", flush=True)
+    with app.app_context():
+        try:
+            s = Scan.query.get(scan_id)
+            if s:
+                active_scan = Scan.query.filter(Scan.status == 'scanning', Scan.id != scan_id).first()
+                if active_scan or not _scan_queue.empty():
+                    s.status = 'queued'
+                    print(f"[Scanner] Active scan in progress ({active_scan.id if active_scan else 'queued item'}). Setting scan {scan_id} to queued.", flush=True)
+                else:
+                    s.status = 'scanning'
+                    s.started_at = datetime.now(timezone.utc)
+                    print(f"[Scanner] Queue empty. Setting scan {scan_id} directly to scanning.", flush=True)
+                db.session.commit()
+        except Exception as err:
+            print(f"[Scanner] Failed updating scan status on launch: {err}", flush=True)
+
+    with _queue_lock:
+        if not _queue_worker_started:
+            worker_thread = threading.Thread(target=_scan_queue_worker, args=(app,), daemon=True)
+            worker_thread.start()
+            _queue_worker_started = True
+
+    _scan_queue.put(scan_id)
+    print(f"[Scanner] Scan {scan_id} placed in execution queue (Current queue size: {_scan_queue.qsize()})", flush=True)
     return True
 
 

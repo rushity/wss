@@ -159,8 +159,12 @@ export const Dashboard = () => {
         s => (s.status === 'scanning' || s.status === 'queued') && s.id !== completedScanIdRef.current
       );
 
-      // Sort by earliest scan creation time
-      runningScans.sort((a, b) => new Date(a.started_at || a.created_at || 0) - new Date(b.started_at || b.created_at || 0));
+      // Sort by status ('scanning' first) and then earliest creation time (FIFO order)
+      runningScans.sort((a, b) => {
+        if (a.status === 'scanning' && b.status !== 'scanning') return -1;
+        if (b.status === 'scanning' && a.status !== 'scanning') return 1;
+        return new Date(a.started_at || a.created_at || 0) - new Date(b.started_at || b.created_at || 0);
+      });
 
       if (runningScans.length > 0) {
         // If we are ALREADY tracking an active scan that is still in progress, STICK WITH IT!
