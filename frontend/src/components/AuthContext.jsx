@@ -80,7 +80,7 @@ export const AuthProvider = ({ children }) => {
   }, [refreshAccessToken]);
 
   // ── Fetch user profile from backend ───────────────────────────────────────
-  const fetchProfile = useCallback(async (activeToken) => {
+  const fetchProfile = useCallback(async (activeToken, retryCount = 0) => {
     try {
       const res = await fetch('/api/auth/profile', {
         headers: { 'Authorization': `Bearer ${activeToken}` },
@@ -109,17 +109,22 @@ export const AuthProvider = ({ children }) => {
         }
         // Only logout if both the access token AND refresh failed (401 Unauthorized)
         doLogout();
+        setLoading(false);
         return;
       }
       
-      // If backend is offline (502, 504), keep loading screen and retry
-      if (res.status >= 500) {
-        setTimeout(() => fetchProfile(activeToken), 2000);
+      // If backend is offline (502, 504), retry max 2 times then finish loading
+      if (res.status >= 500 && retryCount < 2) {
+        setTimeout(() => fetchProfile(activeToken, retryCount + 1), 1500);
         return;
       }
+      setLoading(false);
     } catch {
-      // Network error — retry fetching the profile
-      setTimeout(() => fetchProfile(activeToken), 2000);
+      if (retryCount < 2) {
+        setTimeout(() => fetchProfile(activeToken, retryCount + 1), 1500);
+        return;
+      }
+      setLoading(false);
     }
   }, [refreshAccessToken, scheduleProactiveRefresh, doLogout]);
 
