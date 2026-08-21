@@ -60,6 +60,7 @@ export const LandingPage = () => {
   const navigate = useNavigate();
   const { login, user } = useAuth();
   const [activeFaq, setActiveFaq] = useState(null);
+  const [legalModal, setLegalModal] = useState(null);
 
   const [activeTab, setActiveTab] = useState('Security Score');
 
@@ -872,16 +873,212 @@ export const LandingPage = () => {
 
         <div className="max-w-container-max mx-auto px-gutter pt-xl border-t border-outline-variant/60 flex flex-col md:flex-row justify-between items-center gap-lg">
           <div className="flex gap-lg flex-wrap justify-center text-[12px]">
-            <a className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">Privacy Policy</a>
-            <a className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">Terms of Service</a>
-            <a className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">Status</a>
-            <a className="font-body-sm text-body-sm text-on-surface-variant hover:text-on-surface transition-colors" href="#">Cookies</a>
+            <button onClick={() => setLegalModal('privacy')} className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-0">Privacy Policy</button>
+            <button onClick={() => setLegalModal('terms')} className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-0">Terms of Service</button>
+            <button onClick={() => setLegalModal('status')} className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-0">System Status</button>
+            <button onClick={() => setLegalModal('cookies')} className="font-body-sm text-body-sm text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-0">Cookie Policy</button>
           </div>
           <div className="font-body-sm text-body-sm text-on-surface-variant text-[12px]">
             © 2026 LarShield. All rights reserved.
           </div>
         </div>
       </footer>
+
+      {/* Legal Policies Modal */}
+      {legalModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setLegalModal(null)}
+          />
+          
+          <div className="bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl w-full max-w-2xl relative z-10 animate-fade-in flex flex-col max-h-[90vh] overflow-hidden">
+            
+            {/* Header */}
+            <div className="flex justify-between items-center px-xl py-lg border-b border-outline-variant bg-surface-container-low/40">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary text-[24px]">gavel</span>
+                <h3 className="font-headline-sm font-bold text-on-surface text-[18px]">Legal Policies</h3>
+              </div>
+              <button 
+                onClick={() => setLegalModal(null)}
+                className="text-on-surface-variant hover:text-on-surface hover:bg-surface-container p-2 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                title="Close"
+              >
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+
+            {/* Policy Tab Switcher */}
+            <div className="flex border-b border-outline-variant bg-surface-container-lowest px-xl overflow-x-auto">
+              <button
+                onClick={() => setLegalModal('privacy')}
+                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
+                  legalModal === 'privacy' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                Privacy Policy
+              </button>
+              <button
+                onClick={() => setLegalModal('terms')}
+                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
+                  legalModal === 'terms' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                Terms of Service
+              </button>
+              <button
+                onClick={() => setLegalModal('status')}
+                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
+                  legalModal === 'status' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                System Status
+              </button>
+              <button
+                onClick={() => setLegalModal('cookies')}
+                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
+                  legalModal === 'cookies' 
+                    ? 'border-primary text-primary' 
+                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
+                }`}
+              >
+                Cookie Policy
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-xl overflow-y-auto max-h-[60vh] text-left">
+              {legalModal === 'privacy' && (
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Privacy Policy</h3>
+                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+                  
+                  <p className="text-[13.5px] text-on-surface-variant leading-relaxed mb-lg">
+                    This Privacy Policy describes how Larshield ("we", "us", or "our") collects, uses, and shares your personal information. We are committed to complying with global data protection laws including the GDPR, CCPA, and India's DPDP Act.
+                  </p>
+
+                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">1. Information We Collect</h4>
+                      <p className="mt-1"><strong>Account Data:</strong> Email address, name, billing information, and organization details.</p>
+                      <p className="mt-1"><strong>Scan Data:</strong> Target URLs, scan configurations, identified vulnerabilities, and generated PDF reports.</p>
+                      <p className="mt-1"><strong>Audit Logs:</strong> Origin IP addresses, access timestamps, and API request logs for security and compliance monitoring.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">2. How We Use Your Information</h4>
+                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance. We do not sell your personal data or scan results to third parties.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">3. Data Security</h4>
+                      <p className="mt-1">Scan results and user data are encrypted at rest (AES-256) and in transit (TLS 1.3). We enforce strict role-based access controls internally. However, no internet transmission is entirely secure, and you use the Service at your own risk.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">4. Your Rights (GDPR &amp; CCPA)</h4>
+                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting legal@larshield.com.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {legalModal === 'terms' && (
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Terms of Service</h3>
+                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+
+                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">1. Acceptance of Terms</h4>
+                      <p className="mt-1">By accessing or using the Larshield platform (the "Service"), you agree to be bound by these Terms of Service. If you do not agree, you may not access the Service.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">2. Description of Service</h4>
+                      <p className="mt-1">Larshield provides automated vulnerability scanning, active penetration testing, and security posture management tools. The Service actively probes designated targets to identify security flaws, misconfigurations, and compliance violations.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">3. Authorization and Legal Use</h4>
+                      <p className="mt-1">You explicitly certify that you possess full, legally verifiable authorization from the system owner to conduct active security assessments against any target URL you submit. Unauthorized scanning is illegal and strictly prohibited. You assume all liability for damages resulting from unauthorized use of the Service.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">4. Limitation of Liability</h4>
+                      <p className="mt-1">Larshield is provided "AS IS". Vulnerability scanning can cause unintended disruptions, including data loss or system crashes. To the maximum extent permitted by law, Larshield shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">5. Termination</h4>
+                      <p className="mt-1">We reserve the right to suspend or terminate your account immediately, without prior notice or liability, for any reason, including without limitation if you breach the Terms, particularly regarding unauthorized target scanning.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {legalModal === 'status' && (
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">System Status</h3>
+                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+
+                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">1. Uptime Commitment</h4>
+                      <p className="mt-1">LarShield maintains a 99.9% uptime SLA for all scanning and reporting APIs. Maintenance windows are announced 7 days in advance.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">2. Current Status</h4>
+                      <div className="mt-2 p-md bg-green-500/10 border border-green-500/30 rounded-xl flex items-center gap-md text-green-600 dark:text-green-400">
+                        <span className="w-3 h-3 rounded-full bg-green-500 shrink-0 animate-pulse"></span>
+                        <span className="font-bold text-[13.5px]">All systems are currently operational and operating at optimal performance levels.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {legalModal === 'cookies' && (
+                <div>
+                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Cookie Policy</h3>
+                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+
+                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">1. Essential Cookies</h4>
+                      <p className="mt-1">We use strictly necessary cookies to maintain your session and ensure secure authentication. These cannot be disabled.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-on-surface text-[14px]">2. Analytics Cookies</h4>
+                      <p className="mt-1">We optionally collect telemetry data to improve platform performance. You can opt-out at any time via your account settings.</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="flex justify-end p-xl border-t border-outline-variant bg-surface-container-low/40">
+              <button
+                onClick={() => setLegalModal(null)}
+                className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all text-sm border-0 cursor-pointer shadow-md shadow-primary/20"
+              >
+                I Understand
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 };
