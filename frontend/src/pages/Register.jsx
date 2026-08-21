@@ -77,10 +77,10 @@ export const Register = () => {
       {/* Left Side: Branding & Visual Context */}
       <div className="hidden lg:flex w-5/12 bg-white flex-col justify-between p-12 relative overflow-hidden shrink-0 border-r border-slate-200">
         
-        {/* Background Gradients */}
+        {/* Background Gradients - Shifted to edges for pure crisp white image canvas */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-          <div className="absolute top-[-10%] left-[-20%] w-[600px] h-[600px] rounded-full bg-blue-100/50 blur-[120px] animate-float"></div>
-          <div className="absolute bottom-[10%] right-[-10%] w-[400px] h-[400px] rounded-full bg-indigo-100/50 blur-[100px] animate-float-delayed"></div>
+          <div className="absolute top-[-20%] right-[-20%] w-[500px] h-[500px] rounded-full bg-blue-50/40 blur-[140px]"></div>
+          <div className="absolute bottom-[-10%] left-[-20%] w-[400px] h-[400px] rounded-full bg-indigo-50/40 blur-[120px]"></div>
         </div>
 
         {/* Brand Anchor */}
@@ -100,13 +100,13 @@ export const Register = () => {
             <span>Enterprise Security Suite</span>
           </div>
 
-          {/* Seamless 3D Shield Podium Graphic with Radial Mask */}
-          <div className="mb-6 flex justify-center lg:justify-start relative group">
+          {/* Seamless 3D Shield Podium Graphic - Shifted right & zero background mismatch */}
+          <div className="mb-6 flex justify-center lg:justify-center relative group pl-4 lg:pl-8">
             <div className="absolute inset-0 bg-blue-500/10 rounded-full blur-2xl transform scale-75 group-hover:scale-90 transition-transform duration-500"></div>
             <img 
               src="/shield-3d-podium.png" 
               alt="LarShield Enterprise 3D Podium" 
-              className="w-80 max-w-full h-auto object-contain mix-blend-multiply drop-shadow-xl relative z-10 transform group-hover:scale-105 transition-transform duration-500 [mask-image:radial-gradient(circle_at_center,black_65%,transparent_98%)]" 
+              className="w-80 max-w-full h-auto object-contain mix-blend-multiply drop-shadow-xl relative z-10 transform group-hover:scale-105 transition-transform duration-500 [mask-image:radial-gradient(circle_at_center,black_50%,transparent_85%)]" 
             />
           </div>
 
