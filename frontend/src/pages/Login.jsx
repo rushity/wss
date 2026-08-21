@@ -235,89 +235,52 @@ export const Login = () => {
           <div className="bg-white border border-slate-200 shadow-2xl rounded-2xl w-full max-w-2xl relative z-10 animate-fade-in flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
             
             {/* Header */}
-            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-200 bg-slate-50">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600 text-[24px]">gavel</span>
-                <h3 className="font-bold text-slate-900 text-lg">Legal Policies</h3>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-blue-600 text-[22px]">gavel</span>
+                <h3 className="font-bold text-slate-900 text-base tracking-tight">Legal Policies</h3>
               </div>
               <button 
                 type="button"
                 onClick={() => setLegalModal(null)}
-                className="text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 p-2 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
                 title="Close"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
-
-            {/* Policy Tab Switcher */}
-            <div className="flex border-b border-slate-200 bg-white px-6 overflow-x-auto">
-              <button
-                type="button"
-                onClick={() => setLegalModal('terms')}
-                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'terms' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Terms of Service
-              </button>
-              <button
-                type="button"
-                onClick={() => setLegalModal('aup')}
-                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'aup' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Acceptable Use Policy (AUP)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLegalModal('privacy')}
-                className={`py-3 px-4 text-xs font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'privacy' 
-                    ? 'border-blue-600 text-blue-600' 
-                    : 'border-transparent text-slate-500 hover:text-slate-900'
-                }`}
-              >
-                Privacy Policy
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-6 overflow-y-auto max-h-[60vh] text-left text-sm leading-relaxed text-slate-600 space-y-4">
+            <div className="p-8 overflow-y-auto max-h-[65vh] text-left text-sm leading-relaxed text-slate-600 space-y-6">
               {legalModal === 'terms' && (
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-1">Terms of Service</h3>
-                  <p className="text-xs font-bold text-blue-600 mb-4">Effective Date: August 15, 2026</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-1">Terms of Service</h2>
+                  <p className="text-xs font-semibold text-slate-500 mb-5">Effective Date: August 15, 2026</p>
 
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">1. Acceptance of Terms</h4>
-                      <p className="mt-1">By accessing or using the Larshield platform (the "Service"), you agree to be bound by these Terms of Service. If you do not agree, you may not access the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">1. Acceptance of Terms</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">By accessing or using the Larshield platform (the "Service"), you agree to be bound by these Terms of Service. If you do not agree, you may not access the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">2. Description of Service</h4>
-                      <p className="mt-1">Larshield provides automated vulnerability scanning, active penetration testing, and security posture management tools. The Service actively probes designated targets to identify security flaws, misconfigurations, and compliance violations.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">2. Description of Service</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Larshield provides automated vulnerability scanning, active penetration testing, and security posture management tools. The Service actively probes designated targets to identify security flaws, misconfigurations, and compliance violations.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">3. Authorization and Legal Use</h4>
-                      <p className="mt-1">You explicitly certify that you possess full, legally verifiable authorization from the system owner to conduct active security assessments against any target URL you submit. Unauthorized scanning is illegal and strictly prohibited. You assume all liability for damages resulting from unauthorized use of the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">3. Authorization and Legal Use</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">You explicitly certify that you possess full, legally verifiable authorization from the system owner to conduct active security assessments against any target URL you submit. Unauthorized scanning is illegal and strictly prohibited. You assume all liability for damages resulting from unauthorized use of the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">4. Limitation of Liability</h4>
-                      <p className="mt-1">Larshield is provided "AS IS". Vulnerability scanning can cause unintended disruptions, including data loss or system crashes. To the maximum extent permitted by law, Larshield shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">4. Limitation of Liability</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Larshield is provided "AS IS". Vulnerability scanning can cause unintended disruptions, including data loss or system crashes. To the maximum extent permitted by law, Larshield shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-slate-900 text-sm">5. Termination</h4>
-                      <p className="mt-1">We reserve the right to suspend or terminate your account immediately, without prior notice or liability, for any reason, including without limitation if you breach the Terms, particularly regarding unauthorized target scanning.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">5. Termination</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">We reserve the right to suspend or terminate your account immediately, without prior notice or liability, for any reason, including without limitation if you breach the Terms, particularly regarding unauthorized target scanning.</p>
                     </div>
                   </div>
                 </div>
