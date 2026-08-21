@@ -76,7 +76,7 @@ export const Register = () => {
         {/* Brand Anchor */}
         <div className="flex items-center gap-3 z-10 text-left animate-slide-up">
           <div className="w-12 h-12 flex items-center justify-center">
-            <img src="/shield-graphic.png" alt="LarShield Logo" className="w-full h-full object-contain" />
+            <img src="/LarShield Symbol logo.png" alt="LarShield Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-2xl font-bold tracking-tight brand-gradient">LarShield</span>
         </div>
