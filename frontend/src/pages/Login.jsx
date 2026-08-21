@@ -196,21 +196,31 @@ export const Login = () => {
           </button>
         </form>
 
-        <div className="mt-2 pt-6 text-center border-t border-slate-100 relative z-10 flex flex-col gap-3">
+        <p className="text-xs text-slate-500 text-center mt-5 leading-relaxed relative z-10">
+          By signing in, you agree to our{' '}
+          <button
+            type="button"
+            onClick={() => setLegalModal('terms')}
+            className="text-blue-600 hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
+          >
+            Terms of Service
+          </button>{' '}
+          and{' '}
+          <button
+            type="button"
+            onClick={() => setLegalModal('aup')}
+            className="text-blue-600 hover:underline font-medium bg-transparent border-0 cursor-pointer p-0"
+          >
+            Acceptable Use Policy
+          </button>
+          .
+        </p>
+
+        <div className="mt-6 pt-6 text-center border-t border-slate-100 relative z-10">
           <p className="text-sm text-slate-500">
-            Don't have an account? <br/>
-            <Link className="text-blue-600 hover:text-blue-700 hover:underline mt-2 inline-block font-semibold transition-colors" to="/register">Create an account</Link>
+            Don't have an account?{' '}
+            <Link className="text-blue-600 hover:text-blue-700 hover:underline font-semibold transition-colors ml-1" to="/register">Create an account</Link>
           </p>
-          <div className="flex items-center justify-center gap-2 pt-2 border-t border-slate-100/60">
-            <button
-              type="button"
-              onClick={() => setLegalModal('terms')}
-              className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-blue-600 font-medium transition-colors bg-transparent border-0 cursor-pointer p-0"
-            >
-              <span className="material-symbols-outlined text-[18px] text-blue-600">gavel</span>
-              Legal Policies
-            </button>
-          </div>
         </div>
       </main>
 
