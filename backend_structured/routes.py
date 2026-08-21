@@ -2161,3 +2161,81 @@ def handle_leave_scan(data):
     scan_id = data.get('scan_id')
     if scan_id:
         leave_room(f'scan_{scan_id}')
+
+
+# --- Demo Booking API Endpoints ---
+
+@api_bp.route('/api/demo/book', methods=['POST'])
+def book_demo():
+    data = request.get_json() or {}
+    email = data.get('email', '').strip()
+    company_size = data.get('company_size', '').strip()
+    meeting_date = data.get('meeting_date', '').strip()
+    meeting_time = data.get('meeting_time', '').strip()
+
+    if not email:
+        return jsonify({'message': 'Work email is required.'}), 400
+    if '@' not in email or len(email) < 5:
+        return jsonify({'message': 'Invalid work email format.'}), 400
+    if not company_size:
+        return jsonify({'message': 'Company size is required.'}), 400
+    if not meeting_date or not meeting_time:
+        return jsonify({'message': 'Meeting date and time are required.'}), 400
+
+    try:
+        booking = DemoBooking(
+            email=email,
+            company_size=company_size,
+            meeting_date=meeting_date,
+            meeting_time=meeting_time,
+            status='pending'
+        )
+        db.session.add(booking)
+        db.session.commit()
+        return jsonify({
+            'message': 'Demo booked successfully!',
+            'booking': booking.to_dict()
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Server error booking demo: {str(e)}'}), 500
+
+
+@api_bp.route('/api/demo/bookings', methods=['GET'])
+def get_demo_bookings():
+    try:
+        bookings = DemoBooking.query.order_by(DemoBooking.created_at.desc()).all()
+        return jsonify({'bookings': [b.to_dict() for b in bookings]}), 200
+    except Exception as e:
+        return jsonify({'message': f'Error fetching demo bookings: {str(e)}', 'bookings': []}), 500
+
+
+@api_bp.route('/api/demo/bookings/<booking_id>', methods=['PUT'])
+def update_demo_booking_status(booking_id):
+    data = request.get_json() or {}
+    new_status = data.get('status', 'completed')
+    try:
+        booking = db.session.get(DemoBooking, booking_id)
+        if not booking:
+            return jsonify({'message': 'Booking not found.'}), 404
+        booking.status = new_status
+        db.session.commit()
+        return jsonify({'message': 'Booking status updated successfully!', 'booking': booking.to_dict()}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Error updating booking status: {str(e)}'}), 500
+
+
+@api_bp.route('/api/demo/bookings/<booking_id>', methods=['DELETE'])
+def delete_demo_booking(booking_id):
+    try:
+        booking = db.session.get(DemoBooking, booking_id)
+        if not booking:
+            return jsonify({'message': 'Booking not found.'}), 404
+        db.session.delete(booking)
+        db.session.commit()
+        return jsonify({'message': 'Booking deleted successfully!'}), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'message': f'Error deleting booking: {str(e)}'}), 500
+

@@ -289,6 +289,17 @@ class DemoBooking(db.Model):
         self.meeting_time = meeting_time
         self.status = status
 
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'company_size': self.company_size,
+            'meeting_date': self.meeting_date,
+            'meeting_time': self.meeting_time,
+            'status': self.status,
+            'created_at': self.created_at.isoformat() + 'Z' if self.created_at else None
+        }
+
 class EmailLog(db.Model):
     __tablename__ = 'email_logs'
     

@@ -98,13 +98,15 @@ export const LandingPage = () => {
         })
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error('Failed to book demo');
+        throw new Error(data.message || 'Failed to book demo');
       }
 
       setBookingSuccess(true);
     } catch (err) {
-      setBookingError('Failed to book demo. Please try again later.');
+      setBookingError(err.message || 'Failed to book demo. Please try again later.');
     }
   };
 
