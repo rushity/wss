@@ -427,15 +427,49 @@ const SuperAdminPanel = () => {
         { key: 'count', label: 'Number of Scans', placeholder: 'e.g., 5' }
       ],
       onConfirm: async (values) => {
+        const addedCount = parseInt(values.count);
+        if (isNaN(addedCount) || addedCount <= 0) {
+          toast.error('Please enter a valid scan count');
+          return;
+        }
         try {
           const res = await fetch(`/api/auth/organizations/${org.id}/quotas`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scan_type: values.scan_type, count: parseInt(values.count) })
+            body: JSON.stringify({ scan_type: values.scan_type, count: addedCount })
           });
-          if (res.ok) toast.success('Custom scans assigned successfully!');
-          else toast.error('Failed to assign scans.');
-        } catch (err) { }
+          if (res.ok) {
+            toast.success(`${addedCount} ${values.scan_type} scan(s) assigned successfully!`);
+            // Optimistic instant state update
+            setOrganizations(prevOrgs => prevOrgs.map(o => {
+              if (o.id === org.id) {
+                const existingQuotas = o.quotas || [];
+                let found = false;
+                const updatedQuotas = existingQuotas.map(q => {
+                  if (q.scan_type?.toLowerCase() === values.scan_type?.toLowerCase()) {
+                    found = true;
+                    return {
+                      ...q,
+                      allocated_count: q.allocated_count === -1 ? -1 : (q.allocated_count || 0) + addedCount
+                    };
+                  }
+                  return q;
+                });
+                if (!found) {
+                  updatedQuotas.push({ scan_type: values.scan_type, allocated_count: addedCount, used_count: 0 });
+                }
+                return { ...o, quotas: updatedQuotas };
+              }
+              return o;
+            }));
+            fetchStats();
+          } else {
+            const data = await res.json();
+            toast.error(data.message || 'Failed to assign scans.');
+          }
+        } catch (err) {
+          toast.error('Network error assigning scans.');
+        }
         closePrompt();
       }
     });

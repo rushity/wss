@@ -166,14 +166,43 @@ const AdminPageContent = () => {
         { key: 'count', label: 'Number of Scans', placeholder: 'e.g., 5' }
       ],
       onConfirm: async (values) => {
+        const addedCount = parseInt(values.count);
+        if (isNaN(addedCount) || addedCount <= 0) {
+          setError('Please enter a valid scan count.');
+          closePrompt();
+          return;
+        }
         try {
           const res = await fetch(`/api/auth/organizations/${org.id}/quotas`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ scan_type: values.scan_type, count: parseInt(values.count) })
+            body: JSON.stringify({ scan_type: values.scan_type, count: addedCount })
           });
           if (res.ok) {
-            setMessage(`${values.count} ${values.scan_type} scans assigned to ${org.name}.`);
+            setMessage(`${addedCount} ${values.scan_type} scan(s) assigned to ${org.name}.`);
+            // Optimistic instant UI state update
+            setOrganizations(prevOrgs => prevOrgs.map(o => {
+              if (o.id === org.id) {
+                const existingQuotas = o.quotas || [];
+                let found = false;
+                const updatedQuotas = existingQuotas.map(q => {
+                  if (q.scan_type?.toLowerCase() === values.scan_type?.toLowerCase()) {
+                    found = true;
+                    return {
+                      ...q,
+                      allocated_count: q.allocated_count === -1 ? -1 : (q.allocated_count || 0) + addedCount
+                    };
+                  }
+                  return q;
+                });
+                if (!found) {
+                  updatedQuotas.push({ scan_type: values.scan_type, allocated_count: addedCount, used_count: 0 });
+                }
+                return { ...o, quotas: updatedQuotas };
+              }
+              return o;
+            }));
+            fetchOrganizations();
           } else {
             const data = await res.json();
             setError(data.message || 'Failed to assign scans.');
@@ -364,15 +393,15 @@ const AdminPageContent = () => {
           <table className="w-full">
             <thead>
               <tr className="border-b border-outline-variant bg-surface-container-high select-none">
-                {['Tenant Name', 'Tier', 'Created', 'Actions'].map((h, i) => (
+                {['Tenant Name', 'Tier', 'Quotas', 'Created', 'Actions'].map((h, i) => (
                   <th 
                     key={h} 
                     onClick={() => handleOrgSort(h)}
-                    className={`text-left px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ${i === 3 ? 'text-right' : ''} ${h !== 'Actions' ? 'cursor-pointer hover:bg-surface-container-highest transition-colors group' : ''}`}
+                    className={`text-left px-lg py-md font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider ${i === 4 ? 'text-right' : ''} ${(h !== 'Actions' && h !== 'Quotas') ? 'cursor-pointer hover:bg-surface-container-highest transition-colors group' : ''}`}
                   >
-                    <div className={`flex items-center gap-xs ${i === 3 ? 'justify-end' : ''}`}>
+                    <div className={`flex items-center gap-xs ${i === 4 ? 'justify-end' : ''}`}>
                       {h}
-                      {h !== 'Actions' && (
+                      {(h !== 'Actions' && h !== 'Quotas') && (
                         <span className={`material-symbols-outlined text-[16px] opacity-0 group-hover:opacity-50 transition-opacity ${sortOrgCol === h ? 'opacity-100 group-hover:opacity-100 text-primary' : ''}`}>
                           {sortOrgCol === h && sortOrgDir === 'desc' ? 'arrow_downward' : 'arrow_upward'}
                         </span>
@@ -387,6 +416,22 @@ const AdminPageContent = () => {
                 <tr key={org.id} className="border-b border-outline-variant/60 last:border-0 hover:bg-surface-container-high/50 transition-colors">
                   <td className="px-lg py-md font-label-md font-bold text-on-surface">{org.name}</td>
                   <td className="px-lg py-md font-body-sm capitalize">{org.subscription_tier || 'Free'}</td>
+                  <td className="px-lg py-md font-body-sm">
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      {org.quotas?.map((q, idx) => {
+                        const remaining = q.allocated_count === -1 ? '∞' : Math.max(0, q.allocated_count - (q.used_count || 0));
+                        const style = q.scan_type === 'Deep' ? 'bg-orange-500/10 text-orange-600 border-orange-500/30' :
+                          q.scan_type === 'Advanced' ? 'bg-purple-500/10 text-purple-600 border-purple-500/30' :
+                            'bg-blue-500/10 text-blue-600 border-blue-500/30';
+                        return (
+                          <div key={idx} className={`text-[10.5px] font-bold px-2 py-0.5 rounded border flex items-center gap-1 shadow-sm ${style}`}>
+                            <span className="uppercase opacity-90 tracking-wider">{q.scan_type}:</span>
+                            <span className="text-[12px]">{remaining}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </td>
                   <td className="px-lg py-md font-body-sm text-on-surface-variant">
                     {org.created_at ? new Date(org.created_at).toLocaleDateString() : 'N/A'}
                   </td>
@@ -412,7 +457,7 @@ const AdminPageContent = () => {
               ))}
               {organizations.length === 0 && (
                 <tr>
-                  <td colSpan="4" className="px-lg py-xl text-center text-on-surface-variant font-body-md">
+                  <td colSpan="5" className="px-lg py-xl text-center text-on-surface-variant font-body-md">
                     No organizations found.
                   </td>
                 </tr>
