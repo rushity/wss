@@ -68,6 +68,7 @@ export const NewScan = () => {
   }, [scanType]);
 
   const hasQuota = (methodId) => {
+    if (user?.role === 'admin' || user?.role === 'super_admin') return true;
     if (!quotas || quotas.length === 0) return true;
     const q = quotas.find(q => q.scan_type.toLowerCase() === methodId.toLowerCase());
     if (!q) return true;
@@ -228,7 +229,7 @@ export const NewScan = () => {
     return 1;
   };
 
-  const userTierLevel = getTierLevel(user?.subscription_tier || 'free');
+  const userTierLevel = (user?.role === 'admin' || user?.role === 'super_admin') ? 3 : getTierLevel(user?.subscription_tier || 'free');
 
   return (
     <div className="max-w-4xl mx-auto w-full flex flex-col gap-lg text-left">

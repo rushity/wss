@@ -1458,7 +1458,11 @@ def create_scan(current_user):
     quota = None
     has_quota = False
     is_unlimited = False
-    if current_user.org_id:
+    
+    if current_user.role in ['admin', 'super_admin']:
+        has_quota = True
+        is_unlimited = True
+    elif current_user.org_id:
         # Match case-insensitively just in case
         quota = OrganizationScanQuota.query.filter(
             OrganizationScanQuota.org_id == current_user.org_id,
