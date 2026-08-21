@@ -15,9 +15,10 @@ export const NewScan = () => {
   const [scanConfig, setScanConfig] = useState([]);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showQuotaExceededModal, setShowQuotaExceededModal] = useState(false);
   const [attemptedScan, setAttemptedScan] = useState('');
   const [quotas, setQuotas] = useState([]);
-  
+
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduleFrequency, setScheduleFrequency] = useState('daily');
   const [scheduleTime, setScheduleTime] = useState('02:00');
@@ -43,8 +44,6 @@ export const NewScan = () => {
       })
       .then(res => res.json())
       .then(data => {
-        // The backend returns an array directly if it's the result variable, 
-        // wait, let's log or safely set it. I will set it to data if data is an array, else data.quotas
         if (Array.isArray(data)) {
             setQuotas(data);
         } else if (data.quotas) {
@@ -68,9 +67,23 @@ export const NewScan = () => {
     }
   }, [scanType]);
 
+  const hasQuota = (methodId) => {
+    if (!quotas || quotas.length === 0) return true;
+    const q = quotas.find(q => q.scan_type.toLowerCase() === methodId.toLowerCase());
+    if (!q) return true;
+    if (q.allocated_count === -1) return true;
+    return (q.allocated_count - q.used_count) > 0;
+  };
+
   const handleLaunch = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (!hasQuota(scanType)) {
+      setAttemptedScan(scanType);
+      setShowQuotaExceededModal(true);
+      return;
+    }
 
     if (!targetUrl) {
       setError('Please provide a target host URL.');
@@ -127,7 +140,12 @@ export const NewScan = () => {
           toast.success('Scan scheduled successfully!');
           navigate('/dashboard');
         } else {
-          toast.error(data.message || 'Failed to schedule scan.');
+          if (res.status === 403 || res.status === 402 || data.message?.toLowerCase().includes('quota')) {
+            setAttemptedScan(scanType);
+            setShowQuotaExceededModal(true);
+          } else {
+            toast.error(data.message || 'Failed to schedule scan.');
+          }
         }
       } else {
         const res = await fetch('/api/scans/new', {
@@ -149,9 +167,15 @@ export const NewScan = () => {
 
         const data = await res.json();
         if (res.ok) {
+          toast.success('Scan pipeline initiated successfully!');
           navigate('/dashboard');
         } else {
-          setError(data.message || 'Failed to initialize vulnerability scanning thread.');
+          if (res.status === 403 || res.status === 402 || data.message?.toLowerCase().includes('quota')) {
+            setAttemptedScan(scanType);
+            setShowQuotaExceededModal(true);
+          } else {
+            setError(data.message || 'Failed to initialize vulnerability scanning thread.');
+          }
         }
       }
     } catch (err) {
@@ -205,11 +229,6 @@ export const NewScan = () => {
   };
 
   const userTierLevel = getTierLevel(user?.subscription_tier || 'free');
-
-  const hasQuota = (methodId) => {
-    const q = quotas.find(q => q.scan_type.toLowerCase() === methodId.toLowerCase());
-    return q && (q.allocated_count > -1 && q.allocated_count - q.used_count > 0);
-  };
 
   return (
     <div className="max-w-4xl mx-auto w-full flex flex-col gap-lg text-left">
@@ -266,7 +285,7 @@ export const NewScan = () => {
               Scan Methodology
             </label>
             <p className="font-body-sm text-body-sm text-on-surface-variant">
-              Purchasing a plan provides <strong>3 full scans</strong> for your target website property.
+              Select your scanning depth profile. Standard tiers include allocated vulnerability audit quotas.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-md">
@@ -276,7 +295,9 @@ export const NewScan = () => {
               const isEnabled = config ? config.is_enabled : true;
 
               const isSelected = scanType === method.id;
-              const isLocked = userTierLevel < getTierLevel(requiredTier) && !hasQuota(method.id);
+              const isTierLocked = userTierLevel < getTierLevel(requiredTier);
+              const isQuotaExceeded = !hasQuota(method.id);
+              const isLocked = isTierLocked || isQuotaExceeded;
 
               if (!isEnabled) {
                   return (
@@ -299,9 +320,14 @@ export const NewScan = () => {
                 <div
                   key={method.id}
                   onClick={() => {
-                    if (isLocked) {
+                    if (isTierLocked) {
                       setAttemptedScan(method.title);
                       setShowUpgradeModal(true);
+                      return;
+                    }
+                    if (isQuotaExceeded) {
+                      setAttemptedScan(method.title);
+                      setShowQuotaExceededModal(true);
                       return;
                     }
                     setScanType(method.id);
@@ -320,7 +346,7 @@ export const NewScan = () => {
                         ? 'bg-primary/10 text-primary'
                         : 'bg-surface-container text-secondary group-hover:bg-surface-container-high'
                     }`}>
-                      <span className="material-symbols-outlined">{isLocked ? 'lock' : method.icon}</span>
+                      <span className="material-symbols-outlined">{isLocked ? (isQuotaExceeded ? 'workspace_premium' : 'lock') : method.icon}</span>
                     </div>
 
                     {!isLocked && (
@@ -333,7 +359,7 @@ export const NewScan = () => {
                     )}
                     {isLocked && (
                       <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-1 bg-surface-container-high text-on-surface-variant rounded-md">
-                        {requiredTier}
+                        {isQuotaExceeded ? '0 Quota' : requiredTier}
                       </span>
                     )}
                   </div>
@@ -426,7 +452,7 @@ export const NewScan = () => {
 
         <hr className="border-outline-variant border-t" />
 
-        {/* Legal Warning Notice (Bento style block from previous and template combined) */}
+        {/* Legal Warning Notice */}
         <div className="bg-surface-container-low dark:bg-inverse-surface border-l-4 border-primary p-md rounded-lg text-body-sm font-body-sm text-on-surface-variant leading-relaxed">
           <strong className="text-on-surface font-semibold uppercase tracking-wider block mb-[4px]">
             Operator Notice & Policy Compliance
@@ -458,8 +484,7 @@ export const NewScan = () => {
         </div>
       </form>
 
-
-      {/* Upgrade Modal */}
+      {/* Subscription Tier Required Modal */}
       {showUpgradeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-md">
           <div className="absolute inset-0 bg-scrim/50 backdrop-blur-sm" onClick={() => setShowUpgradeModal(false)}></div>
@@ -489,7 +514,10 @@ export const NewScan = () => {
                 Cancel
               </button>
               <button 
-                onClick={() => navigate('/pricing')}
+                onClick={() => {
+                  setShowUpgradeModal(false);
+                  navigate('/pricing');
+                }}
                 className="px-md py-sm rounded-lg font-label-md text-label-md bg-primary text-on-primary hover:opacity-90 transition-opacity cursor-pointer border-0 shadow-sm flex items-center gap-xs"
               >
                 View Plans
@@ -499,6 +527,65 @@ export const NewScan = () => {
           </div>
         </div>
       )}
+
+      {/* Scan Quota Exceeded Modal Popup */}
+      {showQuotaExceededModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity animate-fade-in"
+            onClick={() => setShowQuotaExceededModal(false)}
+          ></div>
+
+          {/* Modal Content */}
+          <div className="relative bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-md w-full p-8 overflow-hidden z-10 animate-slide-up text-left">
+            
+            {/* Top Glowing Icon Circle */}
+            <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-5">
+              <span className="material-symbols-outlined text-amber-600 text-[32px]">workspace_premium</span>
+            </div>
+
+            {/* Header Badge */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-xs font-bold mb-3">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              <span>Quota Limit Reached (0 Scans Left)</span>
+            </div>
+
+            {/* Modal Title */}
+            <h3 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
+              Scanning Quota Exhausted
+            </h3>
+
+            {/* Modal Description */}
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">
+              Your organization has used all allocated scan credits for <strong className="text-slate-900">{attemptedScan || scanType} Scans</strong>. To execute additional vulnerability scans, please upgrade your plan or purchase scan credits.
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setShowQuotaExceededModal(false)}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors border border-slate-200 cursor-pointer bg-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowQuotaExceededModal(false);
+                  navigate('/pricing');
+                }}
+                className="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 transition-all shadow-md shadow-blue-600/20 flex items-center gap-2 cursor-pointer border-0"
+              >
+                <span>Upgrade Plan</span>
+                <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
