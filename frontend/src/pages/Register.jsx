@@ -27,6 +27,16 @@ export const Register = () => {
     e.preventDefault();
     setError('');
 
+    if (!fullName.trim() || !companyName.trim() || !email.trim() || !password || !confirmPassword) {
+      setError('All fields are compulsory. Please fill in all required details.');
+      return;
+    }
+
+    if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[^A-Za-z0-9]/.test(password)) {
+      setError('Password must meet all 4 security requirements.');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
       return;
@@ -293,6 +303,7 @@ export const Register = () => {
                     className="peer w-5 h-5 appearance-none rounded-md border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all cursor-pointer" 
                     id="terms" 
                     type="checkbox"
+                    required
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                   />
