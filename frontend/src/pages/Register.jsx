@@ -306,7 +306,7 @@ export const Register = () => {
 
               {/* Agreement */}
               <div className="flex items-start gap-3 mt-2">
-                <div className="relative flex items-center pt-0.5">
+                <div className="relative flex items-center justify-center w-5 h-5 shrink-0 mt-0.5">
                   <input 
                     className="peer w-5 h-5 appearance-none rounded-md border border-slate-300 bg-white checked:bg-blue-600 checked:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all cursor-pointer" 
                     id="terms" 
@@ -315,7 +315,14 @@ export const Register = () => {
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
                   />
-                  <span className="material-symbols-outlined absolute text-white text-[16px] pointer-events-none opacity-0 peer-checked:opacity-100 left-[2px] top-[4px]">check</span>
+                  <svg 
+                    className="w-3.5 h-3.5 absolute text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity inset-0 m-auto stroke-[3]" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
                 </div>
                 <label className="text-sm text-slate-600 cursor-pointer select-none hover:text-slate-900 transition-colors leading-relaxed" htmlFor="terms">
                   I agree to the <button type="button" onClick={() => setLegalModal('terms')} className="text-blue-600 hover:underline font-medium bg-transparent border-0 cursor-pointer p-0">Terms of Service</button> and <button type="button" onClick={() => setLegalModal('privacy')} className="text-blue-600 hover:underline font-medium bg-transparent border-0 cursor-pointer p-0">Privacy Policy</button>.
