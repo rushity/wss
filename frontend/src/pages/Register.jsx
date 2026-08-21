@@ -94,13 +94,29 @@ export const Register = () => {
         {/* Value Proposition */}
         <div className="z-10 max-w-md text-left animate-slide-up" style={{ animationDelay: '100ms' }}>
           
-          {/* Security Graphic Image */}
-          <div className="mb-6 flex justify-center lg:justify-start">
-            <img 
-              src="/shield-3d-podium.png" 
-              alt="LarShield Enterprise Graphic" 
-              className="w-72 max-w-full h-auto object-contain drop-shadow-2xl hover:scale-105 transition-transform duration-300" 
-            />
+          {/* High-End 3D Security Emblem Showcase */}
+          <div className="mb-8 relative group">
+            {/* Ambient Background Glow */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600/15 to-indigo-600/15 rounded-3xl blur-xl opacity-75 group-hover:opacity-100 transition duration-500"></div>
+
+            {/* Main Showcase Container */}
+            <div className="relative rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-200/60 p-6 flex flex-col items-center justify-center overflow-hidden">
+              
+              {/* Top Pill Badge */}
+              <div className="self-start inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/60 text-blue-700 text-xs font-semibold mb-1 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></span>
+                <span>Enterprise Security Suite</span>
+              </div>
+
+              {/* 3D Shield Graphic with Multiply Blend to remove white square box */}
+              <div className="relative w-full flex justify-center py-2">
+                <img 
+                  src="/shield-3d-podium.png" 
+                  alt="LarShield Enterprise 3D Podium" 
+                  className="w-64 max-w-full h-auto object-contain mix-blend-multiply drop-shadow-md transform group-hover:scale-105 transition-transform duration-500" 
+                />
+              </div>
+            </div>
           </div>
 
           <h2 className="text-3xl font-bold text-slate-900 mb-4 leading-tight">Secure your infrastructure with confidence.</h2>
