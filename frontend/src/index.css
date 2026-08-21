@@ -94,25 +94,30 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Custom Modern Rounded Dark Scrollbars */
+/* Permanent Clean White Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #ffffff rgba(15, 23, 42, 0.5);
+}
+
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: rgba(15, 23, 42, 0.5);
   border-radius: 8px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2563eb;
+  background: #ffffff !important;
   border-radius: 8px;
-  border: 1px solid #020617;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #38bdf8;
+  background: #ffffff !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -121,18 +126,18 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #020617;
+  background: rgba(15, 23, 42, 0.5);
   border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #2563eb;
+  background: #ffffff !important;
   border-radius: 8px;
-  border: 1px solid #0f172a;
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #38bdf8;
+  background: #ffffff !important;
 }
 
 
