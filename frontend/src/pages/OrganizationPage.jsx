@@ -7,6 +7,22 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 const SEVERITY_COLORS = ['#EF4444', '#F97316', '#EAB308', '#3B82F6']; // Critical, High, Medium, Low
 const SCAN_TYPE_COLORS = ['#3B82F6', '#8B5CF6', '#10B981', '#F59E0B'];
 
+const CustomChartTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#0f172a] border border-[#334155] rounded-lg px-3 py-1.5 shadow-xl text-left pointer-events-none">
+        {label && <div className="text-[12px] font-bold text-sky-400 leading-tight mb-1">{label}</div>}
+        {payload.map((item, index) => (
+          <div key={index} className="text-[12px] font-medium text-slate-200 leading-tight">
+            <span style={{ color: item.color || '#38bdf8' }}>{item.name || item.dataKey}</span> : <span className="font-bold text-white">{item.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 export const OrganizationPage = () => {
   const { user, token } = useAuth();
   const navigate = useNavigate();
@@ -242,7 +258,7 @@ export const OrganizationPage = () => {
                     <Cell key={`scan-cell-${index}`} fill={SCAN_TYPE_COLORS[index % SCAN_TYPE_COLORS.length]} />
                   ))}
                 </Pie>
-                <RechartsTooltip contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }} />
+                <RechartsTooltip content={<CustomChartTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -264,10 +280,7 @@ export const OrganizationPage = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                   <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 11 }} />
                   <YAxis stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} domain={[0, 100]} />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
-                    itemStyle={{ color: '#fff' }}
-                  />
+                  <RechartsTooltip content={<CustomChartTooltip />} />
                   <Line type="monotone" dataKey="securityScore" name="Security Score" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2 }} activeDot={{ r: 6 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -289,10 +302,7 @@ export const OrganizationPage = () => {
                 <CartesianGrid strokeDasharray="3 3" stroke="#374151" vertical={false} />
                 <XAxis dataKey="name" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
                 <YAxis stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                <RechartsTooltip 
-                  contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
-                  cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                />
+                <RechartsTooltip content={<CustomChartTooltip />} />
                 <Bar dataKey="value" name="Risks" radius={[4, 4, 0, 0]}>
                   <LabelList dataKey="value" position="top" fill="#9CA3AF" fontSize={12} fontWeight="bold" />
                   {vulnerabilityTypes.map((entry, index) => (
@@ -321,10 +331,7 @@ export const OrganizationPage = () => {
                   <XAxis dataKey="month" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
                   <YAxis yAxisId="left" orientation="left" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
                   <YAxis yAxisId="right" orientation="right" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
-                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                  />
+                  <RechartsTooltip content={<CustomChartTooltip />} />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                   <Bar yAxisId="left" dataKey="scans" name="Total Scans" fill="#3B82F6" radius={[4, 4, 0, 0]} maxBarSize={40}>
                     <LabelList dataKey="scans" position="insideTop" fill="#ffffff" fontSize={11} fontWeight="bold" offset={10} />
@@ -353,9 +360,7 @@ export const OrganizationPage = () => {
                   <CartesianGrid strokeDasharray="3 3" stroke="#374151" horizontal={false} />
                   <XAxis type="number" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 12 }} />
                   <YAxis dataKey="category" type="category" stroke="#9CA3AF" tick={{ fill: '#9CA3AF', fontSize: 11 }} width={110} />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#1F2937', border: '1px solid #374151', borderRadius: '8px', color: '#fff' }}
-                  />
+                  <RechartsTooltip content={<CustomChartTooltip />} />
                   <Bar dataKey="count" name="Detections" fill="#F97316" radius={[0, 4, 4, 0]}>
                     <LabelList dataKey="count" position="right" fill="#9CA3AF" fontSize={11} fontWeight="bold" />
                   </Bar>

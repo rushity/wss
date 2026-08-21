@@ -8,6 +8,20 @@ import { OrganizationSelector } from '../components/OrganizationSelector';
 
 const ACTIVE_SCAN_KEY = 'wss_active_scan'; // localStorage key for persistence
 
+const CustomBarTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-[#0f172a] border border-[#334155] rounded-lg px-3 py-1.5 shadow-xl text-left pointer-events-none">
+        <div className="text-[12px] font-bold text-sky-400 leading-tight">{label}</div>
+        <div className="text-[12px] font-semibold text-slate-200 leading-tight mt-1">
+          Findings : <span className="font-extrabold text-white">{payload[0].value}</span>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export const Dashboard = () => {
   const { token, refreshAccessToken, user } = useAuth();
   
@@ -545,10 +559,7 @@ export const Dashboard = () => {
                     allowDecimals={false} 
                     tick={{ fill: '#000000', fontSize: 11, fontWeight: 'bold' }} 
                   />
-                  <RechartsTooltip 
-                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#f8fafc' }}
-                    formatter={(val) => [val, 'Findings']}
-                  />
+                  <RechartsTooltip content={<CustomBarTooltip />} />
                   <Bar dataKey="count" name="Findings" radius={[8, 8, 0, 0]} barSize={45}>
                     <Cell key="cell-0" fill="url(#colorCritical)" />
                     <Cell key="cell-1" fill="url(#colorHigh)" />
