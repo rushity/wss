@@ -59,15 +59,20 @@ def create_app():
             db.session.commit()
             print("[System] Superadmin user seeded (superadmin@gmail.com)")
         
-        # Cleanup stale scans that were interrupted during a restart
+        # Cleanup stale scans that were truly abandoned/interrupted (> 10 mins old)
         from .models import Scan
+        from datetime import datetime, timezone, timedelta
         try:
-            stale_scans = Scan.query.filter(Scan.status.in_(['queued', 'scanning'])).all()
+            ten_mins_ago = datetime.now(timezone.utc) - timedelta(minutes=10)
+            stale_scans = Scan.query.filter(
+                Scan.status.in_(['queued', 'scanning']),
+                (Scan.started_at < ten_mins_ago) | (Scan.started_at == None)
+            ).all()
             for scan in stale_scans:
                 scan.status = 'failed'
             if stale_scans:
                 db.session.commit()
-                print(f"[System] Marked {len(stale_scans)} interrupted scans as failed on startup.")
+                print(f"[System] Marked {len(stale_scans)} stale/interrupted scans as failed on startup.")
         except Exception as e:
             print(f"[System] Failed to clean up stale scans: {e}")
 

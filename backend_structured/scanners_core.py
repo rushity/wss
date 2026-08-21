@@ -766,15 +766,16 @@ if CELERY_AVAILABLE and celery:
 
 def launch_scan(app, scan_id: str) -> bool:
     """
-    Launch a scan using Celery for robust background processing.
-    Falls back to threading ONLY if Redis is unavailable.
+    Launch a scan using threading or Celery.
+    Defaults to fast background threading unless USE_CELERY=true is explicitly set.
     """
-    if CELERY_AVAILABLE and celery:
+    use_celery = os.getenv('USE_CELERY', 'false').lower() == 'true'
+    if use_celery and CELERY_AVAILABLE and celery:
         run_background_scan_task.delay(scan_id)
         print(f"[Scanner] Background scan dispatched to Celery for scan {scan_id}", flush=True)
         return True
         
-    print("[Scanner] WARNING: Celery is not available. Falling back to threading.")
+    print(f"[Scanner] Spawning background scan thread for scan {scan_id}...", flush=True)
     def thread_target(application, sid):
         with application.app_context():
             try:
@@ -787,6 +788,7 @@ def launch_scan(app, scan_id: str) -> bool:
     thread.start()
     print(f"[Scanner] Background thread started for scan {scan_id}", flush=True)
     return True
+
 
 
 # --- From pdf_generator.py ---
