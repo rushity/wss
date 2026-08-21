@@ -43,6 +43,13 @@ export const Dashboard = () => {
   const logPollRef = useRef(null);
   const dashboardPollRef = useRef(null);
   const activeScanRef = useRef(null);
+  const completedScanIdRef = useRef(null);
+
+  const markScanAsCompleted = useCallback((id) => {
+    completedScanIdRef.current = id;
+    setCompletedScanId(id);
+  }, []);
+
   // Always read the latest token from localStorage so the poller works even
   // after a token refresh (avoids stale closure issues)
   const getToken = useCallback(() =>
@@ -118,7 +125,7 @@ export const Dashboard = () => {
           setActiveScan(null);
           activeScanRef.current = null;
           persistActiveScan(null); // clear localStorage
-          setCompletedScanId(scan.id);
+          markScanAsCompleted(scan.id);
           fetchDashboard();
         }
       } catch (err) {
@@ -127,7 +134,7 @@ export const Dashboard = () => {
         if (consecutiveErrors >= MAX_ERRORS) stopLogPolling();
       }
     }, 1500);
-  }, [getToken, refreshAccessToken, stopLogPolling, persistActiveScan]);
+  }, [getToken, refreshAccessToken, stopLogPolling, persistActiveScan, markScanAsCompleted]);
 
   // ── Dashboard Data Fetch ─────────────────────────────────────
   const fetchDashboard = useCallback(async () => {
@@ -148,7 +155,7 @@ export const Dashboard = () => {
       setLastUpdated(new Date());
 
       const running = (historyData.scans || []).find(
-        s => s.status === 'scanning' || s.status === 'queued'
+        s => (s.status === 'scanning' || s.status === 'queued') && s.id !== completedScanIdRef.current
       );
 
       if (running) {
@@ -158,6 +165,11 @@ export const Dashboard = () => {
           startLogPolling(running);
         }
       } else if (!running && activeScanRef.current && !logPollRef.current) {
+        setActiveScan(null);
+        activeScanRef.current = null;
+        persistActiveScan(null);
+        stopLogPolling();
+      } else if (!running && activeScanRef.current && activeScanRef.current.id === completedScanIdRef.current) {
         setActiveScan(null);
         activeScanRef.current = null;
         persistActiveScan(null);
