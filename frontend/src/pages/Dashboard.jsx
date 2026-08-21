@@ -88,12 +88,13 @@ export const Dashboard = () => {
     const MAX_ERRORS = 20; // tolerate up to 20 failures (covers token refresh + brief outages)
 
     const pollLogs = async () => {
-      if (!activeScanRef.current) { stopLogPolling(); return; }
+      const currentScan = activeScanRef.current || scan;
+      if (!currentScan) { stopLogPolling(); return; }
 
       let activeToken = getToken();
 
       try {
-        let res = await fetch(`/api/scans/${scan.id}/logs`, {
+        let res = await fetch(`/api/scans/${currentScan.id}/logs`, {
           headers: { 'Authorization': `Bearer ${activeToken}` }
         });
 
@@ -102,7 +103,7 @@ export const Dashboard = () => {
           const newToken = await refreshAccessToken();
           if (newToken) {
             activeToken = newToken;
-            res = await fetch(`/api/scans/${scan.id}/logs`, {
+            res = await fetch(`/api/scans/${currentScan.id}/logs`, {
               headers: { 'Authorization': `Bearer ${newToken}` }
             });
           }
@@ -116,7 +117,7 @@ export const Dashboard = () => {
 
         consecutiveErrors = 0;
         const data = await res.json();
-        if (data.logs && data.logs.length > 0) {
+        if (data.logs) {
           setLiveLogs(data.logs);
         }
 
@@ -125,7 +126,7 @@ export const Dashboard = () => {
           setActiveScan(null);
           activeScanRef.current = null;
           persistActiveScan(null); // clear localStorage
-          markScanAsCompleted(scan.id);
+          markScanAsCompleted(currentScan.id);
           fetchDashboard();
         }
       } catch (err) {
