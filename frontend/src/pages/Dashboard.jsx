@@ -154,26 +154,40 @@ export const Dashboard = () => {
       setRecentScans(historyData.scans || []);
       setLastUpdated(new Date());
 
-      const running = (historyData.scans || []).find(
+      // Filter all currently active or queued scans (excluding completed ones)
+      const runningScans = (historyData.scans || []).filter(
         s => (s.status === 'scanning' || s.status === 'queued') && s.id !== completedScanIdRef.current
       );
 
-      if (running) {
-        if (!activeScanRef.current || activeScanRef.current.id !== running.id) {
-          setActiveScan(running);
+      // Sort by earliest scan creation time
+      runningScans.sort((a, b) => new Date(a.started_at || a.created_at || 0) - new Date(b.started_at || b.created_at || 0));
+
+      if (runningScans.length > 0) {
+        // If we are ALREADY tracking an active scan that is still in progress, STICK WITH IT!
+        const currentStillRunning = activeScanRef.current
+          ? runningScans.find(s => s.id === activeScanRef.current.id)
+          : null;
+
+        if (currentStillRunning) {
+          // Keep current active scan without resetting logs or switching
+          setActiveScan(currentStillRunning);
+          activeScanRef.current = currentStillRunning;
+        } else {
+          // No active scan tracked currently — pick the earliest scan in queue
+          const nextScan = runningScans[0];
+          setActiveScan(nextScan);
+          activeScanRef.current = nextScan;
           setLiveLogs([]);
-          startLogPolling(running);
+          startLogPolling(nextScan);
         }
-      } else if (!running && activeScanRef.current && !logPollRef.current) {
-        setActiveScan(null);
-        activeScanRef.current = null;
-        persistActiveScan(null);
-        stopLogPolling();
-      } else if (!running && activeScanRef.current && activeScanRef.current.id === completedScanIdRef.current) {
-        setActiveScan(null);
-        activeScanRef.current = null;
-        persistActiveScan(null);
-        stopLogPolling();
+      } else {
+        // No active scans remaining
+        if (activeScanRef.current) {
+          setActiveScan(null);
+          activeScanRef.current = null;
+          persistActiveScan(null);
+          stopLogPolling();
+        }
       }
     } catch (err) {
       console.error('[Dashboard] Fetch error:', err);
@@ -362,6 +376,11 @@ export const Dashboard = () => {
               <span className="font-label-sm text-label-sm text-slate-400 bg-slate-800 px-sm py-[2px] rounded uppercase">
                 {activeScan.scan_type} Scan
               </span>
+              {recentScans.filter(s => (s.status === 'scanning' || s.status === 'queued') && s.id !== activeScan.id).length > 0 && (
+                <span className="font-label-sm text-label-sm text-sky-400 bg-sky-950/40 border border-sky-800/40 px-sm py-[2px] rounded uppercase">
+                  +{recentScans.filter(s => (s.status === 'scanning' || s.status === 'queued') && s.id !== activeScan.id).length} Queued Next
+                </span>
+              )}
               <span className="font-label-sm text-label-sm text-yellow-400 bg-yellow-400/10 border border-yellow-400/20 px-sm py-[2px] rounded uppercase animate-pulse">
                 ● Running
               </span>
