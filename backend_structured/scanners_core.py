@@ -784,8 +784,8 @@ def _scan_queue_worker(app):
                         s.status = 'scanning'
                         s.started_at = datetime.now(timezone.utc)
                         db.session.commit()
-                        add_log(sid, f"[INFO] Target: {s.target_url} ({s.scan_type} Scan)")
-                        add_log(sid, "[INFO] Sequential scan worker starting active audit execution...")
+                        add_log(sid, "INFO", f"Target: {s.target_url} ({s.scan_type} Scan)")
+                        add_log(sid, "INFO", "Sequential scan worker starting active audit execution...")
 
                     _run_scan_job(sid)
                 except Exception as ex:
