@@ -1586,7 +1586,6 @@ def fetch_scan_logs(current_user, scan_id):
 
 @scans_bp.route("/history", methods=["GET"])
 @token_required
-@cache.cached(timeout=30, query_string=True)
 def get_scans_history(current_user):
     try:
 
