@@ -97,7 +97,27 @@ const BillingTierCard = ({ tier, onSave }) => {
 };
 
 const SuperAdminPanel = () => {
-  const { user } = useAuth();
+  const { user, refreshAccessToken } = useAuth();
+
+  const authFetch = async (url, options = {}) => {
+    let activeToken = localStorage.getItem('wss_token');
+    const headers = {
+      'Authorization': `Bearer ${activeToken}`,
+      ...(options.headers || {})
+    };
+
+    let res = await fetch(url, { ...options, headers });
+
+    if (res.status === 401 && refreshAccessToken) {
+      const newToken = await refreshAccessToken();
+      if (newToken) {
+        headers['Authorization'] = `Bearer ${newToken}`;
+        res = await fetch(url, { ...options, headers });
+      }
+    }
+    return res;
+  };
+
   const [organizations, setOrganizations] = useState([]);
   const [recentPayments, setRecentPayments] = useState([]);
   const [trends, setTrends] = useState([]);
@@ -210,11 +230,10 @@ const SuperAdminPanel = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem('wss_token');
       const [globalRes, bookingsRes, emailLogsRes] = await Promise.all([
-        fetch('/api/auth/global-stats', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/demo/bookings', { headers: { 'Authorization': `Bearer ${token}` } }),
-        fetch('/api/auth/email-logs', { headers: { 'Authorization': `Bearer ${token}` } })
+        authFetch('/api/auth/global-stats'),
+        authFetch('/api/demo/bookings'),
+        authFetch('/api/auth/email-logs')
       ]);
       if (globalRes.ok) {
         const data = await globalRes.json();

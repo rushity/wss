@@ -172,9 +172,11 @@ export const Layout = ({ children }) => {
             </div>
             <div>
               <h1 className="font-bold brand-gradient tracking-tight m-0 text-[15px] leading-snug">LarShield</h1>
-              <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-wider m-0">
-                {(user?.role === 'super_admin' || user?.role === 'admin') ? 'Admin' : 
-                 user?.role === 'org_admin' ? 'Organization' : 
+              <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-wider m-0 font-semibold">
+                {user?.role === 'super_admin' ? 'Super Admin' : 
+                 user?.role === 'admin' ? 'Admin' : 
+                 user?.role === 'support_engineer' ? 'Support Engineer' : 
+                 user?.role === 'org_admin' ? 'Organization Admin' : 
                  user?.subscription_tier || 'Free Tier'}
               </p>
             </div>

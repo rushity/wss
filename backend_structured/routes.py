@@ -103,7 +103,7 @@ from .scanners_core import *
 
 auth_bp = Blueprint('auth', __name__)
 JWT_SECRET = os.getenv('JWT_SECRET', 'fallback_secret')
-JWT_EXPIRY_MINUTES = int(os.getenv('JWT_EXPIRY_MINUTES', '15'))
+JWT_EXPIRY_MINUTES = int(os.getenv('JWT_EXPIRY_MINUTES', '1440'))
 JWT_REFRESH_EXPIRY_DAYS = int(os.getenv('JWT_REFRESH_EXPIRY_DAYS', '7'))
 
 # Account lockout config
