@@ -892,99 +892,57 @@ export const LandingPage = () => {
             onClick={() => setLegalModal(null)}
           />
           
-          <div className="bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl w-full max-w-2xl relative z-10 animate-fade-in flex flex-col max-h-[90vh] overflow-hidden">
+          <div className="bg-white border border-slate-200 shadow-2xl rounded-2xl w-full max-w-2xl relative z-10 animate-fade-in flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
             
             {/* Header */}
-            <div className="flex justify-between items-center px-xl py-lg border-b border-outline-variant bg-surface-container-low/40">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary text-[24px]">gavel</span>
-                <h3 className="font-headline-sm font-bold text-on-surface text-[18px]">Legal Policies</h3>
+            <div className="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-white">
+              <div className="flex items-center gap-2.5">
+                <span className="material-symbols-outlined text-blue-600 text-[22px]">gavel</span>
+                <h3 className="font-bold text-slate-900 text-base tracking-tight">Legal Policies</h3>
               </div>
               <button 
                 onClick={() => setLegalModal(null)}
-                className="text-on-surface-variant hover:text-on-surface hover:bg-surface-container p-2 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                className="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-1.5 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
                 title="Close"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
-
-            {/* Policy Tab Switcher */}
-            <div className="flex border-b border-outline-variant bg-surface-container-lowest px-xl overflow-x-auto">
-              <button
-                onClick={() => setLegalModal('privacy')}
-                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'privacy' 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Privacy Policy
-              </button>
-              <button
-                onClick={() => setLegalModal('terms')}
-                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'terms' 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Terms of Service
-              </button>
-              <button
-                onClick={() => setLegalModal('status')}
-                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'status' 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                System Status
-              </button>
-              <button
-                onClick={() => setLegalModal('cookies')}
-                className={`py-md px-md text-[13px] font-bold border-b-2 transition-all cursor-pointer bg-transparent border-0 whitespace-nowrap ${
-                  legalModal === 'cookies' 
-                    ? 'border-primary text-primary' 
-                    : 'border-transparent text-on-surface-variant hover:text-on-surface'
-                }`}
-              >
-                Cookie Policy
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Modal Body */}
-            <div className="p-xl overflow-y-auto max-h-[60vh] text-left">
+            <div className="p-8 overflow-y-auto max-h-[65vh] text-left text-sm leading-relaxed text-slate-600 space-y-6">
               {legalModal === 'privacy' && (
                 <div>
-                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Privacy Policy</h3>
-                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-1">Privacy Policy</h2>
+                  <p className="text-xs font-semibold text-slate-500 mb-5">Effective Date: August 15, 2026</p>
                   
-                  <p className="text-[13.5px] text-on-surface-variant leading-relaxed mb-lg">
+                  <p className="text-sm text-slate-600 leading-relaxed mb-6">
                     This Privacy Policy describes how Larshield ("we", "us", or "our") collects, uses, and shares your personal information. We are committed to complying with global data protection laws including the GDPR, CCPA, and India's DPDP Act.
                   </p>
 
-                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">1. Information We Collect</h4>
-                      <p className="mt-1"><strong>Account Data:</strong> Email address, name, billing information, and organization details.</p>
-                      <p className="mt-1"><strong>Scan Data:</strong> Target URLs, scan configurations, identified vulnerabilities, and generated PDF reports.</p>
-                      <p className="mt-1"><strong>Audit Logs:</strong> Origin IP addresses, access timestamps, and API request logs for security and compliance monitoring.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">1. Information We Collect</h3>
+                      <ul className="list-disc pl-5 space-y-2 text-sm text-slate-600">
+                        <li><strong>Account Data:</strong> Email address, name, billing information, and organization details.</li>
+                        <li><strong>Scan Data:</strong> Target URLs, scan configurations, identified vulnerabilities, and generated PDF reports.</li>
+                        <li><strong>Audit Logs:</strong> Origin IP addresses, access timestamps, and API request logs for security and compliance monitoring.</li>
+                      </ul>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">2. How We Use Your Information</h4>
-                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance. We do not sell your personal data or scan results to third parties.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">2. How We Use Your Information</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance. We do not sell your personal data or scan results to third parties.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">3. Data Security</h4>
-                      <p className="mt-1">Scan results and user data are encrypted at rest (AES-256) and in transit (TLS 1.3). We enforce strict role-based access controls internally. However, no internet transmission is entirely secure, and you use the Service at your own risk.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">3. Data Security</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Scan results and user data are encrypted at rest (AES-256) and in transit (TLS 1.3). We enforce strict role-based access controls internally. However, no internet transmission is entirely secure, and you use the Service at your own risk.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">4. Your Rights (GDPR &amp; CCPA)</h4>
-                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting info@larxius.com.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">4. Your Rights (GDPR &amp; CCPA)</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting <a href="mailto:info@larxius.com" className="text-blue-600 font-semibold hover:underline">info@larxius.com</a>.</p>
                     </div>
                   </div>
                 </div>
@@ -995,30 +953,30 @@ export const LandingPage = () => {
                   <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Terms of Service</h3>
                   <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
 
-                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">1. Acceptance of Terms</h4>
-                      <p className="mt-1">By accessing or using the Larshield platform (the "Service"), you agree to be bound by these Terms of Service. If you do not agree, you may not access the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">1. Acceptance of Terms</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">By accessing or using the Larshield platform (the "Service"), you agree to be bound by these Terms of Service. If you do not agree, you may not access the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">2. Description of Service</h4>
-                      <p className="mt-1">Larshield provides automated vulnerability scanning, active penetration testing, and security posture management tools. The Service actively probes designated targets to identify security flaws, misconfigurations, and compliance violations.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">2. Description of Service</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Larshield provides automated vulnerability scanning, active penetration testing, and security posture management tools. The Service actively probes designated targets to identify security flaws, misconfigurations, and compliance violations.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">3. Authorization and Legal Use</h4>
-                      <p className="mt-1">You explicitly certify that you possess full, legally verifiable authorization from the system owner to conduct active security assessments against any target URL you submit. Unauthorized scanning is illegal and strictly prohibited. You assume all liability for damages resulting from unauthorized use of the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">3. Authorization and Legal Use</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">You explicitly certify that you possess full, legally verifiable authorization from the system owner to conduct active security assessments against any target URL you submit. Unauthorized scanning is illegal and strictly prohibited. You assume all liability for damages resulting from unauthorized use of the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">4. Limitation of Liability</h4>
-                      <p className="mt-1">Larshield is provided "AS IS". Vulnerability scanning can cause unintended disruptions, including data loss or system crashes. To the maximum extent permitted by law, Larshield shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">4. Limitation of Liability</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">Larshield is provided "AS IS". Vulnerability scanning can cause unintended disruptions, including data loss or system crashes. To the maximum extent permitted by law, Larshield shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">5. Termination</h4>
-                      <p className="mt-1">We reserve the right to suspend or terminate your account immediately, without prior notice or liability, for any reason, including without limitation if you breach the Terms, particularly regarding unauthorized target scanning.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">5. Termination</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">We reserve the right to suspend or terminate your account immediately, without prior notice or liability, for any reason, including without limitation if you breach the Terms, particularly regarding unauthorized target scanning.</p>
                     </div>
                   </div>
                 </div>
@@ -1026,20 +984,20 @@ export const LandingPage = () => {
 
               {legalModal === 'status' && (
                 <div>
-                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">System Status</h3>
-                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-1">System Status</h2>
+                  <p className="text-xs font-semibold text-slate-500 mb-5">Effective Date: August 15, 2026</p>
 
-                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">1. Uptime Commitment</h4>
-                      <p className="mt-1">LarShield maintains a 99.9% uptime SLA for all scanning and reporting APIs. Maintenance windows are announced 7 days in advance.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">1. Uptime Commitment</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">LarShield maintains a 99.9% uptime SLA for all scanning and reporting APIs. Maintenance windows are announced 7 days in advance.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">2. Current Status</h4>
-                      <div className="mt-2 p-md bg-green-500/10 border border-green-500/30 rounded-xl flex items-center gap-md text-green-600 dark:text-green-400">
-                        <span className="w-3 h-3 rounded-full bg-green-500 shrink-0 animate-pulse"></span>
-                        <span className="font-bold text-[13.5px]">All systems are currently operational and operating at optimal performance levels.</span>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">2. Current Status</h3>
+                      <div className="mt-2 p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-3 text-emerald-800">
+                        <span className="w-3 h-3 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                        <span className="font-semibold text-sm">All systems are currently operational and operating at optimal performance levels.</span>
                       </div>
                     </div>
                   </div>
@@ -1048,18 +1006,18 @@ export const LandingPage = () => {
 
               {legalModal === 'cookies' && (
                 <div>
-                  <h3 className="text-[20px] font-extrabold text-on-surface mb-1">Cookie Policy</h3>
-                  <p className="text-[12px] font-bold text-primary mb-lg">Effective Date: August 15, 2026</p>
+                  <h2 className="text-2xl font-bold text-slate-900 mb-1">Cookie Policy</h2>
+                  <p className="text-xs font-semibold text-slate-500 mb-5">Effective Date: August 15, 2026</p>
 
-                  <div className="space-y-md text-[13.5px] text-on-surface-variant">
+                  <div className="space-y-6">
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">1. Essential Cookies</h4>
-                      <p className="mt-1">We use strictly necessary cookies to maintain your session and ensure secure authentication. These cannot be disabled.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">1. Essential Cookies</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">We use strictly necessary cookies to maintain your session and ensure secure authentication. These cannot be disabled.</p>
                     </div>
 
                     <div>
-                      <h4 className="font-bold text-on-surface text-[14px]">2. Analytics Cookies</h4>
-                      <p className="mt-1">We optionally collect telemetry data to improve platform performance. You can opt-out at any time via your account settings.</p>
+                      <h3 className="font-bold text-slate-900 text-base mb-2">2. Analytics Cookies</h3>
+                      <p className="text-sm text-slate-600 leading-relaxed">We optionally collect telemetry data to improve platform performance. You can opt-out at any time via your account settings.</p>
                     </div>
                   </div>
                 </div>
@@ -1067,10 +1025,10 @@ export const LandingPage = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end p-xl border-t border-outline-variant bg-surface-container-low/40">
+            <div className="flex justify-end p-5 border-t border-slate-100 bg-white">
               <button
                 onClick={() => setLegalModal(null)}
-                className="bg-primary text-white font-bold py-2.5 px-6 rounded-xl hover:brightness-110 active:scale-95 transition-all text-sm border-0 cursor-pointer shadow-md shadow-primary/20"
+                className="bg-blue-600 text-white font-semibold py-2.5 px-6 rounded-xl hover:bg-blue-700 active:scale-95 transition-all text-sm border-0 cursor-pointer shadow-md shadow-blue-600/20"
               >
                 I Understand
               </button>
