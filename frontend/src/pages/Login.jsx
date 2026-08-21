@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 
 export const Login = () => {
@@ -8,10 +8,12 @@ export const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [legalModal, setLegalModal] = useState(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     // Remove dark mode to enforce the white theme
@@ -51,12 +53,17 @@ export const Login = () => {
   };
 
   useEffect(() => {
-    const savedEmail = localStorage.getItem('wss_remember_email');
-    if (savedEmail) {
-      setEmail(savedEmail);
-      setRememberMe(true);
+    if (location.state?.email) {
+      setEmail(location.state.email);
+      setSuccessMessage('Account created successfully! Please sign in to continue.');
+    } else {
+      const savedEmail = localStorage.getItem('wss_remember_email');
+      if (savedEmail) {
+        setEmail(savedEmail);
+        setRememberMe(true);
+      }
     }
-  }, []);
+  }, [location.state]);
 
   return (
     <div className="bg-slate-50 min-h-screen flex flex-col justify-center items-center p-md relative overflow-hidden w-full text-slate-900 font-sans">
@@ -81,6 +88,14 @@ export const Login = () => {
             <p className="text-sm text-slate-500">Sign in to access your security console.</p>
           </div>
         </div>
+
+        {/* Success Alert Box */}
+        {successMessage && (
+          <div className="flex gap-3 bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-emerald-700 text-sm items-center animate-fade-in relative z-10">
+            <span className="material-symbols-outlined text-emerald-500">check_circle</span>
+            <div>{successMessage}</div>
+          </div>
+        )}
 
         {/* Error Alert Box */}
         {error && (

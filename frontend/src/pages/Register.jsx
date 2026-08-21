@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
+import toast from 'react-hot-toast';
 
 export const Register = () => {
   const [fullName, setFullName] = useState('');
@@ -58,8 +59,8 @@ export const Register = () => {
 
       const data = await res.json();
       if (res.ok) {
-        login(data.access_token || data.token, data.refresh_token, data.user);
-        navigate('/dashboard');
+        toast.success('Account created successfully! Please sign in with your credentials.');
+        navigate('/login', { state: { email } });
       } else {
         setError(data.message || 'Registration failed. Please try again.');
       }
