@@ -256,27 +256,35 @@ export const Register = () => {
                 </div>
               </div>
 
-              {/* Password Validation Checklist */}
-              <div className="flex flex-col gap-1.5 p-3 bg-white border border-slate-200 rounded-xl text-xs">
-                <div className={`flex items-center gap-2 font-medium transition-colors ${password.length >= 8 ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
-                  <span className="material-symbols-outlined text-[16px]">
-                    {password.length >= 8 ? 'check_circle' : 'radio_button_unchecked'}
-                  </span>
-                  <span>At least 8 characters</span>
+              {/* Password Validation Checklist - Only shown when typing password */}
+              {password.length > 0 && (
+                <div className="flex flex-col gap-1.5 p-3 bg-white border border-slate-200 rounded-xl text-xs animate-fade-in">
+                  <div className={`flex items-center gap-2 font-medium transition-colors ${password.length >= 8 ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {password.length >= 8 ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    <span>At least 8 characters</span>
+                  </div>
+                  <div className={`flex items-center gap-2 font-medium transition-colors ${/[A-Z]/.test(password) ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {/[A-Z]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    <span>One uppercase letter</span>
+                  </div>
+                  <div className={`flex items-center gap-2 font-medium transition-colors ${/[a-z]/.test(password) ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {/[a-z]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    <span>One lowercase letter</span>
+                  </div>
+                  <div className={`flex items-center gap-2 font-medium transition-colors ${/[^A-Za-z0-9]/.test(password) ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
+                    <span className="material-symbols-outlined text-[16px]">
+                      {/[^A-Za-z0-9]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
+                    </span>
+                    <span>One special character</span>
+                  </div>
                 </div>
-                <div className={`flex items-center gap-2 font-medium transition-colors ${/[A-Z]/.test(password) ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
-                  <span className="material-symbols-outlined text-[16px]">
-                    {/[A-Z]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
-                  </span>
-                  <span>One uppercase letter</span>
-                </div>
-                <div className={`flex items-center gap-2 font-medium transition-colors ${/[a-z]/.test(password) ? 'text-emerald-600 font-semibold' : 'text-slate-500'}`}>
-                  <span className="material-symbols-outlined text-[16px]">
-                    {/[a-z]/.test(password) ? 'check_circle' : 'radio_button_unchecked'}
-                  </span>
-                  <span>One lowercase letter</span>
-                </div>
-              </div>
+              )}
 
               {/* Agreement */}
               <div className="flex items-start gap-3 mt-2">
