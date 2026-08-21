@@ -984,7 +984,7 @@ export const LandingPage = () => {
 
                     <div>
                       <h4 className="font-bold text-on-surface text-[14px]">4. Your Rights (GDPR &amp; CCPA)</h4>
-                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting legal@larshield.com.</p>
+                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting info@larxius.com.</p>
                     </div>
                   </div>
                 </div>

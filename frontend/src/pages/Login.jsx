@@ -352,7 +352,17 @@ export const Login = () => {
 
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">2. How We Use Your Information</h4>
-                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance.</p>
+                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance. We do not sell your personal data or scan results to third parties.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">3. Data Security</h4>
+                      <p className="mt-1">Scan results and user data are encrypted at rest (AES-256) and in transit (TLS 1.3). We enforce strict role-based access controls internally. However, no internet transmission is entirely secure, and you use the Service at your own risk.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">4. Your Rights (GDPR &amp; CCPA)</h4>
+                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting <a href="mailto:info@larxius.com" className="text-blue-600 font-semibold hover:underline">info@larxius.com</a>.</p>
                     </div>
                   </div>
                 </div>

@@ -76,14 +76,17 @@ export const Register = () => {
         {/* Brand Anchor */}
         <div className="flex items-center gap-3 z-10 text-left animate-slide-up">
           <div className="w-12 h-12 flex items-center justify-center">
-            <img src="/logo.png" alt="LarShield Logo" className="w-full h-full object-contain" />
+            <img src="/shield-graphic.png" alt="LarShield Logo" className="w-full h-full object-contain" />
           </div>
           <span className="text-2xl font-bold tracking-tight brand-gradient">LarShield</span>
         </div>
         
         {/* Value Proposition */}
         <div className="z-10 max-w-md text-left animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <h2 className="text-4xl font-bold text-slate-900 mb-6 leading-tight">Secure your infrastructure with confidence.</h2>
+          <div className="mb-6 flex justify-center lg:justify-start">
+            <img src="/shield-graphic.png" alt="LarShield Security Graphic" className="w-64 max-w-full h-auto object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300" />
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 mb-4 leading-tight">Secure your infrastructure with confidence.</h2>
           <p className="text-base text-slate-600 mb-8 leading-relaxed">Join elite engineering teams deploying LarShield to monitor complex threat vectors in real-time. Fast, reliable, and exceptionally accurate.</p>
           
           <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-100">
@@ -117,17 +120,23 @@ export const Register = () => {
           
           <div className="w-full max-w-[500px] relative z-10 animate-slide-up">
             
+            {/* Shield Logo Graphic above Create an Account */}
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/shield-graphic.png" 
+                alt="LarShield Graphic Logo" 
+                className="w-44 sm:w-52 h-auto object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+
             {/* Mobile Brand Anchor */}
-            <div className="lg:hidden flex items-center gap-3 mb-10">
-              <div className="w-10 h-10 flex items-center justify-center">
-                <img src="/logo.png" alt="LarShield Logo" className="w-full h-full object-contain" />
-              </div>
-              <span className="text-xl font-bold tracking-tight brand-gradient">LarShield</span>
+            <div className="lg:hidden flex items-center justify-center gap-3 mb-6">
+              <span className="text-xl font-bold tracking-tight brand-gradient">LarShield Security</span>
             </div>
 
             {/* Header */}
-            <div className="mb-10">
-              <h1 className="text-4xl font-bold text-slate-900 tracking-tight mb-3">Create an Account</h1>
+            <div className="mb-8 text-center sm:text-left">
+              <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 tracking-tight mb-2">Create an Account</h1>
               <p className="text-base text-slate-500">Get started by creating your administrative profile.</p>
             </div>
 
@@ -446,7 +455,17 @@ export const Register = () => {
 
                     <div>
                       <h4 className="font-bold text-slate-900 text-sm">2. How We Use Your Information</h4>
-                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance.</p>
+                      <p className="mt-1">We use your data strictly to provide, maintain, and improve the Service, process payments, and ensure legal compliance. We do not sell your personal data or scan results to third parties.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">3. Data Security</h4>
+                      <p className="mt-1">Scan results and user data are encrypted at rest (AES-256) and in transit (TLS 1.3). We enforce strict role-based access controls internally. However, no internet transmission is entirely secure, and you use the Service at your own risk.</p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-bold text-slate-900 text-sm">4. Your Rights (GDPR &amp; CCPA)</h4>
+                      <p className="mt-1">Depending on your jurisdiction, you have the right to access, correct, delete, or restrict the processing of your personal data. You can request a complete data export or account deletion by contacting <a href="mailto:info@larxius.com" className="text-blue-600 font-semibold hover:underline">info@larxius.com</a>.</p>
                     </div>
                   </div>
                 </div>
