@@ -87,7 +87,7 @@ export const Dashboard = () => {
     let consecutiveErrors = 0;
     const MAX_ERRORS = 20; // tolerate up to 20 failures (covers token refresh + brief outages)
 
-    logPollRef.current = setInterval(async () => {
+    const pollLogs = async () => {
       if (!activeScanRef.current) { stopLogPolling(); return; }
 
       let activeToken = getToken();
@@ -133,7 +133,11 @@ export const Dashboard = () => {
         console.error('[Dashboard] Log poll error:', err);
         if (consecutiveErrors >= MAX_ERRORS) stopLogPolling();
       }
-    }, 1500);
+    };
+
+    // Execute immediately on start for instant response without 1.5s delay
+    pollLogs();
+    logPollRef.current = setInterval(pollLogs, 1500);
   }, [getToken, refreshAccessToken, stopLogPolling, persistActiveScan, markScanAsCompleted]);
 
   // ── Dashboard Data Fetch ─────────────────────────────────────
@@ -208,22 +212,11 @@ export const Dashboard = () => {
     if (stored && token) {
       try {
         const storedScan = JSON.parse(stored);
-        // Validate it's still running before starting the poller
-        fetch(`/api/scans/${storedScan.id}/logs`, {
-          headers: { 'Authorization': `Bearer ${getToken()}` }
-        }).then(async (r) => {
-          if (r.ok) {
-            const d = await r.json();
-            if (d.status === 'scanning' || d.status === 'queued') {
-              setActiveScan(storedScan);
-              setLiveLogs(d.logs || []);
-              startLogPolling(storedScan);
-            } else {
-              // Scan already done — clean up localStorage
-              localStorage.removeItem(ACTIVE_SCAN_KEY);
-            }
-          }
-        }).catch(() => {});
+        if (storedScan && storedScan.id) {
+          setActiveScan(storedScan);
+          activeScanRef.current = storedScan;
+          startLogPolling(storedScan);
+        }
       } catch (_) {
         localStorage.removeItem(ACTIVE_SCAN_KEY);
       }
