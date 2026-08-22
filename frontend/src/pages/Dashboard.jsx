@@ -20,6 +20,8 @@ const CustomBarTooltip = ({ active, payload, label }) => {
     );
   }
   return null;
+};
+
 const getCleanDomain = (url) => {
   if (!url) return '';
   try {
