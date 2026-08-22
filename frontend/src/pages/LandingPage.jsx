@@ -161,7 +161,7 @@ export const LandingPage = () => {
   const tabs = ['Security Score', 'Assets', 'Vulnerabilities', 'AI Insights', 'Compliance', 'Reports'];
 
   return (
-    <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary/10">
+    <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary/10 overflow-x-hidden w-full max-w-full">
 
       {/* TopNavBar */}
       <header className="fixed top-0 w-full z-50 border-b border-outline-variant glass-header shadow-sm transition-all duration-300">
@@ -254,7 +254,7 @@ export const LandingPage = () => {
                     </div>
                   </div>
                 </div>
-                <div className="relative h-4 md:h-6 bg-surface-container-highest rounded-b-lg md:rounded-b-xl shadow-xl w-[105%] md:w-[110%] -ml-[2.5%] md:-ml-[5%] flex items-center justify-center">
+                <div className="relative h-4 md:h-6 bg-surface-container-highest rounded-b-lg md:rounded-b-xl shadow-xl w-full flex items-center justify-center">
                   <div className="w-20 md:w-32 h-1 bg-outline-variant rounded-full mt-[-6px] md:mt-[-8px]"></div>
                 </div>
               </div>
