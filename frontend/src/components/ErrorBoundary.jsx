@@ -47,17 +47,30 @@ export class ErrorBoundary extends React.Component {
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Session Navigation Update</h2>
             <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              The page view needs a quick refresh to synchronize your security session.
+              The page view encountered a sync issue or session timeout. Refresh the page or return to log in.
             </p>
-            <button
-              onClick={() => {
-                this.setState({ hasError: false, error: null });
-                window.location.reload();
-              }}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 border-0 cursor-pointer text-sm"
-            >
-              Refresh Page
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                  window.location.reload();
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 border-0 cursor-pointer text-sm"
+              >
+                Refresh Page
+              </button>
+              <button
+                onClick={() => {
+                  sessionStorage.clear();
+                  localStorage.removeItem('wss_token');
+                  localStorage.removeItem('wss_refresh_token');
+                  window.location.href = '/login';
+                }}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition-all border-0 cursor-pointer text-sm"
+              >
+                Clear Session & Log In Again
+              </button>
+            </div>
           </div>
         </div>
       );

@@ -24,7 +24,7 @@ const CustomChartTooltip = ({ active, payload, label }) => {
 };
 
 export const OrganizationPage = () => {
-  const { user, token } = useAuth();
+  const { user, token, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   
@@ -38,6 +38,10 @@ export const OrganizationPage = () => {
   const fetchData = useCallback(async () => {
     try {
       const activeToken = getToken();
+      if (!activeToken) {
+        setLoading(false);
+        return;
+      }
       const [summaryRes, historyRes] = await Promise.all([
         fetch('/api/vulnerabilities/summary?global=true', { headers: { 'Authorization': `Bearer ${activeToken}` } }),
         fetch('/api/scans/history?global=true&limit=100', { headers: { 'Authorization': `Bearer ${activeToken}` } })
@@ -63,7 +67,7 @@ export const OrganizationPage = () => {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="flex h-[80vh] items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

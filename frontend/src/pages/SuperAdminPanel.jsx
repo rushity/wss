@@ -97,7 +97,7 @@ const BillingTierCard = ({ tier, onSave }) => {
 };
 
 const SuperAdminPanel = () => {
-  const { user, refreshAccessToken } = useAuth();
+  const { user, refreshAccessToken, loading: authLoading } = useAuth();
 
   const authFetch = async (url, options = {}) => {
     let activeToken = localStorage.getItem('wss_token');
@@ -148,7 +148,7 @@ const SuperAdminPanel = () => {
   };
 
   const getSortedOrgs = () => {
-    return [...organizations].sort((a, b) => {
+    return [...(organizations || [])].sort((a, b) => {
       let aVal, bVal;
       switch (sortOrgCol) {
         case 'Tenant Name': aVal = a.name || ''; bVal = b.name || ''; break;
@@ -173,7 +173,7 @@ const SuperAdminPanel = () => {
   };
 
   const getSortedUsers = () => {
-    return [...users].sort((a, b) => {
+    return [...(users || [])].sort((a, b) => {
       let aVal, bVal;
       switch (sortUserCol) {
         case 'Email': aVal = a.email || ''; bVal = b.email || ''; break;
@@ -198,10 +198,10 @@ const SuperAdminPanel = () => {
   };
 
   const getSortedBills = () => {
-    return [...recentPayments].sort((a, b) => {
+    return [...(recentPayments || [])].sort((a, b) => {
       let aVal, bVal;
       switch (sortBillCol) {
-        case 'Date': aVal = new Date(a.created_at).getTime(); bVal = new Date(b.created_at).getTime(); break;
+        case 'Date': aVal = new Date(a.created_at || Date.now()).getTime(); bVal = new Date(b.created_at || Date.now()).getTime(); break;
         case 'Organization / User': aVal = a.org_name || ''; bVal = b.org_name || ''; break;
         case 'Tier': aVal = a.tier_id || ''; bVal = b.tier_id || ''; break;
         case 'Amount': aVal = a.amount || 0; bVal = b.amount || 0; break;
@@ -230,27 +230,32 @@ const SuperAdminPanel = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
+      const activeToken = localStorage.getItem('wss_token');
+      if (!activeToken) {
+        setLoading(false);
+        return;
+      }
       const [globalRes, bookingsRes, emailLogsRes] = await Promise.all([
         authFetch('/api/auth/global-stats'),
         authFetch('/api/demo/bookings'),
         authFetch('/api/auth/email-logs')
       ]);
-      if (globalRes.ok) {
+      if (globalRes && globalRes.ok) {
         const data = await globalRes.json();
-        setOrganizations(data.organizations || []);
+        setOrganizations(Array.isArray(data.organizations) ? data.organizations : []);
         setMetrics(data.metrics || {});
-        setRecentPayments(data.recent_payments || []);
-        setTrends(data.trends || []);
-        setAuditLogs(data.audit_logs || []);
-        setUsers(data.users || []);
+        setRecentPayments(Array.isArray(data.recent_payments) ? data.recent_payments : []);
+        setTrends(Array.isArray(data.trends) ? data.trends : []);
+        setAuditLogs(Array.isArray(data.audit_logs) ? data.audit_logs : []);
+        setUsers(Array.isArray(data.users) ? data.users : []);
       }
-      if (bookingsRes.ok) {
+      if (bookingsRes && bookingsRes.ok) {
         const data = await bookingsRes.json();
-        setDemoBookings(data.bookings || []);
+        setDemoBookings(Array.isArray(data.bookings) ? data.bookings : []);
       }
-      if (emailLogsRes.ok) {
+      if (emailLogsRes && emailLogsRes.ok) {
         const data = await emailLogsRes.json();
-        setEmailLogs(data.logs || []);
+        setEmailLogs(Array.isArray(data.logs) ? data.logs : []);
       }
     } catch (err) {
       console.error('Failed to fetch global stats', err);
@@ -583,10 +588,39 @@ const SuperAdminPanel = () => {
   const [viewInvoice, setViewInvoice] = useState(null);
 
   const isSupportEngineer = user?.role === 'support_engineer';
-  const isSuperAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'super_admin' || user?.role === 'admin' || sessionStorage.getItem('superAdminAuth') === 'true';
+
+  if (authLoading) {
+    return (
+      <div className="flex h-[70vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined animate-spin text-3xl text-primary">sync</span>
+          <span className="font-bold text-on-surface-variant text-sm">Verifying Management Session...</span>
+        </div>
+      </div>
+    );
+  }
 
   if (!isSuperAdmin && !isSupportEngineer) {
-    return <div className="text-on-surface text-center mt-20 font-bold">Access Denied. You do not have LarShield Management permissions.</div>;
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 text-error flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-3xl">lock</span>
+        </div>
+        <h2 className="text-xl font-bold text-on-surface mb-2">Access Restricted</h2>
+        <p className="text-on-surface-variant text-sm max-w-md mb-6 leading-relaxed">
+          You do not have administrative permissions to access LarShield Global Management.
+        </p>
+        <div className="flex gap-3">
+          <Link to="/dashboard" className="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm no-underline shadow-md">
+            Go to Dashboard
+          </Link>
+          <Link to="/larshield-superadmin" className="px-4 py-2 bg-surface-container border border-outline-variant text-on-surface rounded-lg font-bold text-sm no-underline">
+            Super Admin Login
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   const [rescheduleModal, setRescheduleModal] = useState({

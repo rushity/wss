@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { ShieldAlert, FileText, AlertTriangle, Search, Download, X, RefreshCw, List } from 'lucide-react';
 
 const LogsAndThreats = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [trends, setTrends] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -126,8 +127,32 @@ const LogsAndThreats = () => {
 
   const isMasterAuthorized = sessionStorage.getItem('superAdminAuth') === 'true';
 
+  if (authLoading) {
+    return (
+      <div className="flex h-[70vh] items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <span className="material-symbols-outlined animate-spin text-3xl text-primary">sync</span>
+          <span className="font-bold text-on-surface-variant text-sm">Loading Logs & Threats...</span>
+        </div>
+      </div>
+    );
+  }
+
   if (!isMasterAuthorized && user?.role !== 'super_admin' && user?.role !== 'support_engineer') {
-    return <div className="text-on-surface text-center mt-20 font-bold">Access Denied. You do not have permissions.</div>;
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
+        <div className="w-16 h-16 rounded-full bg-red-500/10 text-error flex items-center justify-center mb-4">
+          <span className="material-symbols-outlined text-3xl">lock</span>
+        </div>
+        <h2 className="text-xl font-bold text-on-surface mb-2">Access Restricted</h2>
+        <p className="text-on-surface-variant text-sm max-w-md mb-6 leading-relaxed">
+          You do not have permissions to view global logs and threat intelligence.
+        </p>
+        <Link to="/dashboard" className="px-4 py-2 bg-primary text-white rounded-lg font-bold text-sm no-underline shadow-md">
+          Go to Dashboard
+        </Link>
+      </div>
+    );
   }
 
   return (
