@@ -2244,12 +2244,16 @@ def get_demo_bookings():
 @api_bp.route('/api/demo/bookings/<booking_id>', methods=['PUT'])
 def update_demo_booking_status(booking_id):
     data = request.get_json() or {}
-    new_status = data.get('status', 'completed')
     try:
         booking = db.session.get(DemoBooking, booking_id)
         if not booking:
             return jsonify({'message': 'Booking not found.'}), 404
-        booking.status = new_status
+        if 'status' in data:
+            booking.status = data['status']
+        if 'meeting_date' in data and data['meeting_date']:
+            booking.meeting_date = data['meeting_date']
+        if 'meeting_time' in data and data['meeting_time']:
+            booking.meeting_time = data['meeting_time']
         db.session.commit()
         return jsonify({'message': 'Booking status updated successfully!', 'booking': booking.to_dict()}), 200
     except Exception as e:

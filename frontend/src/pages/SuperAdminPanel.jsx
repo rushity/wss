@@ -589,7 +589,16 @@ const SuperAdminPanel = () => {
     return <div className="text-on-surface text-center mt-20 font-bold">Access Denied. You do not have LarShield Management permissions.</div>;
   }
 
-  const handleCompleteBooking = async (bookingId) => {
+  const [rescheduleModal, setRescheduleModal] = useState({
+    isOpen: false,
+    bookingId: null,
+    email: '',
+    meetingDate: '',
+    meetingTime: '',
+    status: 'rescheduled'
+  });
+
+  const handleUpdateBookingStatus = async (bookingId, status) => {
     try {
       const res = await fetch(`/api/demo/bookings/${bookingId}`, {
         method: 'PUT',
@@ -597,16 +606,74 @@ const SuperAdminPanel = () => {
           'Authorization': `Bearer ${localStorage.getItem('wss_token')}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ status: 'completed' })
+        body: JSON.stringify({ status })
       });
       if (res.ok) {
-        toast.success("Booking marked as completed");
+        toast.success(`Booking status updated to ${status}`);
         fetchStats();
       } else {
         toast.error("Failed to update booking status");
       }
     } catch (err) {
       toast.error("Network error updating booking");
+    }
+  };
+
+  const handleOpenReschedule = (booking) => {
+    setRescheduleModal({
+      isOpen: true,
+      bookingId: booking.id,
+      email: booking.email,
+      meetingDate: booking.meeting_date || '',
+      meetingTime: booking.meeting_time || '',
+      status: 'rescheduled'
+    });
+  };
+
+  const handleSaveReschedule = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/demo/bookings/${rescheduleModal.bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('wss_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          meeting_date: rescheduleModal.meetingDate,
+          meeting_time: rescheduleModal.meetingTime,
+          status: rescheduleModal.status
+        })
+      });
+      if (res.ok) {
+        toast.success("Demo booking rescheduled successfully!");
+        setRescheduleModal({ isOpen: false, bookingId: null, email: '', meetingDate: '', meetingTime: '', status: 'rescheduled' });
+        fetchStats();
+      } else {
+        toast.error("Failed to reschedule demo booking");
+      }
+    } catch (err) {
+      toast.error("Error rescheduling booking");
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to delete this demo booking lead?")) return;
+    try {
+      const res = await fetch(`/api/demo/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('wss_token')}`
+        }
+      });
+      if (res.ok) {
+        toast.success("Demo lead deleted successfully");
+        fetchStats();
+      } else {
+        toast.error("Failed to delete demo lead");
+      }
+    } catch (err) {
+      toast.error("Error deleting lead");
     }
   };
 
@@ -1063,28 +1130,83 @@ const SuperAdminPanel = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-outline-variant">
-                    {demoBookings.map(b => (
-                      <tr key={b.id} className="hover:bg-surface-container-lowest transition-colors">
-                        <td className="px-md py-sm font-bold text-on-surface text-[13px]">{b.email}</td>
-                        <td className="px-md py-sm text-on-surface-variant text-[13px]">{b.company_size.replace('Company Size: ', '')}</td>
-                        <td className="px-md py-sm text-on-surface-variant text-[13px]">
-                          {b.meeting_date} <br/>
-                          <span className="text-[11px] font-bold text-primary">{b.meeting_time}</span>
-                        </td>
-                        <td className="px-md py-sm">
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${b.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-orange-500/10 text-orange-600'}`}>
-                            {b.status}
-                          </span>
-                        </td>
-                        <td className="px-md py-sm">
-                          {b.status !== 'completed' && (
-                            <button onClick={() => handleCompleteBooking(b.id)} className="bg-primary text-white border-0 py-1 px-3 rounded font-bold cursor-pointer text-[12px] hover:brightness-110 active:scale-95 transition-all">
-                              Mark Complete
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
+                    {demoBookings.map(b => {
+                      const statusStyle =
+                        b.status === 'completed'
+                          ? 'bg-green-500/10 text-green-600 border-green-500/30'
+                          : b.status === 'cancelled'
+                          ? 'bg-red-500/10 text-red-600 border-red-500/30'
+                          : b.status === 'rescheduled'
+                          ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                          : 'bg-orange-500/10 text-orange-600 border-orange-500/30';
+
+                      const statusLabel =
+                        b.status === 'completed' ? 'Completed / Conducted' :
+                        b.status === 'cancelled' ? 'Cancelled / Not Conducted' :
+                        b.status === 'rescheduled' ? 'Rescheduled' : 'Pending';
+
+                      return (
+                        <tr key={b.id} className="hover:bg-surface-container-lowest transition-colors">
+                          <td className="px-md py-sm font-bold text-on-surface text-[13px]">{b.email}</td>
+                          <td className="px-md py-sm text-on-surface-variant text-[13px]">{b.company_size?.replace('Company Size: ', '')}</td>
+                          <td className="px-md py-sm text-on-surface-variant text-[13px]">
+                            {b.meeting_date} <br/>
+                            <span className="text-[11px] font-bold text-primary">{b.meeting_time}</span>
+                          </td>
+                          <td className="px-md py-sm">
+                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${statusStyle}`}>
+                              {statusLabel}
+                            </span>
+                          </td>
+                          <td className="px-md py-sm">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {/* Complete Button */}
+                              {b.status !== 'completed' && (
+                                <button
+                                  onClick={() => handleUpdateBookingStatus(b.id, 'completed')}
+                                  className="bg-green-600 text-white border-0 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] hover:bg-green-700 transition-all flex items-center gap-1 shadow-xs"
+                                  title="Mark Demo as Completed"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                  Complete
+                                </button>
+                              )}
+
+                              {/* Cancel / Couldn't Conduct Button */}
+                              {b.status !== 'cancelled' && (
+                                <button
+                                  onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                                  className="bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white border border-red-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
+                                  title="Mark as Cancelled or Couldn't Show Demo"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">cancel</span>
+                                  Cancelled
+                                </button>
+                              )}
+
+                              {/* Reschedule Button */}
+                              <button
+                                onClick={() => handleOpenReschedule(b)}
+                                className="bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
+                                title="Reschedule Date & Time"
+                              >
+                                <span className="material-symbols-outlined text-[14px]">edit_calendar</span>
+                                Reschedule
+                              </button>
+
+                              {/* Delete Lead Button */}
+                              <button
+                                onClick={() => handleDeleteBooking(b.id)}
+                                className="text-on-surface-variant hover:text-red-600 border-0 bg-transparent p-1 cursor-pointer transition-colors"
+                                title="Delete Lead"
+                              >
+                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -1287,6 +1409,80 @@ const SuperAdminPanel = () => {
           </div>
         )}
       </CustomModal>
+
+      {/* Reschedule Demo Call Modal */}
+      {rescheduleModal.isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}></div>
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 z-10 animate-slide-up text-left font-sans">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">edit_calendar</span>
+                Reschedule Demo Call
+              </h3>
+              <button onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })} className="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer p-1">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleSaveReschedule} className="mt-4 flex flex-col gap-4">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Lead Email</label>
+                <input type="text" disabled value={rescheduleModal.email} className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 font-bold" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Date</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. August 28, 2026"
+                  value={rescheduleModal.meetingDate}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingDate: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Time</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 04:00 PM"
+                  value={rescheduleModal.meetingTime}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingTime: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Update Status</label>
+                <select
+                  value={rescheduleModal.status}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, status: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="rescheduled">Rescheduled</option>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed / Conducted</option>
+                  <option value="cancelled">Cancelled / Not Conducted</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 border border-slate-300 hover:bg-slate-100 cursor-pointer bg-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-primary hover:brightness-110 shadow-sm cursor-pointer border-0"
+                >
+                  Save & Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

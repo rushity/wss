@@ -52,6 +52,91 @@ export const AlertSettingsPage = () => {
   // Demo Bookings State
   const [demoBookings, setDemoBookings] = useState([]);
   const [loadingDemoBookings, setLoadingDemoBookings] = useState(false);
+  const [rescheduleModal, setRescheduleModal] = useState({
+    isOpen: false,
+    bookingId: null,
+    email: '',
+    meetingDate: '',
+    meetingTime: '',
+    status: 'rescheduled'
+  });
+
+  const handleUpdateDemoBookingStatus = async (bookingId, status) => {
+    try {
+      const res = await fetch(`/api/demo/bookings/${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      });
+      if (res.ok) {
+        toast.success(`Booking status updated to ${status}`);
+        fetchDemoBookings();
+      } else {
+        toast.error("Failed to update status");
+      }
+    } catch (err) {
+      toast.error("Error updating status");
+    }
+  };
+
+  const handleOpenReschedule = (booking) => {
+    setRescheduleModal({
+      isOpen: true,
+      bookingId: booking.id,
+      email: booking.email,
+      meetingDate: booking.meeting_date || '',
+      meetingTime: booking.meeting_time || '',
+      status: 'rescheduled'
+    });
+  };
+
+  const handleSaveReschedule = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch(`/api/demo/bookings/${rescheduleModal.bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          meeting_date: rescheduleModal.meetingDate,
+          meeting_time: rescheduleModal.meetingTime,
+          status: rescheduleModal.status
+        })
+      });
+      if (res.ok) {
+        toast.success("Demo booking rescheduled successfully!");
+        setRescheduleModal({ isOpen: false, bookingId: null, email: '', meetingDate: '', meetingTime: '', status: 'rescheduled' });
+        fetchDemoBookings();
+      } else {
+        toast.error("Failed to reschedule demo booking");
+      }
+    } catch (err) {
+      toast.error("Error rescheduling booking");
+    }
+  };
+
+  const handleDeleteDemoBooking = async (bookingId) => {
+    if (!window.confirm("Are you sure you want to delete this booking lead?")) return;
+    try {
+      const res = await fetch(`/api/demo/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success("Booking lead deleted successfully");
+        fetchDemoBookings();
+      } else {
+        toast.error("Failed to delete booking lead");
+      }
+    } catch (err) {
+      toast.error("Error deleting lead");
+    }
+  };
 
   // Scheduled Scans
   const [scheduledScans, setScheduledScans] = useState([]);
@@ -699,53 +784,78 @@ export const AlertSettingsPage = () => {
                   <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
                 </div>
               ) : demoBookings.length > 0 ? (
-                demoBookings.map((b) => (
-                  <div key={b.id} className={`bg-white border p-md rounded-lg shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md ${b.status === 'completed' ? 'border-green-500/50 opacity-80' : 'border-outline-variant/60'}`}>
-                    <div>
-                      <div className="font-headline-sm font-bold text-on-surface mb-xs flex items-center gap-xs">
-                        {b.email}
-                        {b.status === 'completed' && (
-                          <span className="ml-2 bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px]">check_circle</span> Completed
+                demoBookings.map((b) => {
+                  const statusStyle =
+                    b.status === 'completed'
+                      ? 'bg-emerald-100 text-emerald-700 border-emerald-300'
+                      : b.status === 'cancelled'
+                      ? 'bg-rose-100 text-rose-700 border-rose-300'
+                      : b.status === 'rescheduled'
+                      ? 'bg-indigo-100 text-indigo-700 border-indigo-300'
+                      : 'bg-amber-100 text-amber-700 border-amber-300';
+
+                  const statusLabel =
+                    b.status === 'completed' ? 'Completed' :
+                    b.status === 'cancelled' ? 'Cancelled / Not Conducted' :
+                    b.status === 'rescheduled' ? 'Rescheduled' : 'Pending';
+
+                  return (
+                    <div key={b.id} className={`bg-white border p-md rounded-lg shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-md ${b.status === 'completed' ? 'border-emerald-500/50' : 'border-outline-variant/60'}`}>
+                      <div>
+                        <div className="font-headline-sm font-bold text-on-surface mb-xs flex items-center gap-2 flex-wrap">
+                          <span>{b.email}</span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${statusStyle}`}>
+                            {statusLabel}
                           </span>
-                        )}
+                        </div>
+                        <div className="font-body-sm text-on-surface-variant flex flex-wrap gap-md mt-xs">
+                          <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {b.meeting_date}</span>
+                          <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">schedule</span> {b.meeting_time}</span>
+                          <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">business</span> {b.company_size}</span>
+                        </div>
                       </div>
-                      <div className="font-body-sm text-on-surface-variant flex flex-wrap gap-md mt-xs">
-                        <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">calendar_today</span> {b.meeting_date}</span>
-                        <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">schedule</span> {b.meeting_time}</span>
-                        <span className="flex items-center gap-xs"><span className="material-symbols-outlined text-[14px]">business</span> {b.company_size}</span>
+                      <div className="flex flex-col sm:items-end gap-2 shrink-0 w-full sm:w-auto">
+                        <div className="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1 rounded w-max">
+                          Booked: {new Date(b.created_at).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {b.status !== 'completed' && (
+                            <button
+                              onClick={() => handleUpdateDemoBookingStatus(b.id, 'completed')}
+                              className="bg-emerald-600 text-white border-none py-1 px-2.5 rounded text-[11px] font-bold cursor-pointer hover:bg-emerald-700 transition-all flex items-center gap-1 shadow-xs"
+                              title="Mark Completed"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">task_alt</span> Complete
+                            </button>
+                          )}
+                          {b.status !== 'cancelled' && (
+                            <button
+                              onClick={() => handleUpdateDemoBookingStatus(b.id, 'cancelled')}
+                              className="bg-rose-50 text-rose-600 border border-rose-200 py-1 px-2.5 rounded text-[11px] font-bold cursor-pointer hover:bg-rose-600 hover:text-white transition-all flex items-center gap-1"
+                              title="Mark Cancelled / Not Conducted"
+                            >
+                              <span className="material-symbols-outlined text-[13px]">cancel</span> Cancelled
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleOpenReschedule(b)}
+                            className="bg-indigo-50 text-indigo-600 border border-indigo-200 py-1 px-2.5 rounded text-[11px] font-bold cursor-pointer hover:bg-indigo-600 hover:text-white transition-all flex items-center gap-1"
+                            title="Reschedule Date & Time"
+                          >
+                            <span className="material-symbols-outlined text-[13px]">edit_calendar</span> Reschedule
+                          </button>
+                          <button
+                            onClick={() => handleDeleteDemoBooking(b.id)}
+                            className="text-on-surface-variant hover:text-rose-600 border-0 bg-transparent p-1 cursor-pointer transition-colors"
+                            title="Delete Lead"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="flex flex-col sm:items-end gap-2 shrink-0">
-                      <div className="text-xs text-on-surface-variant bg-surface-container-low px-2 py-1 rounded w-max">
-                        Booked: {new Date(b.created_at).toLocaleDateString()}
-                      </div>
-                      {b.status !== 'completed' && (
-                        <button
-                          onClick={async () => {
-                            try {
-                              const res = await fetch(`/api/demo/bookings/${b.id}`, {
-                                method: 'PUT',
-                                headers: { 'Authorization': `Bearer ${token}` }
-                              });
-                              if (res.ok) {
-                                toast.success("1:1 Session Marked as Completed");
-                                fetchDemoBookings();
-                              } else {
-                                toast.error("Failed to update status");
-                              }
-                            } catch (err) {
-                              toast.error("Error updating status");
-                            }
-                          }}
-                          className="bg-primary text-white border-none py-1.5 px-3 rounded text-[12px] font-bold cursor-pointer hover:brightness-110 active:scale-95 transition-all flex items-center gap-1 shadow-sm"
-                        >
-                          <span className="material-symbols-outlined text-[14px]">task_alt</span> Complete Session
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-xl bg-white border border-outline-variant/60 rounded-lg shadow-sm">
                   <span className="material-symbols-outlined text-outline text-[48px] mb-sm block">event_busy</span>
@@ -1327,8 +1437,79 @@ export const AlertSettingsPage = () => {
             </div>
           </div>
         </div>
+      {/* Reschedule Demo Call Modal */}
+      {rescheduleModal.isOpen && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}></div>
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 z-10 animate-slide-up text-left font-sans">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">edit_calendar</span>
+                Reschedule Demo Call
+              </h3>
+              <button onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })} className="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer p-1">
+                <span className="material-symbols-outlined text-[20px]">close</span>
+              </button>
+            </div>
+            <form onSubmit={handleSaveReschedule} className="mt-4 flex flex-col gap-4">
+              <div>
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Lead Email</label>
+                <input type="text" disabled value={rescheduleModal.email} className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 font-bold" />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Date</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. August 28, 2026"
+                  value={rescheduleModal.meetingDate}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingDate: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Time</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. 04:00 PM"
+                  value={rescheduleModal.meetingTime}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingTime: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Update Status</label>
+                <select
+                  value={rescheduleModal.status}
+                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, status: e.target.value })}
+                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary cursor-pointer"
+                >
+                  <option value="rescheduled">Rescheduled</option>
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed / Conducted</option>
+                  <option value="cancelled">Cancelled / Not Conducted</option>
+                </select>
+              </div>
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 border border-slate-300 hover:bg-slate-100 cursor-pointer bg-white"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-primary hover:brightness-110 shadow-sm cursor-pointer border-0"
+                >
+                  Save & Update
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
-
 
     </div>
   );
