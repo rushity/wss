@@ -1437,6 +1437,8 @@ export const AlertSettingsPage = () => {
             </div>
           </div>
         </div>
+      )}
+
       {/* Reschedule Demo Call Modal */}
       {rescheduleModal.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
