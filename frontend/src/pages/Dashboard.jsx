@@ -54,6 +54,7 @@ export const Dashboard = () => {
   const dashboardPollRef = useRef(null);
   const activeScanRef = useRef(null);
   const completedScanIdRef = useRef(null);
+  const liveScanIdsRef = useRef(new Set());
 
   const markScanAsCompleted = useCallback((id) => {
     completedScanIdRef.current = id;
@@ -90,10 +91,13 @@ export const Dashboard = () => {
     }
   }, []);
 
-  const startLogPolling = useCallback((scan) => {
+  const startLogPolling = useCallback((scan, isLive = true) => {
     stopLogPolling();
     activeScanRef.current = scan;
     persistActiveScan(scan);
+    if (isLive && scan?.id) {
+      liveScanIdsRef.current.add(scan.id);
+    }
     let consecutiveErrors = 0;
     const MAX_ERRORS = 20; // tolerate up to 20 failures (covers token refresh + brief outages)
 
@@ -136,7 +140,10 @@ export const Dashboard = () => {
           setActiveScan(null);
           activeScanRef.current = null;
           persistActiveScan(null); // clear localStorage
-          markScanAsCompleted(currentScan.id);
+          if (liveScanIdsRef.current.has(currentScan.id)) {
+            markScanAsCompleted(currentScan.id);
+            liveScanIdsRef.current.delete(currentScan.id);
+          }
           fetchDashboard();
         }
       } catch (err) {
@@ -182,6 +189,7 @@ export const Dashboard = () => {
       });
 
       if (runningScans.length > 0) {
+        runningScans.forEach(s => liveScanIdsRef.current.add(s.id));
         // If we are ALREADY tracking an active scan that is still in progress, STICK WITH IT!
         const currentStillRunning = activeScanRef.current
           ? runningScans.find(s => s.id === activeScanRef.current.id)
@@ -197,10 +205,11 @@ export const Dashboard = () => {
           setActiveScan(nextScan);
           activeScanRef.current = nextScan;
           setLiveLogs([]);
-          startLogPolling(nextScan);
+          startLogPolling(nextScan, true);
         }
       } else {
         // No active scans remaining
+        localStorage.removeItem(ACTIVE_SCAN_KEY);
         if (activeScanRef.current) {
           setActiveScan(null);
           activeScanRef.current = null;
@@ -226,7 +235,7 @@ export const Dashboard = () => {
         if (storedScan && storedScan.id) {
           setActiveScan(storedScan);
           activeScanRef.current = storedScan;
-          startLogPolling(storedScan);
+          startLogPolling(storedScan, false); // isLive = false, prevent stale error banner
         }
       } catch (_) {
         localStorage.removeItem(ACTIVE_SCAN_KEY);
@@ -486,7 +495,13 @@ export const Dashboard = () => {
           const scanData = recentScans.find(s => s.id === completedScanId);
           const isFailed = scanData?.status === 'failed';
           const isTerminated = scanData?.status === 'terminated';
-          
+
+          const handleDismiss = () => {
+            setCompletedScanId(null);
+            completedScanIdRef.current = null;
+            localStorage.removeItem(ACTIVE_SCAN_KEY);
+          };
+
           if (isTerminated) {
             return (
               <div className="w-full bg-red-50 border border-red-200 rounded-xl p-md flex items-center justify-between shadow-sm">
@@ -497,14 +512,23 @@ export const Dashboard = () => {
                     <p className="font-body-sm text-body-sm text-red-700">Sorry, due to some problemes we terminate your scanning and also show that scanner is terminated.</p>
                   </div>
                 </div>
-                <Link
-                  to={`/scans/results?id=${completedScanId}`}
-                  className="bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                  View Details
-                </Link>
+                <div className="flex items-center gap-sm">
+                  <Link
+                    to={`/scans/results?id=${completedScanId}`}
+                    className="bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                    View Details
+                  </Link>
+                  <button
+                    onClick={handleDismiss}
+                    className="p-sm text-red-600 hover:bg-red-100 rounded-lg transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                    title="Dismiss notification"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
               </div>
             );
           }
@@ -519,14 +543,23 @@ export const Dashboard = () => {
                     <p className="font-body-sm text-body-sm text-red-700">The scanner encountered a critical error. View logs for details.</p>
                   </div>
                 </div>
-                <Link
-                  to={`/scans/results?id=${completedScanId}`}
-                  className="bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
-                  style={{ textDecoration: 'none' }}
-                >
-                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                  View Details
-                </Link>
+                <div className="flex items-center gap-sm">
+                  <Link
+                    to={`/scans/results?id=${completedScanId}`}
+                    className="bg-red-600 hover:bg-red-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                    View Details
+                  </Link>
+                  <button
+                    onClick={handleDismiss}
+                    className="p-sm text-red-600 hover:bg-red-100 rounded-lg transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                    title="Dismiss notification"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">close</span>
+                  </button>
+                </div>
               </div>
             );
           }
@@ -540,14 +573,23 @@ export const Dashboard = () => {
                   <p className="font-body-sm text-body-sm text-green-700">Vulnerability analysis finished. View the full report below.</p>
                 </div>
               </div>
-              <Link
-                to={`/scans/results?id=${completedScanId}`}
-                className="bg-green-600 hover:bg-green-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
-                style={{ textDecoration: 'none' }}
-              >
-                <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                View Full Report
-              </Link>
+              <div className="flex items-center gap-sm">
+                <Link
+                  to={`/scans/results?id=${completedScanId}`}
+                  className="bg-green-600 hover:bg-green-700 text-white font-label-md text-label-md px-lg py-sm rounded-lg flex items-center gap-sm transition-colors font-bold border-0"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                  View Full Report
+                </Link>
+                <button
+                  onClick={handleDismiss}
+                  className="p-sm text-green-600 hover:bg-green-100 rounded-lg transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                  title="Dismiss notification"
+                >
+                  <span className="material-symbols-outlined text-[20px]">close</span>
+                </button>
+              </div>
             </div>
           );
         })()
