@@ -617,19 +617,19 @@ export const NewScan = () => {
           ></div>
 
           {/* Modal Content */}
-          <div className="relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-lg w-full p-6 overflow-hidden z-10 animate-slide-up text-left">
+          <div className="relative bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-[480px] w-full p-6 overflow-hidden z-10 animate-slide-up text-left font-sans">
             
             {/* Header */}
-            <div className="flex items-start justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-start justify-between pb-3.5 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-600/10 border border-blue-600/20 flex items-center justify-center text-blue-600">
-                  <span className="material-symbols-outlined text-[24px]">alternate_email</span>
+                <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-bold shrink-0 shadow-xs">
+                  <span className="material-symbols-outlined text-[18px]">alternate_email</span>
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">
+                  <h3 className="text-[17px] font-extrabold text-slate-900 tracking-tight leading-tight">
                     Confirm Scan Execution
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-[12px] font-medium text-slate-500 mt-[2px]">
                     Review target parameters before starting the scan pipeline
                   </p>
                 </div>
@@ -637,46 +637,46 @@ export const NewScan = () => {
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors bg-transparent border-0 cursor-pointer p-1"
+                className="text-slate-400 hover:text-slate-600 transition-colors bg-transparent border-0 cursor-pointer p-1 rounded-full hover:bg-slate-100 flex items-center justify-center"
               >
-                <span className="material-symbols-outlined text-[20px]">close</span>
+                <span className="material-symbols-outlined text-[18px]">close</span>
               </button>
             </div>
 
             {/* Target Parameters Card */}
-            <div className="my-5 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex flex-col gap-3 font-mono text-xs">
+            <div className="my-4 p-3.5 rounded-xl bg-[#f8fafc] border border-slate-200/80 flex flex-col gap-2.5 text-[12px]">
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">TARGET URL</span>
-                <span className="text-blue-600 dark:text-blue-400 font-bold break-all max-w-[280px] text-right">{targetUrl}</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px]">TARGET URL</span>
+                <span className="text-blue-600 font-bold font-mono break-all max-w-[280px] text-right">{targetUrl}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">SCAN INTENSITY</span>
-                <span className="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 font-sans font-semibold text-[11px]">{scanType} Scan</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px]">SCAN INTENSITY</span>
+                <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-200 text-[11px] font-bold">{scanType} Scan</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-500 font-bold uppercase tracking-wider">EXECUTION TYPE</span>
-                <span className="text-slate-800 dark:text-slate-200 font-sans font-medium">{isScheduled ? 'Scheduled Execution' : 'Immediate Execution'}</span>
+                <span className="text-slate-500 font-bold uppercase tracking-wider text-[11px]">EXECUTION TYPE</span>
+                <span className="text-slate-800 font-semibold">{isScheduled ? 'Scheduled Execution' : 'Immediate Execution'}</span>
               </div>
             </div>
 
             {/* Confirmation Checkbox & Policy Link */}
-            <div className="flex flex-col gap-2 mb-5">
-              <label className={`flex items-start gap-3 text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer ${!hasReadPolicy ? 'opacity-60 cursor-not-allowed' : ''}`}>
+            <div className="flex flex-col gap-1.5 mb-4">
+              <label className={`flex items-start gap-2.5 text-[12px] font-normal text-slate-700 cursor-pointer ${!hasReadPolicy ? 'opacity-60 cursor-not-allowed' : ''}`}>
                 <input
                   type="checkbox"
                   disabled={!hasReadPolicy}
                   checked={isConfirmedChecked}
                   onChange={(e) => setIsConfirmedChecked(e.target.checked)}
-                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed"
+                  className="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer disabled:cursor-not-allowed shrink-0"
                 />
-                <span>
-                  I confirm that I have <strong>explicit written authorization</strong> to execute active penetration testing against <span className="text-blue-600 dark:text-blue-400">{targetUrl}</span>.
+                <span className="leading-snug">
+                  I confirm that I have <strong className="font-extrabold text-slate-900">explicit written authorization</strong> to execute active penetration testing against <strong className="font-extrabold text-slate-900">{targetUrl}</strong>.
                 </span>
               </label>
 
-              <div className="pl-7">
+              <div className="pl-6.5">
                 {hasReadPolicy ? (
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-1 text-[12px] font-semibold text-emerald-600">
                     <span className="material-symbols-outlined text-[16px]">check_circle</span>
                     Security Policy Read & Accepted
                   </span>
@@ -684,7 +684,7 @@ export const NewScan = () => {
                   <button
                     type="button"
                     onClick={() => setShowPolicyModal(true)}
-                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer text-left"
+                    className="text-[12px] font-bold text-blue-600 hover:underline bg-transparent border-0 p-0 cursor-pointer text-left"
                   >
                     Read Security Policy & Authorization Terms
                   </button>
@@ -692,20 +692,20 @@ export const NewScan = () => {
               </div>
             </div>
 
-            {/* Warning Box */}
-            <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 text-amber-800 dark:text-amber-300 text-xs leading-relaxed flex items-start gap-3 mb-6">
-              <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-[20px] shrink-0 mt-0.5">help_outline</span>
+            {/* Warning Alert Box */}
+            <div className="p-3.5 rounded-xl bg-[#fffbeb] border border-[#fde68a] text-[#b45309] text-[12px] leading-relaxed flex items-start gap-2.5 mb-5">
+              <span className="material-symbols-outlined text-[#d97706] text-[18px] shrink-0 mt-0.5">help_outline</span>
               <div>
-                Are you sure you want to run this scan on <strong className="text-amber-900 dark:text-amber-200">{targetUrl}</strong>? If you are sure, read the security policy to enable the confirmation box, check it, and click <strong>Yes, Start Scan</strong>.
+                Are you sure you want to run this scan on <strong className="font-bold text-[#92400e]">{targetUrl}?</strong> If you are sure, read the security policy to enable the confirmation box, check it, and click <strong className="font-bold text-[#92400e]">Yes, Start Scan.</strong>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-3.5 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setShowConfirmModal(false)}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
+                className="px-4 py-2 rounded-xl text-[12px] font-bold text-slate-700 bg-slate-100 border border-slate-200 hover:bg-slate-200 transition-colors cursor-pointer"
               >
                 No, Cancel
               </button>
@@ -713,7 +713,7 @@ export const NewScan = () => {
                 type="button"
                 disabled={!hasReadPolicy || !isConfirmedChecked || loading}
                 onClick={executeScan}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-600/20 flex items-center gap-1.5 cursor-pointer border-0"
+                className="px-4 py-2 rounded-xl text-[12px] font-bold text-white bg-[#6366f1] hover:bg-[#4f46e5] disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-md shadow-indigo-500/20 flex items-center gap-1.5 cursor-pointer border-0"
               >
                 <span className="material-symbols-outlined text-[16px]">play_circle</span>
                 <span>{loading ? "Initiating..." : "Yes, Start Scan"}</span>
