@@ -106,18 +106,92 @@ export const Profile = () => {
     setIsDragging(false);
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
+
+    // 1. Direct File Drop (from File Explorer or Browser File Drop)
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
-      if (!file.type.startsWith('image/')) {
-        toast.error("Please upload an image file (PNG, JPG, WebP, SVG)");
+      if (file && (file.type.startsWith('image/') || file.type === '' || file.name.match(/\.(png|jpe?g|webp|svg|gif|bmp)$/i))) {
+        await handleUploadLogoFile(file);
         return;
       }
-      handleUploadLogoFile(file);
     }
+
+    // 2. DataTransfer Items (Dragging image element or file item from browser window)
+    if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+      for (let i = 0; i < e.dataTransfer.items.length; i++) {
+        const item = e.dataTransfer.items[i];
+        if (item.kind === 'file') {
+          const file = item.getAsFile();
+          if (file && (file.type.startsWith('image/') || file.name.match(/\.(png|jpe?g|webp|svg|gif|bmp)$/i))) {
+            await handleUploadLogoFile(file);
+            return;
+          }
+        }
+      }
+    }
+
+    // 3. Chrome Web Image / HTML / URL Drag (Dragging image from Google Chrome tab or web page)
+    const htmlData = e.dataTransfer.getData('text/html');
+    const uriData = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('URL') || e.dataTransfer.getData('text/plain');
+
+    let imageUrl = '';
+    if (htmlData) {
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlData, 'text/html');
+        const img = doc.querySelector('img');
+        if (img && img.src) {
+          imageUrl = img.src;
+        }
+      } catch (err) {
+        console.warn("Could not parse dragged HTML", err);
+      }
+    }
+
+    if (!imageUrl && uriData && uriData.trim().match(/^https?:\/\/.+/i)) {
+      imageUrl = uriData.trim();
+    }
+
+    if (imageUrl) {
+      setUploadingLogo(true);
+      try {
+        // Base64 Data URL handling
+        if (imageUrl.startsWith('data:image/')) {
+          const arr = imageUrl.split(',');
+          const mime = arr[0].match(/:(.*?);/)[1];
+          const bstr = atob(arr[1]);
+          let n = bstr.length;
+          const u8arr = new Uint8Array(n);
+          while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+          }
+          const file = new File([u8arr], 'dragged_logo.png', { type: mime });
+          await handleUploadLogoFile(file);
+          return;
+        }
+
+        // Web HTTP/HTTPS URL fetch handling
+        const res = await fetch(imageUrl);
+        if (!res.ok) throw new Error("Network response was not ok when fetching dropped image");
+        const blob = await res.blob();
+        const contentType = blob.type || 'image/png';
+        const fileExt = contentType.split('/')[1] || 'png';
+        const file = new File([blob], `dragged_logo.${fileExt}`, { type: contentType });
+        await handleUploadLogoFile(file);
+      } catch (err) {
+        console.error("Error processing dropped web image:", err);
+        toast.error("Could not load image directly from web URL. Try saving the file or dropping a local image.");
+      } finally {
+        setUploadingLogo(false);
+      }
+      return;
+    }
+
+    toast.error("Please drop a valid image file (PNG, JPG, WebP, SVG).");
   };
 
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
