@@ -1002,14 +1002,36 @@ def generate_scan_pdf(scan, vulnerabilities):
             org_name = org.name
             if org.report_logo_url:
                 try:
-                    resp = requests.get(org.report_logo_url, timeout=5)
-                    if resp.status_code == 200:
-                        org_logo = io.BytesIO(resp.content)
+                    if org.report_logo_url.startswith('/uploads/') or org.report_logo_url.startswith('uploads/'):
+                        filename = org.report_logo_url.split('/')[-1]
+                        root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+                        local_logo_path = os.path.join(root_dir, 'uploads', 'logos', filename)
+                        if os.path.exists(local_logo_path):
+                            with open(local_logo_path, 'rb') as f:
+                                org_logo = io.BytesIO(f.read())
+                    if not org_logo:
+                        resp = requests.get(org.report_logo_url, timeout=5)
+                        if resp.status_code == 200:
+                            org_logo = io.BytesIO(resp.content)
                 except Exception:
                     pass
     
-    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'frontend', 'public', 'logoo.png'))
-    has_local_logo = os.path.exists(logo_path)
+    # Locate main brand logo dynamically with fallback candidate paths
+    logo_path = None
+    possible_logo_paths = [
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'logo.jpg')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'public', 'larshieldlogowhite.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'dist', 'logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend', 'src', 'assets', 'LarShield Symbol logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), 'frontend', 'public', 'logo.png')),
+    ]
+    for candidate in possible_logo_paths:
+        if os.path.exists(candidate):
+            logo_path = candidate
+            break
+
+    has_local_logo = logo_path is not None
 
     def build_pdf_elements(page_dict=None):
         elements = []
@@ -1019,7 +1041,12 @@ def generate_scan_pdf(scan, vulnerabilities):
 
         
         # --- PAGE 1: COVER PAGE ---
-        if has_local_logo:
+        if org_logo:
+            org_logo.seek(0)
+            elements.append(Spacer(1, 100))
+            elements.append(create_proportional_image(org_logo, max_width=180, max_height=170, hAlign='CENTER'))
+            elements.append(Spacer(1, 60))
+        elif has_local_logo:
             elements.append(Spacer(1, 100))
             elements.append(create_proportional_image(logo_path, max_width=180, max_height=170, hAlign='CENTER'))
             elements.append(Spacer(1, 60))
@@ -1029,7 +1056,11 @@ def generate_scan_pdf(scan, vulnerabilities):
         elements.append(PageBreak())
         
         # --- PAGE 2: TITLE & META INFORMATION ---
-        if has_local_logo:
+        if org_logo:
+            org_logo.seek(0)
+            elements.append(create_proportional_image(org_logo, max_width=130, max_height=120, hAlign='CENTER'))
+            elements.append(Spacer(1, 25))
+        elif has_local_logo:
             elements.append(create_proportional_image(logo_path, max_width=130, max_height=120, hAlign='CENTER'))
             elements.append(Spacer(1, 25))
             

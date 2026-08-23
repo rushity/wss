@@ -203,8 +203,21 @@ def generate_scan_pdf(scan, vulnerabilities):
                     except Exception:
                         pass
     
-    logo_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'logo.png'))
-    has_local_logo = os.path.exists(logo_path)
+    # Locate main brand logo dynamically with fallback candidate paths
+    logo_path = None
+    possible_logo_paths = [
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'logo.jpg')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'larshieldlogowhite.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'dist', 'logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'src', 'assets', 'LarShield Symbol logo.png')),
+    ]
+    for candidate in possible_logo_paths:
+        if os.path.exists(candidate):
+            logo_path = candidate
+            break
+
+    has_local_logo = logo_path is not None
 
     def build_pdf_elements(page_dict=None):
         elements = []
