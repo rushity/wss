@@ -140,50 +140,48 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Permanent Clean White Scrollbar */
+/* Permanent Clean White Scrollbar without background track line */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #ffffff rgba(15, 23, 42, 0.5);
+  scrollbar-color: #ffffff transparent;
 }
 
 ::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
+  background: transparent !important;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #ffffff !important;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+  border: none !important;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #ffffff !important;
+  background: #e2e8f0 !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
+  background: transparent !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: #ffffff !important;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 9999px;
+  border: none !important;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #ffffff !important;
+  background: #e2e8f0 !important;
 }
 
 /* Hide scrollbar utility */
