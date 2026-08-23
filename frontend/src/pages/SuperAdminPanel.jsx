@@ -593,26 +593,92 @@ const SuperAdminPanel = () => {
   };
 
   // Member CRUD
+  const MEMBER_ROLE_OPTIONS = [
+    { label: 'Admin', value: 'admin' },
+    { label: 'SOC Analyst', value: 'soc_analyst' },
+    { label: 'Organization Admin', value: 'org_admin' },
+    { label: 'Executive', value: 'executive' },
+    { label: 'Super Admin', value: 'super_admin' },
+    { label: 'Support Engineer', value: 'support_engineer' },
+    { label: 'Read Only', value: 'read_only' }
+  ];
+
   const handleAddMember = () => {
-    setPromptValues({ role: 'soc_analyst', email: '', org_id: '' });
+    const orgOptions = [
+      { label: 'None (Global)', value: '' },
+      ...(organizations || []).map(o => ({ label: o.name, value: o.id }))
+    ];
+
+    setPromptValues({ email: '', role: 'admin', org_id: '' });
     setPromptModal({
       isOpen: true,
-      title: 'Add Global Member',
-      desc: 'Invite a user to an organization.',
+      title: 'Add Member',
+      desc: 'Invite or add a new global platform member.',
       inputs: [
         { key: 'email', label: 'User Email', placeholder: 'user@example.com' },
-        { key: 'role', label: 'Role', placeholder: 'soc_analyst, executive, org_admin, etc' },
-        { key: 'org_id', label: 'Organization ID', placeholder: 'Optional' }
+        { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
+        { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
       onConfirm: async (values) => {
         try {
           const res = await fetch('/api/auth/users', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: values.email, role: values.role, org_id: values.org_id })
+            body: JSON.stringify({ email: values.email, role: values.role, org_id: values.org_id || null })
           });
-          if (res.ok) fetchStats();
-        } catch (err) { }
+          if (res.ok) {
+            toast.success('Member added successfully');
+            fetchStats();
+          } else {
+            const data = await res.json();
+            toast.error(data.message || 'Failed to add member');
+          }
+        } catch (err) {
+          toast.error('Network error adding member');
+        }
+        closePrompt();
+      }
+    });
+  };
+
+  const handleEditMember = (u) => {
+    const orgOptions = [
+      { label: 'None (Global)', value: '' },
+      ...(organizations || []).map(o => ({ label: o.name, value: o.id }))
+    ];
+
+    setPromptValues({
+      email: u.email,
+      role: u.role || 'admin',
+      org_id: u.org_id || ''
+    });
+
+    setPromptModal({
+      isOpen: true,
+      title: 'Edit Member',
+      desc: `Update details for ${u.email}`,
+      inputs: [
+        { key: 'email', label: 'User Email', disabled: true },
+        { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
+        { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
+      ],
+      onConfirm: async (vals) => {
+        try {
+          const res = await fetch(`/api/auth/users/${u.id}/role`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: vals.role, org_id: vals.org_id || null })
+          });
+          if (res.ok) {
+            toast.success('Member details updated successfully');
+            fetchStats();
+          } else {
+            const data = await res.json();
+            toast.error(data.message || 'Failed to update member');
+          }
+        } catch (err) {
+          toast.error('Network error updating member');
+        }
         closePrompt();
       }
     });
@@ -1117,26 +1183,7 @@ const SuperAdminPanel = () => {
                       <td className="px-md py-sm text-right flex justify-end gap-2">
                         {!isSupportEngineer ? (
                           <>
-                            <button onClick={() => {
-                              setPromptValues({ role: u.role });
-                              setPromptModal({
-                                isOpen: true,
-                                title: 'Edit Member Role',
-                                desc: `Update role for ${u.email}`,
-                                inputs: [{ key: 'role', label: 'Role' }],
-                                onConfirm: async (vals) => {
-                                  try {
-                                    await fetch(`/api/auth/users/${u.id}/role`, {
-                                      method: 'PUT',
-                                      headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
-                                      body: JSON.stringify({ role: vals.role })
-                                    });
-                                    fetchStats();
-                                  } catch (err) { }
-                                  closePrompt();
-                                }
-                              });
-                            }} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1"><Edit className="w-4 h-4" /></button>
+                            <button onClick={() => handleEditMember(u)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1"><Edit className="w-4 h-4" /></button>
                             <button onClick={() => {
                               setConfirmModal({
                                 isOpen: true,
@@ -1416,7 +1463,8 @@ const SuperAdminPanel = () => {
                   value={promptValues[input.key] || ''}
                   onChange={(e) => handlePromptChange(input.key, e.target.value)}
                   placeholder={input.placeholder}
-                  className="bg-surface-container border border-outline-variant rounded-lg px-3 py-2 focus:border-primary outline-none text-on-surface"
+                  disabled={input.disabled}
+                  className={`bg-surface-container border border-outline-variant rounded-lg px-3 py-2 focus:border-primary outline-none text-on-surface ${input.disabled ? 'bg-surface-container-high text-on-surface-variant opacity-80 cursor-not-allowed' : ''}`}
                 />
               )}
             </div>

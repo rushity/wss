@@ -563,20 +563,19 @@ def update_user_role(current_user, user_id):
         
     data = request.get_json()
     new_role = data.get('role')
+    new_org_id = data.get('org_id')
     if not new_role:
         return jsonify({'message': 'Role is required'}), 400
         
-    existing_role_user = User.query.filter_by(org_id=user.org_id, role=new_role).first()
-    if existing_role_user and existing_role_user.id != user.id:
-        return jsonify({'message': f'An organization can only have one user with the {new_role.replace("_", " ")} role.'}), 400
-        
     user.role = new_role
+    if new_org_id is not None:
+        user.org_id = new_org_id if new_org_id != '' else None
     
     log = AuditLog(admin_id=current_user.id, action=f"Updated role to {new_role}", target_id=user.id)
     db.session.add(log)
     
     db.session.commit()
-    return jsonify({'message': 'User role updated successfully'}), 200
+    return jsonify({'message': 'User details updated successfully'}), 200
 
 @auth_bp.route('/users/<user_id>/credentials', methods=['PUT'])
 @token_required
