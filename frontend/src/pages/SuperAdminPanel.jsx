@@ -291,6 +291,15 @@ const SuperAdminPanel = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', desc: '', onConfirm: null, type: 'primary' });
   const [promptModal, setPromptModal] = useState({ isOpen: false, title: '', desc: '', inputs: [], onConfirm: null });
   const [promptValues, setPromptValues] = useState({});
+  const [viewInvoice, setViewInvoice] = useState(null);
+  const [rescheduleModal, setRescheduleModal] = useState({
+    isOpen: false,
+    bookingId: null,
+    email: '',
+    meetingDate: '',
+    meetingTime: '',
+    status: 'rescheduled'
+  });
 
   const closeConfirm = () => setConfirmModal({ isOpen: false, title: '', desc: '', onConfirm: null, type: 'primary' });
   const closePrompt = () => { setPromptModal({ isOpen: false, title: '', desc: '', inputs: [], onConfirm: null }); setPromptValues({}); };
@@ -600,8 +609,6 @@ const SuperAdminPanel = () => {
     window.open(url, '_blank');
   };
 
-  const [viewInvoice, setViewInvoice] = useState(null);
-
   const isSupportEngineer = user?.role === 'support_engineer';
   const isSuperAdmin = user?.role === 'super_admin' || user?.role === 'admin' || sessionStorage.getItem('superAdminAuth') === 'true';
 
@@ -637,15 +644,6 @@ const SuperAdminPanel = () => {
       </div>
     );
   }
-
-  const [rescheduleModal, setRescheduleModal] = useState({
-    isOpen: false,
-    bookingId: null,
-    email: '',
-    meetingDate: '',
-    meetingTime: '',
-    status: 'rescheduled'
-  });
 
   const handleUpdateBookingStatus = async (bookingId, status) => {
     try {
