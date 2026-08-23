@@ -436,14 +436,26 @@ const SuperAdminPanel = () => {
   };
 
   const handleProvisionTenant = () => {
-    setPromptValues({ tier: 'free' });
+    setPromptValues({ tier: 'free', name: '' });
     setPromptModal({
       isOpen: true,
       title: 'Add New Organization',
       desc: 'Create a new tenant organization.',
       inputs: [
         { key: 'name', label: 'Organization Name', placeholder: 'Enter name...' },
-        { key: 'tier', label: 'Subscription Tier', placeholder: 'free, quick, standard, advanced, enterprise' }
+        { 
+          key: 'tier', 
+          label: 'Subscription Tier', 
+          type: 'select', 
+          options: [
+            { label: 'Free', value: 'free' },
+            { label: 'Quick', value: 'quick' },
+            { label: 'Standard', value: 'standard' },
+            { label: 'Advanced', value: 'advanced' },
+            { label: 'Enterprise', value: 'enterprise' },
+            { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
+          ] 
+        }
       ],
       onConfirm: async (values) => {
         try {
@@ -452,8 +464,15 @@ const SuperAdminPanel = () => {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: values.name, tier: values.tier })
           });
-          if (res.ok) fetchStats();
-        } catch (err) { }
+          if (res.ok) {
+            toast.success('Organization created successfully');
+            fetchStats();
+          } else {
+            toast.error('Failed to create organization');
+          }
+        } catch (err) {
+          toast.error('Network error creating organization');
+        }
         closePrompt();
       }
     });
@@ -524,14 +543,31 @@ const SuperAdminPanel = () => {
   };
 
   const handleEditTenant = (org) => {
-    setPromptValues({ name: org.name, tier: org.tier.toLowerCase() });
+    const rawTier = (org.tier || org.subscription_tier || 'free');
+    const isCustom = rawTier.toLowerCase().includes('custom');
+    setPromptValues({ 
+      name: org.name, 
+      tier: isCustom ? 'Enterprise(Custom)' : rawTier.toLowerCase() 
+    });
     setPromptModal({
       isOpen: true,
       title: 'Edit Organization',
       desc: `Modify settings for ${org.name}`,
       inputs: [
-        { key: 'name', label: 'Organization Name' },
-        { key: 'tier', label: 'Subscription Tier' }
+        { key: 'name', label: 'Organization Name', placeholder: 'Enter organization name...' },
+        { 
+          key: 'tier', 
+          label: 'Subscription Tier', 
+          type: 'select', 
+          options: [
+            { label: 'Free', value: 'free' },
+            { label: 'Quick', value: 'quick' },
+            { label: 'Standard', value: 'standard' },
+            { label: 'Advanced', value: 'advanced' },
+            { label: 'Enterprise', value: 'enterprise' },
+            { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
+          ] 
+        }
       ],
       onConfirm: async (values) => {
         try {
@@ -540,8 +576,15 @@ const SuperAdminPanel = () => {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: values.name, tier: values.tier })
           });
-          if (res.ok) fetchStats();
-        } catch (err) { }
+          if (res.ok) {
+            toast.success('Organization updated successfully');
+            fetchStats();
+          } else {
+            toast.error('Failed to update organization');
+          }
+        } catch (err) {
+          toast.error('Network error updating organization');
+        }
         closePrompt();
       }
     });
@@ -1359,7 +1402,11 @@ const SuperAdminPanel = () => {
                   onChange={(e) => handlePromptChange(input.key, e.target.value)}
                   className="bg-surface-container border border-outline-variant rounded-lg px-3 py-2 focus:border-primary outline-none text-on-surface"
                 >
-                  {input.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  {input.options.map(opt => {
+                    const val = typeof opt === 'object' ? opt.value : opt;
+                    const lbl = typeof opt === 'object' ? opt.label : opt;
+                    return <option key={val} value={val}>{lbl}</option>;
+                  })}
                 </select>
               ) : (
                 <input
