@@ -5,93 +5,130 @@ import { CustomModal } from '../components/CustomModal';
 import { Building2, Users, CreditCard, Shield, Trash2, Plus, Server, Activity, Database, HardDrive, RefreshCw, BarChart2, Edit, Download, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const DEFAULT_BILLING_TIERS = [
+  { id: 'quick', name: 'Quick Scan', badge: 'QUICK', monthly_price: 499, yearly_price: 4990 },
+  { id: 'advanced', name: 'Advanced Scan', badge: 'ADVANCED', monthly_price: 4499, yearly_price: 44990 },
+  { id: 'deep', name: 'Deep Scan', badge: 'DEEP', monthly_price: 9999, yearly_price: 99990 },
+  { id: 'enterprise', name: 'Custom Solutions', badge: 'ENTERPRISE', monthly_price: 0, yearly_price: 0, isCustom: true }
+];
+
 const BillingTierCard = ({ tier, onSave }) => {
-  // Convert from cents (stored in DB) to dollars for UI display
-  const [monthly, setMonthly] = useState((tier.monthly_price / 100).toFixed(2));
-  const [yearly, setYearly] = useState((tier.yearly_price / 100).toFixed(2));
+  const [monthly, setMonthly] = useState(((tier.monthly_price || 0) / 100).toFixed(2));
+  const [yearly, setYearly] = useState(((tier.yearly_price || 0) / 100).toFixed(2));
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const handleSave = async () => {
     setSaving(true);
-    // Convert dollars back to cents before sending to API
-    await onSave(tier.id, Math.round(parseFloat(monthly) * 100), Math.round(parseFloat(yearly) * 100));
+    if (onSave) {
+      await onSave(tier.id, Math.round(parseFloat(monthly || 0) * 100), Math.round(parseFloat(yearly || 0) * 100));
+    }
     setSaving(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
 
-  return (
-    <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl p-lg flex flex-col gap-md shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
-      {/* Accent Top Border based on tier name */}
-      <div className={`absolute top-0 left-0 right-0 h-1 ${tier.id === 'free' ? 'bg-surface-container-high' :
-          tier.id === 'quick' ? 'bg-blue-400' :
-            tier.id === 'standard' ? 'bg-primary' :
-              tier.id === 'advanced' ? 'bg-purple-500' : 'bg-orange-500'
-        }`}></div>
+  const getAccentClass = (id) => {
+    const key = (id || '').toLowerCase();
+    if (key.includes('quick')) return 'bg-blue-500';
+    if (key.includes('advanced')) return 'bg-purple-500';
+    if (key.includes('deep')) return 'bg-orange-500';
+    if (key.includes('enterprise') || key.includes('custom')) return 'bg-orange-500';
+    return 'bg-primary';
+  };
 
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-headline-sm text-[18px] font-bold text-on-surface capitalize flex items-center gap-2">
-            {tier.name}
-          </h3>
-          <p className="text-[12px] font-mono text-on-surface-variant uppercase tracking-widest mt-1 bg-surface-container px-2 py-0.5 rounded inline-block">
-            {tier.id}
-          </p>
-        </div>
+  const getBadge = (tier) => {
+    if (tier.badge) return tier.badge;
+    const key = (tier.id || '').toLowerCase();
+    if (key.includes('quick')) return 'QUICK';
+    if (key.includes('advanced')) return 'ADVANCED';
+    if (key.includes('deep')) return 'DEEP';
+    if (key.includes('enterprise') || key.includes('custom')) return 'ENTERPRISE';
+    return (tier.id || '').toUpperCase();
+  };
+
+  const getDisplayName = (tier) => {
+    if (tier.name && tier.name !== tier.id) return tier.name;
+    const key = (tier.id || '').toLowerCase();
+    if (key.includes('quick')) return 'Quick Scan';
+    if (key.includes('advanced')) return 'Advanced Scan';
+    if (key.includes('deep')) return 'Deep Scan';
+    if (key.includes('enterprise') || key.includes('custom')) return 'Custom Solutions';
+    return tier.name || tier.id;
+  };
+
+  const isCustom = (tier.id || '').toLowerCase() === 'enterprise' || tier.isCustom;
+
+  return (
+    <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-2xl p-md flex flex-col gap-sm shadow-sm relative overflow-hidden">
+      {/* Accent Top Border */}
+      <div className={`absolute top-0 left-0 right-0 h-1.5 ${getAccentClass(tier.id)}`}></div>
+
+      <div className="flex flex-col items-start gap-0.5 pt-1">
+        <h3 className="font-headline-sm text-[17px] font-bold text-on-surface">
+          {getDisplayName(tier)}
+        </h3>
+        <span className="text-[11px] font-mono font-bold text-on-surface-variant uppercase tracking-wider bg-surface-container px-2 py-0.5 rounded">
+          {getBadge(tier)}
+        </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-md mt-sm">
+      <div className="grid grid-cols-2 gap-md mt-1">
         <div className="flex flex-col gap-1">
-          <label className="text-[12px] font-bold text-on-surface-variant uppercase tracking-wide">Monthly Price</label>
+          <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">MONTHLY PRICE</label>
           <div className="relative flex items-center">
-            <span className="absolute left-3 text-on-surface-variant font-bold">$</span>
+            <span className="absolute left-3 text-on-surface font-bold text-sm">$</span>
             <input
               type="number"
               step="0.01"
               min="0"
               value={monthly}
               onChange={e => setMonthly(e.target.value)}
-              className="w-full bg-surface-container-high border border-outline-variant rounded-lg pl-8 pr-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface font-mono font-bold transition-all"
+              className="w-full bg-surface-container border border-outline-variant/80 rounded-lg pl-7 pr-3 py-2 focus:border-primary outline-none text-on-surface font-mono font-bold text-sm"
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[12px] font-bold text-on-surface-variant uppercase tracking-wide">Yearly Price</label>
+          <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">YEARLY PRICE</label>
           <div className="relative flex items-center">
-            <span className="absolute left-3 text-on-surface-variant font-bold">$</span>
+            <span className="absolute left-3 text-on-surface font-bold text-sm">$</span>
             <input
               type="number"
               step="0.01"
               min="0"
               value={yearly}
               onChange={e => setYearly(e.target.value)}
-              className="w-full bg-surface-container-high border border-outline-variant rounded-lg pl-8 pr-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary outline-none text-on-surface font-mono font-bold transition-all"
+              className="w-full bg-surface-container border border-outline-variant/80 rounded-lg pl-7 pr-3 py-2 focus:border-primary outline-none text-on-surface font-mono font-bold text-sm"
             />
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end mt-sm pt-md border-t border-outline-variant/50">
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className={`px-xl py-2 rounded-lg font-bold text-[13px] transition-all flex items-center gap-2 ${saved
-              ? 'bg-green-500 text-white'
-              : 'bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20'
+      {!isCustom ? (
+        <div className="flex justify-end mt-1">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className={`px-3 py-1.5 border rounded-lg font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-sm ${
+              saved
+                ? 'bg-green-500 text-white border-green-500'
+                : 'border-outline-variant hover:border-primary text-primary bg-surface-container-lowest'
             }`}
-        >
-          {saving ? (
-            <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
-          ) : saved ? (
-            <span className="material-symbols-outlined text-[16px]">check_circle</span>
-          ) : (
-            <span className="material-symbols-outlined text-[16px]">save</span>
-          )}
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}
-        </button>
-      </div>
+          >
+            {saving ? (
+              <span className="material-symbols-outlined animate-spin text-[16px]">sync</span>
+            ) : saved ? (
+              <span className="material-symbols-outlined text-[16px]">check_circle</span>
+            ) : (
+              <span className="material-symbols-outlined text-[16px] text-primary">save</span>
+            )}
+            <span>{saving ? 'Saving...' : saved ? 'Saved!' : 'Save Changes'}</span>
+          </button>
+        </div>
+      ) : (
+        <div className="h-8"></div>
+      )}
     </div>
   );
 };
@@ -384,8 +421,19 @@ const SuperAdminPanel = () => {
     setFetchingTiers(true);
     try {
       const res = await fetch('/api/billing/tiers', { headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}` } });
-      if (res.ok) setTiers(await res.json());
-    } catch (err) { }
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setTiers(data);
+        } else {
+          setTiers(DEFAULT_BILLING_TIERS);
+        }
+      } else {
+        setTiers(DEFAULT_BILLING_TIERS);
+      }
+    } catch (err) {
+      setTiers(DEFAULT_BILLING_TIERS);
+    }
     setFetchingTiers(false);
   };
 
