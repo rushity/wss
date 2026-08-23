@@ -436,7 +436,7 @@ const SuperAdminPanel = () => {
   };
 
   const handleProvisionTenant = () => {
-    setPromptValues({ tier: 'free', name: '' });
+    setPromptValues({ tier: 'quick', name: '' });
     setPromptModal({
       isOpen: true,
       title: 'Add New Organization',
@@ -448,11 +448,9 @@ const SuperAdminPanel = () => {
           label: 'Subscription Tier', 
           type: 'select', 
           options: [
-            { label: 'Free', value: 'free' },
             { label: 'Quick', value: 'quick' },
-            { label: 'Standard', value: 'standard' },
             { label: 'Advanced', value: 'advanced' },
-            { label: 'Enterprise', value: 'enterprise' },
+            { label: 'Deep', value: 'deep' },
             { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
           ] 
         }
@@ -543,11 +541,17 @@ const SuperAdminPanel = () => {
   };
 
   const handleEditTenant = (org) => {
-    const rawTier = (org.tier || org.subscription_tier || 'free');
-    const isCustom = rawTier.toLowerCase().includes('custom');
+    const rawTier = (org.tier || org.subscription_tier || 'quick');
+    const isCustom = rawTier.toLowerCase().includes('custom') || rawTier.toLowerCase().includes('enterprise');
+    const initialTier = isCustom 
+      ? 'Enterprise(Custom)' 
+      : ['quick', 'advanced', 'deep'].includes(rawTier.toLowerCase()) 
+        ? rawTier.toLowerCase() 
+        : 'quick';
+
     setPromptValues({ 
       name: org.name, 
-      tier: isCustom ? 'Enterprise(Custom)' : rawTier.toLowerCase() 
+      tier: initialTier
     });
     setPromptModal({
       isOpen: true,
@@ -560,11 +564,9 @@ const SuperAdminPanel = () => {
           label: 'Subscription Tier', 
           type: 'select', 
           options: [
-            { label: 'Free', value: 'free' },
             { label: 'Quick', value: 'quick' },
-            { label: 'Standard', value: 'standard' },
             { label: 'Advanced', value: 'advanced' },
-            { label: 'Enterprise', value: 'enterprise' },
+            { label: 'Deep', value: 'deep' },
             { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
           ] 
         }

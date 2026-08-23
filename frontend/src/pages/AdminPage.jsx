@@ -491,9 +491,10 @@ const AdminPageContent = () => {
                     onChange={(e) => updateScanAccess(mode.scan_type, e.target.value, mode.is_enabled)}
                     className="bg-surface-container border border-outline-variant rounded px-sm py-xs font-body-sm text-on-surface cursor-pointer focus:outline-none focus:border-primary"
                   >
-                    <option value="free">Free</option>
-                    <option value="pro">Pro</option>
-                    <option value="enterprise">Enterprise</option>
+                    <option value="quick">Quick</option>
+                    <option value="advanced">Advanced</option>
+                    <option value="deep">Deep</option>
+                    <option value="Enterprise(Custom)">Enterprise(Custom)</option>
                   </select>
                 </div>
 
