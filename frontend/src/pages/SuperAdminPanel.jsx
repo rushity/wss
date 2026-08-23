@@ -125,8 +125,21 @@ const SuperAdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [demoBookings, setDemoBookings] = useState([]);
   const [emailLogs, setEmailLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabFromUrl = params.get('tab');
+    const storedTab = localStorage.getItem('superAdminActiveTab');
+    return tabFromUrl || storedTab || 'overview';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('superAdminActiveTab', activeTab);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('tab') !== activeTab) {
+      url.searchParams.set('tab', activeTab);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [activeTab]);
 
   const [sortOrgCol, setSortOrgCol] = useState('Tenant Name');
   const [sortOrgDir, setSortOrgDir] = useState('asc');

@@ -73,6 +73,30 @@ export const LandingPage = () => {
     };
   }, []);
 
+  useEffect(() => {
+    const scrollKey = 'landing_scroll_pos';
+    const savedScroll = sessionStorage.getItem(scrollKey);
+    if (savedScroll) {
+      const scrollY = parseInt(savedScroll, 10);
+      if (!isNaN(scrollY) && scrollY > 0) {
+        const timer = setTimeout(() => {
+          window.scrollTo({ top: scrollY, behavior: 'instant' });
+        }, 80);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      sessionStorage.setItem('landing_scroll_pos', window.scrollY.toString());
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const calendarDays = calendarOffset === 0 ? allDays.slice(0, 8) : allDays.slice(8, 16);
 
   const timeSlots = [
