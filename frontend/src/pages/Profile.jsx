@@ -62,6 +62,64 @@ export const Profile = () => {
     }
   };
 
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const handleUploadLogoFile = async (file) => {
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size exceeds 5MB limit.");
+      return;
+    }
+    setUploadingLogo(true);
+    const formData = new FormData();
+    formData.append('logo', file);
+    try {
+      const res = await fetch('/api/auth/organizations/logo', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+      });
+      if (res.ok) {
+        toast.success("Report branding updated! Future PDF reports will include your logo.");
+        fetchBrandingManual();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to update report branding.");
+      }
+    } catch (err) {
+      toast.error("Error uploading logo.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please upload an image file (PNG, JPG, WebP, SVG)");
+        return;
+      }
+      handleUploadLogoFile(file);
+    }
+  };
+
   const [passwordData, setPasswordData] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [passwordStatus, setPasswordStatus] = useState({ loading: false, error: null, success: false });
   const [showPassword, setShowPassword] = useState({ current: false, new: false, confirm: false });
@@ -442,14 +500,25 @@ export const Profile = () => {
           </p>
 
           <div className="border-t border-outline-variant/40 pt-6">
-            <div className="border-2 border-dashed border-outline-variant/60 rounded-xl bg-surface-container-low/30 p-10 flex flex-col items-center justify-center text-center">
-              <span className="material-symbols-outlined text-[#2563eb] text-[44px] mb-3">cloud_upload</span>
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all duration-200 ${
+                isDragging
+                  ? 'border-[#2563eb] bg-[#2563eb]/10 scale-[1.01]'
+                  : 'border-outline-variant/60 bg-surface-container-low/30 hover:border-[#2563eb]/60 hover:bg-surface-container-low/60'
+              }`}
+            >
+              <span className={`material-symbols-outlined text-[44px] mb-3 transition-transform ${isDragging ? 'text-[#2563eb] scale-110' : 'text-[#2563eb]'} ${uploadingLogo ? 'animate-spin' : ''}`}>
+                {uploadingLogo ? 'sync' : 'cloud_upload'}
+              </span>
               
               <h4 className="font-bold text-on-surface text-[16px] mb-1">
-                Upload Organization Logo
+                {isDragging ? 'Drop Image Here to Upload' : 'Upload Organization Logo'}
               </h4>
               <p className="text-on-surface-variant text-sm mb-5">
-                Upload your custom logo to brand all PDF security reports
+                {isDragging ? 'Release to upload your custom logo immediately' : 'Drag & drop your logo image here or click the button below to browse'}
               </p>
 
               {reportLogoUrl && (
@@ -460,42 +529,28 @@ export const Profile = () => {
 
               <button
                 type="button"
+                disabled={uploadingLogo}
                 onClick={() => {
                   const fileInput = document.createElement('input');
                   fileInput.type = 'file';
                   fileInput.accept = 'image/*';
-                  fileInput.onchange = async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const formData = new FormData();
-                    formData.append('logo', file);
-                    try {
-                      const res = await fetch('/api/auth/organizations/logo', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData
-                      });
-                      if (res.ok) {
-                        toast.success("Report branding updated! Future PDF reports will include your logo.");
-                        fetchBrandingManual();
-                      } else {
-                        const data = await res.json();
-                        toast.error(data.message || "Failed to update report branding.");
-                      }
-                    } catch (err) {
-                      toast.error("Error uploading logo.");
+                  fileInput.onchange = (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      handleUploadLogoFile(e.target.files[0]);
                     }
                   };
                   fileInput.click();
                 }}
-                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-all cursor-pointer shadow-2xs mb-4"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-all cursor-pointer shadow-2xs mb-4 disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-[18px]">upload</span>
-                <span>{reportLogoUrl ? 'Change Logo' : 'Upload Here'}</span>
+                <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
+                  {uploadingLogo ? 'sync' : 'upload'}
+                </span>
+                <span>{uploadingLogo ? 'Uploading...' : (reportLogoUrl ? 'Change Logo' : 'Upload Here')}</span>
               </button>
 
               <p className="text-on-surface-variant text-[12px] m-0 font-medium">
-                Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
+                Supported formats: PNG, JPG, WebP, SVG (Max 5MB) &bull; Drag & Drop Supported
               </p>
             </div>
           </div>
