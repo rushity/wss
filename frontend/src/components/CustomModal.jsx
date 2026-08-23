@@ -23,7 +23,7 @@ export const CustomModal = ({ isOpen, onClose, title, description, children, foo
         onClick={onClose}
       />
       
-      <div className={`bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl w-full ${maxWidth} relative z-10 animate-fade-in flex flex-col max-h-[90vh]`}>
+      <div className={`bg-surface-container-lowest border border-outline-variant shadow-2xl rounded-2xl w-full ${maxWidth} relative z-10 animate-fade-in flex flex-col max-h-[90vh] hide-scrollbar`}>
         
         {/* Header */}
         <div className={`flex justify-between items-start p-xl ${children ? 'border-b border-outline-variant' : ''}`}>
@@ -41,7 +41,7 @@ export const CustomModal = ({ isOpen, onClose, title, description, children, foo
 
         {/* Body */}
         {children && (
-          <div className="p-xl overflow-y-auto">
+          <div className="p-xl overflow-y-auto hide-scrollbar">
             {children}
           </div>
         )}

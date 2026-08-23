@@ -850,7 +850,7 @@ const SuperAdminPanel = () => {
               </h2>
               <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
                 {loading ? <div className="p-10 text-center text-on-surface-variant text-[14px]">Fetching logs...</div> : (
-                  <div className="overflow-x-auto max-h-[400px]">
+                  <div className="overflow-x-auto max-h-[400px] hide-scrollbar">
                     <table className="w-full text-left text-sm border-collapse">
                       <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant sticky top-0 select-none">
                         <tr>
@@ -910,7 +910,7 @@ const SuperAdminPanel = () => {
               </div>
               <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
                 {loading ? <div className="p-10 text-center text-on-surface-variant text-[14px]">Fetching logs...</div> : (
-                  <div className="overflow-x-auto max-h-[400px]">
+                  <div className="overflow-x-auto max-h-[400px] hide-scrollbar">
                     <table className="w-full text-left text-sm border-collapse">
                       <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant sticky top-0">
                         <tr>
@@ -944,7 +944,7 @@ const SuperAdminPanel = () => {
       {activeTab === 'organizations' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
           <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md"><Shield className="w-5 h-5 text-primary mr-2" /> Client Organizations Directory</h2>
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm overflow-x-auto hide-scrollbar">
             {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching directory...</div> : (
               <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant select-none">
@@ -1027,7 +1027,7 @@ const SuperAdminPanel = () => {
               <button onClick={handleAddMember} className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:brightness-110 transition-all font-bold text-[13.5px] border-0 cursor-pointer"><Plus className="w-4 h-4 mr-2" /> Add Member</button>
             )}
           </div>
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm overflow-x-auto hide-scrollbar">
             {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching users...</div> : (
               <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant select-none">
@@ -1448,7 +1448,7 @@ const SuperAdminPanel = () => {
       {rescheduleModal.isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}></div>
-          <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 z-10 animate-slide-up text-left font-sans">
+          <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 z-10 animate-slide-up text-left font-sans hide-scrollbar">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">edit_calendar</span>
