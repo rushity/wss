@@ -126,18 +126,27 @@ const SuperAdminPanel = () => {
   const [demoBookings, setDemoBookings] = useState([]);
   const [emailLogs, setEmailLogs] = useState([]);
   const [activeTab, setActiveTab] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tabFromUrl = params.get('tab');
-    const storedTab = localStorage.getItem('superAdminActiveTab');
-    return tabFromUrl || storedTab || 'overview';
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const tabFromUrl = params.get('tab');
+      const storedTab = localStorage.getItem('superAdminActiveTab');
+      return tabFromUrl || storedTab || 'overview';
+    } catch (e) {
+      return 'overview';
+    }
   });
 
   useEffect(() => {
-    localStorage.setItem('superAdminActiveTab', activeTab);
-    const url = new URL(window.location.href);
-    if (url.searchParams.get('tab') !== activeTab) {
-      url.searchParams.set('tab', activeTab);
-      window.history.replaceState({}, '', url.toString());
+    try {
+      localStorage.setItem('superAdminActiveTab', activeTab);
+      const searchParams = new URLSearchParams(window.location.search);
+      if (searchParams.get('tab') !== activeTab) {
+        searchParams.set('tab', activeTab);
+        const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    } catch (e) {
+      // Ignore cross-origin history state errors in HF Spaces/iframes
     }
   }, [activeTab]);
 

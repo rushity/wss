@@ -17,23 +17,29 @@ export const Layout = ({ children }) => {
 
   // Restore and persist scroll position across page refresh
   useEffect(() => {
-    const scrollKey = `scroll_pos_${location.pathname}${location.search}`;
-    const savedScroll = sessionStorage.getItem(scrollKey);
-    if (savedScroll) {
-      const scrollY = parseInt(savedScroll, 10);
-      if (!isNaN(scrollY) && scrollY > 0) {
-        const timer = setTimeout(() => {
-          window.scrollTo({ top: scrollY, behavior: 'instant' });
-        }, 80);
-        return () => clearTimeout(timer);
+    try {
+      const scrollKey = `scroll_pos_${location.pathname}${location.search}`;
+      const savedScroll = sessionStorage.getItem(scrollKey);
+      if (savedScroll) {
+        const scrollY = parseInt(savedScroll, 10);
+        if (!isNaN(scrollY) && scrollY > 0) {
+          const timer = setTimeout(() => {
+            try {
+              window.scrollTo(0, scrollY);
+            } catch (e) {}
+          }, 80);
+          return () => clearTimeout(timer);
+        }
       }
-    }
+    } catch (e) {}
   }, [location.pathname, location.search]);
 
   useEffect(() => {
     const handleScroll = () => {
-      const scrollKey = `scroll_pos_${location.pathname}${location.search}`;
-      sessionStorage.setItem(scrollKey, window.scrollY.toString());
+      try {
+        const scrollKey = `scroll_pos_${location.pathname}${location.search}`;
+        sessionStorage.setItem(scrollKey, window.scrollY.toString());
+      } catch (e) {}
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {

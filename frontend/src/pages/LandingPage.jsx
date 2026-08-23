@@ -74,22 +74,28 @@ export const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    const scrollKey = 'landing_scroll_pos';
-    const savedScroll = sessionStorage.getItem(scrollKey);
-    if (savedScroll) {
-      const scrollY = parseInt(savedScroll, 10);
-      if (!isNaN(scrollY) && scrollY > 0) {
-        const timer = setTimeout(() => {
-          window.scrollTo({ top: scrollY, behavior: 'instant' });
-        }, 80);
-        return () => clearTimeout(timer);
+    try {
+      const scrollKey = 'landing_scroll_pos';
+      const savedScroll = sessionStorage.getItem(scrollKey);
+      if (savedScroll) {
+        const scrollY = parseInt(savedScroll, 10);
+        if (!isNaN(scrollY) && scrollY > 0) {
+          const timer = setTimeout(() => {
+            try {
+              window.scrollTo(0, scrollY);
+            } catch (e) {}
+          }, 80);
+          return () => clearTimeout(timer);
+        }
       }
-    }
+    } catch (e) {}
   }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      sessionStorage.setItem('landing_scroll_pos', window.scrollY.toString());
+      try {
+        sessionStorage.setItem('landing_scroll_pos', window.scrollY.toString());
+      } catch (e) {}
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
