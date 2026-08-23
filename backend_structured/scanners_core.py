@@ -32,7 +32,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-sys.path.insert(0, os.path.abspath('backend'))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+BACKEND_DIR = os.path.join(BASE_DIR, 'backend')
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+if BACKEND_DIR not in sys.path:
+    sys.path.insert(0, BACKEND_DIR)
 
 from bs4 import BeautifulSoup
 from celery import Celery
@@ -72,13 +77,22 @@ from reportlab.graphics.charts.barcharts import VerticalBarChart
 from sqlalchemy import event, func, inspect, text
 from sqlalchemy.engine import Engine
 
-from backend.utils.email_service import (
-    send_welcome_email, 
-    send_scan_started, 
-    send_scan_completed, 
-    send_scan_failed,
-    send_critical_alert
-)
+try:
+    from backend.utils.email_service import (
+        send_welcome_email, 
+        send_scan_started, 
+        send_scan_completed, 
+        send_scan_failed,
+        send_critical_alert
+    )
+except ImportError:
+    from utils.email_service import (
+        send_welcome_email, 
+        send_scan_started, 
+        send_scan_completed, 
+        send_scan_failed,
+        send_critical_alert
+    )
 
 from .extensions import db, celery, socketio, limiter
 from .models import *
