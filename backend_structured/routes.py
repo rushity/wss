@@ -819,39 +819,67 @@ def upload_organization_logo(current_user):
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
         
-    if 'logo' not in request.files:
-        return jsonify({'message': 'No file part'}), 400
-        
-    file = request.files['logo']
-    if file.filename == '':
-        return jsonify({'message': 'No selected file'}), 400
-        
-    if file:
-        from utils.firebase_storage import is_available, upload_bytes
-        
-        filename = secure_filename(f"org_{org.id}_{file.filename}")
+    file_bytes = None
+    content_type = 'image/png'
+    ext = 'png'
+    
+    # 1. Direct File Upload (Multipart Form Data)
+    if 'logo' in request.files and request.files['logo'].filename != '':
+        file = request.files['logo']
+        filename_raw = secure_filename(file.filename) or "logo.png"
         file_bytes = file.read()
         content_type = file.content_type or 'image/png'
+        if '.' in filename_raw:
+            ext = filename_raw.rsplit('.', 1)[1].lower()
+    else:
+        # 2. Web Image URL Download Fallback (JSON or Form Data)
+        data = request.get_json(silent=True) or request.form or {}
+        logo_url_input = data.get('logo_url') or data.get('image_url')
         
-        if is_available():
-            # Upload to Firebase Cloud Storage
-            blob_path = f"logos/{org.id}/{filename}"
-            logo_url = upload_bytes(file_bytes, content_type, blob_path)
-            if not logo_url:
-                return jsonify({'message': 'Firebase upload failed'}), 500
-        else:
-            # Fallback: save to local disk
-            upload_folder = current_app.config['UPLOAD_FOLDER']
-            os.makedirs(upload_folder, exist_ok=True)
-            file_path = os.path.join(upload_folder, filename)
-            with open(file_path, 'wb') as f:
-                f.write(file_bytes)
-            logo_url = f"/uploads/logos/{filename}"
-        
-        org.report_logo_url = logo_url
-        db.session.commit()
-        
-        return jsonify({'message': 'Logo uploaded successfully', 'report_logo_url': logo_url}), 200
+        if logo_url_input and (logo_url_input.startswith('http://') or logo_url_input.startswith('https://')):
+            try:
+                resp = requests.get(
+                    logo_url_input,
+                    timeout=10,
+                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+                )
+                if resp.status_code == 200 and resp.content:
+                    file_bytes = resp.content
+                    content_type = resp.headers.get('Content-Type', 'image/png').split(';')[0].strip()
+                    if 'jpeg' in content_type: ext = 'jpg'
+                    elif 'webp' in content_type: ext = 'webp'
+                    elif 'svg' in content_type: ext = 'svg'
+                    elif 'gif' in content_type: ext = 'gif'
+                    else: ext = 'png'
+            except Exception as e:
+                current_app.logger.warn(f"Failed to fetch logo_url: {e}")
+
+    if not file_bytes:
+        return jsonify({'message': 'No valid logo file or URL provided'}), 400
+
+    from utils.firebase_storage import is_available, upload_bytes
+    
+    filename = secure_filename(f"org_{org.id}_{int(time.time())}.{ext}")
+    
+    if is_available():
+        # Upload to Firebase Cloud Storage
+        blob_path = f"logos/{org.id}/{filename}"
+        logo_url = upload_bytes(file_bytes, content_type, blob_path)
+        if not logo_url:
+            return jsonify({'message': 'Firebase upload failed'}), 500
+    else:
+        # Fallback: save to local disk
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        os.makedirs(upload_folder, exist_ok=True)
+        file_path = os.path.join(upload_folder, filename)
+        with open(file_path, 'wb') as f:
+            f.write(file_bytes)
+        logo_url = f"/uploads/logos/{filename}"
+    
+    org.report_logo_url = logo_url
+    db.session.commit()
+    
+    return jsonify({'message': 'Logo uploaded successfully', 'report_logo_url': logo_url}), 200
 
 @auth_bp.route('/organizations/webhook', methods=['GET', 'PUT'])
 @token_required

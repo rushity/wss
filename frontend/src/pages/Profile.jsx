@@ -62,8 +62,45 @@ export const Profile = () => {
     }
   };
 
+  useEffect(() => {
+    const preventWindowDrop = (e) => {
+      e.preventDefault();
+    };
+    window.addEventListener('dragover', preventWindowDrop);
+    window.addEventListener('drop', preventWindowDrop);
+    return () => {
+      window.removeEventListener('dragover', preventWindowDrop);
+      window.removeEventListener('drop', preventWindowDrop);
+    };
+  }, []);
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+
+  const handleUploadLogoUrl = async (imageUrl) => {
+    setUploadingLogo(true);
+    try {
+      const res = await fetch('/api/auth/organizations/logo', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ logo_url: imageUrl })
+      });
+      if (res.ok) {
+        toast.success("Report branding updated! Future PDF reports will include your logo.");
+        fetchBrandingManual();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to download and process web image.");
+      }
+    } catch (err) {
+      toast.error("Error uploading logo URL.");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleUploadLogoFile = async (file) => {
     if (!file) return;
@@ -97,12 +134,19 @@ export const Profile = () => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+    if (e.dataTransfer) {
+      e.dataTransfer.dropEffect = 'copy';
+    }
+    if (!isDragging) setIsDragging(true);
   };
 
   const handleDragLeave = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    // Only set false if leaving the main drop container
+    if (e.currentTarget && e.relatedTarget && e.currentTarget.contains(e.relatedTarget)) {
+      return;
+    }
     setIsDragging(false);
   };
 
@@ -111,7 +155,7 @@ export const Profile = () => {
     e.stopPropagation();
     setIsDragging(false);
 
-    // 1. Direct File Drop (from File Explorer or Browser File Drop)
+    // 1. Direct File Drop (from File Explorer or Desktop)
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       const file = e.dataTransfer.files[0];
       if (file && (file.type.startsWith('image/') || file.type === '' || file.name.match(/\.(png|jpe?g|webp|svg|gif|bmp)$/i))) {
@@ -134,7 +178,7 @@ export const Profile = () => {
       }
     }
 
-    // 3. Chrome Web Image / HTML / URL Drag (Dragging image from Google Chrome tab or web page)
+    // 3. Chrome / Web Image / HTML / URL Drag
     const htmlData = e.dataTransfer.getData('text/html');
     const uriData = e.dataTransfer.getData('text/uri-list') || e.dataTransfer.getData('URL') || e.dataTransfer.getData('text/plain');
 
@@ -157,10 +201,9 @@ export const Profile = () => {
     }
 
     if (imageUrl) {
-      setUploadingLogo(true);
-      try {
-        // Base64 Data URL handling
-        if (imageUrl.startsWith('data:image/')) {
+      // Base64 Data URL handling
+      if (imageUrl.startsWith('data:image/')) {
+        try {
           const arr = imageUrl.split(',');
           const mime = arr[0].match(/:(.*?);/)[1];
           const bstr = atob(arr[1]);
@@ -171,20 +214,25 @@ export const Profile = () => {
           }
           const file = new File([u8arr], 'dragged_logo.png', { type: mime });
           await handleUploadLogoFile(file);
-          return;
+        } catch (err) {
+          toast.error("Invalid base64 image data.");
         }
+        return;
+      }
 
-        // Web HTTP/HTTPS URL fetch handling
-        const res = await fetch(imageUrl);
-        if (!res.ok) throw new Error("Network response was not ok when fetching dropped image");
+      // Web HTTP/HTTPS URL handling - First try frontend fetch, fallback to backend fetch
+      setUploadingLogo(true);
+      try {
+        const res = await fetch(imageUrl, { mode: 'cors' });
+        if (!res.ok) throw new Error("CORS or HTTP error");
         const blob = await res.blob();
         const contentType = blob.type || 'image/png';
         const fileExt = contentType.split('/')[1] || 'png';
         const file = new File([blob], `dragged_logo.${fileExt}`, { type: contentType });
         await handleUploadLogoFile(file);
-      } catch (err) {
-        console.error("Error processing dropped web image:", err);
-        toast.error("Could not load image directly from web URL. Try saving the file or dropping a local image.");
+      } catch (frontendErr) {
+        // Fallback: send web image URL to backend to download server-side (bypasses CORS!)
+        await handleUploadLogoUrl(imageUrl);
       } finally {
         setUploadingLogo(false);
       }
@@ -578,44 +626,46 @@ export const Profile = () => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 ${
+              className={`relative border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 ${
                 isDragging
                   ? 'border-[#2563eb] bg-[#eff6ff] scale-[1.005]'
                   : 'border-[#d1d5db] bg-[#f9fafb] hover:border-[#9ca3af] hover:bg-[#f3f4f6]'
               }`}
             >
-              <span className={`material-symbols-outlined text-[36px] text-[#2563eb] mb-3 transition-transform ${isDragging ? 'scale-110' : ''} ${uploadingLogo ? 'animate-spin' : ''}`}>
-                {uploadingLogo ? 'sync' : 'cloud'}
-              </span>
-              
-              <h4 className="font-bold text-[#111827] text-[16px] mb-1 m-0">
-                {isDragging ? 'Drop Image Here to Upload' : 'Upload Organization Logo'}
-              </h4>
-              <p className="text-[#6b7280] text-sm mt-1 mb-5 m-0">
-                {isDragging ? 'Release to upload your custom logo immediately' : 'Upload your custom logo to brand all PDF security reports'}
-              </p>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    handleUploadLogoFile(e.target.files[0]);
+                  }
+                }}
+                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+              />
 
-              {reportLogoUrl && (
-                <div className="mb-5 p-3 bg-white rounded-lg border border-[#e5e7eb] shadow-2xs flex items-center justify-center">
-                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-16 max-w-xs object-contain" />
-                </div>
-              )}
+              <div className="pointer-events-none flex flex-col items-center justify-center">
+                <span className={`material-symbols-outlined text-[36px] text-[#2563eb] mb-3 transition-transform ${isDragging ? 'scale-110' : ''} ${uploadingLogo ? 'animate-spin' : ''}`}>
+                  {uploadingLogo ? 'sync' : 'cloud'}
+                </span>
+                
+                <h4 className="font-bold text-[#111827] text-[16px] mb-1 m-0">
+                  {isDragging ? 'Drop Image Here to Upload' : 'Upload Organization Logo'}
+                </h4>
+                <p className="text-[#6b7280] text-sm mt-1 mb-5 m-0">
+                  {isDragging ? 'Release to upload your custom logo immediately' : 'Upload your custom logo to brand all PDF security reports'}
+                </p>
+
+                {reportLogoUrl && (
+                  <div className="mb-5 p-3 bg-white rounded-lg border border-[#e5e7eb] shadow-2xs flex items-center justify-center pointer-events-auto">
+                    <img src={reportLogoUrl} alt="Organization Logo" className="max-h-16 max-w-xs object-contain" />
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
                 disabled={uploadingLogo}
-                onClick={() => {
-                  const fileInput = document.createElement('input');
-                  fileInput.type = 'file';
-                  fileInput.accept = 'image/*';
-                  fileInput.onchange = (e) => {
-                    if (e.target.files && e.target.files[0]) {
-                      handleUploadLogoFile(e.target.files[0]);
-                    }
-                  };
-                  fileInput.click();
-                }}
-                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
+                className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
                   {uploadingLogo ? 'sync' : 'upload'}
@@ -623,7 +673,7 @@ export const Profile = () => {
                 <span>{uploadingLogo ? 'Uploading...' : (reportLogoUrl ? 'Change Logo' : 'Upload Here')}</span>
               </button>
 
-              <p className="text-[#6b7280] text-[12px] m-0 font-normal">
+              <p className="text-[#6b7280] text-[12px] m-0 font-normal pointer-events-none">
                 Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
               </p>
             </div>
