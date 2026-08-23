@@ -89,7 +89,7 @@ export const ReportsHistory = () => {
 
   const handleShare = (e, scanId) => {
     e.stopPropagation();
-    const shareUrl = `${window.location.origin}/scans/results?id=${scanId}`;
+    const shareUrl = `${window.location.origin}/api/reports/${scanId}/public-pdf`;
     navigator.clipboard.writeText(shareUrl);
     setCopiedId(scanId);
     setTimeout(() => setCopiedId(null), 2500);

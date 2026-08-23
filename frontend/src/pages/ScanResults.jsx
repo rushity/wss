@@ -221,7 +221,9 @@ export const ScanResults = () => {
   };
 
   const handleShare = () => {
-    navigator.clipboard.writeText(window.location.href);
+    if (!scan?.id) return;
+    const shareUrl = `${window.location.origin}/api/reports/${scan.id}/public-pdf`;
+    navigator.clipboard.writeText(shareUrl);
     setShareText('Link Copied!');
     setTimeout(() => setShareText('Share'), 2500);
   };

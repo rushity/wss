@@ -2126,6 +2126,48 @@ def generate_pdf_report(current_user, scan_id):
         return jsonify({'message': f'Server error: {str(e)}'}), 500
 
 
+@reports_bp.route('/<scan_id>/public-pdf', methods=['GET'])
+def generate_public_pdf_report(scan_id):
+    """Direct unauthenticated access to stream/render PDF report natively in browser."""
+    scan = db.session.get(Scan, scan_id)
+    if not scan:
+        return jsonify({'message': 'Scan session not found!'}), 404
+        
+    try:
+        vulns = Vulnerability.query.filter_by(scan_id=scan_id).order_by(Vulnerability.cvss_score.desc()).all()
+        
+        try:
+            pdf_bytes_data = generate_scan_pdf(scan, vulns)
+        except Exception as e:
+            import traceback
+            with open('pdf_error.log', 'w') as f:
+                traceback.print_exc(file=f)
+            return jsonify({'message': f'PDF Generation failed: {str(e)}'}), 500
+            
+        pdf_bytes = io.BytesIO(pdf_bytes_data)
+        pdf_bytes.seek(0)
+        
+        parsed = urlparse(scan.target_url)
+        domain = parsed.netloc or parsed.path
+        if ':' in domain:
+            domain = domain.split(':')[0]
+            
+        date_str = scan.completed_at.strftime('%Y%m%d_%H%M') if scan.completed_at else 'Unknown'
+        filename = f"{domain}_Scan_Report_{date_str}.pdf"
+        
+        return send_file(
+            pdf_bytes,
+            mimetype='application/pdf',
+            as_attachment=False,
+            download_name=filename
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'message': f'Server error: {str(e)}'}), 500
+
+
+
 # --- From webhook.py ---
 
 def send_webhook_alert(webhook_url, scan, vulnerabilities, crit_count, high_count):
