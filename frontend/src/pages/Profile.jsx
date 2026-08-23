@@ -488,42 +488,42 @@ export const Profile = () => {
 
       {/* Second Row for Report Branding */}
       {(profile.role === 'super_admin' || profile.role === 'org_admin') && (
-        <div className="w-full bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-2xs p-6 mt-6">
+        <div className="w-full bg-white border border-[#e5e7eb] rounded-xl shadow-xs p-6 md:p-8 mt-6">
           <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-[#2563eb] text-[24px]">palette</span>
-            <h3 className="font-bold text-on-surface text-[18px] m-0">
+            <span className="material-symbols-outlined text-[#2563eb] text-[22px]">palette</span>
+            <h3 className="font-bold text-[#111827] text-[18px] m-0">
               Report Branding
             </h3>
           </div>
-          <p className="text-on-surface-variant text-sm mb-6 m-0">
+          <p className="text-[#4b5563] text-sm mt-1 mb-5 m-0">
             Customize generated PDF security reports with your organization's logo.
           </p>
 
-          <div className="border-t border-outline-variant/40 pt-6">
+          <div className="border-t border-[#f3f4f6] pt-6">
             <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-10 flex flex-col items-center justify-center text-center transition-all duration-200 ${
+              className={`border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 ${
                 isDragging
-                  ? 'border-[#2563eb] bg-[#2563eb]/10 scale-[1.01]'
-                  : 'border-outline-variant/60 bg-surface-container-low/30 hover:border-[#2563eb]/60 hover:bg-surface-container-low/60'
+                  ? 'border-[#2563eb] bg-[#eff6ff] scale-[1.005]'
+                  : 'border-[#d1d5db] bg-[#f9fafb] hover:border-[#9ca3af] hover:bg-[#f3f4f6]'
               }`}
             >
-              <span className={`material-symbols-outlined text-[44px] mb-3 transition-transform ${isDragging ? 'text-[#2563eb] scale-110' : 'text-[#2563eb]'} ${uploadingLogo ? 'animate-spin' : ''}`}>
-                {uploadingLogo ? 'sync' : 'cloud_upload'}
+              <span className={`material-symbols-outlined text-[36px] text-[#2563eb] mb-3 transition-transform ${isDragging ? 'scale-110' : ''} ${uploadingLogo ? 'animate-spin' : ''}`}>
+                {uploadingLogo ? 'sync' : 'cloud'}
               </span>
               
-              <h4 className="font-bold text-on-surface text-[16px] mb-1">
+              <h4 className="font-bold text-[#111827] text-[16px] mb-1 m-0">
                 {isDragging ? 'Drop Image Here to Upload' : 'Upload Organization Logo'}
               </h4>
-              <p className="text-on-surface-variant text-sm mb-5">
-                {isDragging ? 'Release to upload your custom logo immediately' : 'Drag & drop your logo image here or click the button below to browse'}
+              <p className="text-[#6b7280] text-sm mt-1 mb-5 m-0">
+                {isDragging ? 'Release to upload your custom logo immediately' : 'Upload your custom logo to brand all PDF security reports'}
               </p>
 
               {reportLogoUrl && (
-                <div className="mb-4 p-2 bg-surface-container rounded-lg border border-outline-variant/40">
-                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-20 max-w-full object-contain rounded" />
+                <div className="mb-5 p-3 bg-white rounded-lg border border-[#e5e7eb] shadow-2xs flex items-center justify-center">
+                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-16 max-w-xs object-contain" />
                 </div>
               )}
 
@@ -541,7 +541,7 @@ export const Profile = () => {
                   };
                   fileInput.click();
                 }}
-                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-all cursor-pointer shadow-2xs mb-4 disabled:opacity-50"
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
                   {uploadingLogo ? 'sync' : 'upload'}
@@ -549,8 +549,8 @@ export const Profile = () => {
                 <span>{uploadingLogo ? 'Uploading...' : (reportLogoUrl ? 'Change Logo' : 'Upload Here')}</span>
               </button>
 
-              <p className="text-on-surface-variant text-[12px] m-0 font-medium">
-                Supported formats: PNG, JPG, WebP, SVG (Max 5MB) &bull; Drag & Drop Supported
+              <p className="text-[#6b7280] text-[12px] m-0 font-normal">
+                Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
               </p>
             </div>
           </div>
