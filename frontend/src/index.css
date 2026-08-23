@@ -146,4 +146,26 @@
   background: #ffffff !important;
 }
 
+/* Hide scrollbar utility */
+.hide-scrollbar,
+.hide-scrollbar *,
+.scrollbar-none,
+.scrollbar-none *,
+.no-scrollbar,
+.no-scrollbar * {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
+}
+
+.hide-scrollbar::-webkit-scrollbar,
+.hide-scrollbar *::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.scrollbar-none *::-webkit-scrollbar,
+.no-scrollbar::-webkit-scrollbar,
+.no-scrollbar *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 

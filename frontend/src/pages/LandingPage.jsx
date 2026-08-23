@@ -64,6 +64,15 @@ export const LandingPage = () => {
 
   const [activeTab, setActiveTab] = useState('Security Score');
 
+  useEffect(() => {
+    document.documentElement.classList.add('hide-scrollbar');
+    document.body.classList.add('hide-scrollbar');
+    return () => {
+      document.documentElement.classList.remove('hide-scrollbar');
+      document.body.classList.remove('hide-scrollbar');
+    };
+  }, []);
+
   const calendarDays = calendarOffset === 0 ? allDays.slice(0, 8) : allDays.slice(8, 16);
 
   const timeSlots = [
@@ -161,7 +170,7 @@ export const LandingPage = () => {
   const tabs = ['Security Score', 'Assets', 'Vulnerabilities', 'AI Insights', 'Compliance', 'Reports'];
 
   return (
-    <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary/10 overflow-x-hidden w-full max-w-full">
+    <div className="bg-surface text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary/10 overflow-x-hidden w-full max-w-full hide-scrollbar">
 
       {/* TopNavBar */}
       <header className="fixed top-0 w-full z-50 border-b border-outline-variant glass-header shadow-sm transition-all duration-300">
