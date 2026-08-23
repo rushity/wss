@@ -31,8 +31,14 @@ def serve_react(path):
     if path.startswith('api/') or path.startswith('socket.io'):
         abort(404)
     if path and os.path.exists(os.path.join(FRONTEND_DIR, path)):
-        return send_from_directory(FRONTEND_DIR, path)
-    return send_from_directory(FRONTEND_DIR, 'index.html')
+        res = send_from_directory(FRONTEND_DIR, path)
+    else:
+        res = send_from_directory(FRONTEND_DIR, 'index.html')
+
+    res.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    res.headers['Pragma'] = 'no-cache'
+    res.headers['Expires'] = '0'
+    return res
 
 
 if __name__ == '__main__':
