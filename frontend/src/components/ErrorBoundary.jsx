@@ -46,16 +46,37 @@ export class ErrorBoundary extends React.Component {
               <span className="material-symbols-outlined text-2xl">refresh</span>
             </div>
             <h2 className="text-xl font-bold text-slate-900 mb-2">Session Navigation Update</h2>
-            <p className="text-sm text-slate-500 mb-6 leading-relaxed">
-              The page view encountered a sync issue or session timeout. Refresh the page or return to log in.
+            <p className="text-sm text-slate-500 mb-4 leading-relaxed">
+              The page view encountered a sync issue or session timeout.
             </p>
+
+            {this.state.error?.message && (
+              <div className="mb-5 p-3 bg-red-50 border border-red-200 rounded-xl text-left">
+                <div className="text-xs font-bold text-red-800 mb-1 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[14px]">error</span>
+                  System Notice:
+                </div>
+                <p className="text-xs font-mono text-red-700 break-words leading-relaxed max-h-24 overflow-y-auto">
+                  {this.state.error.message}
+                </p>
+              </div>
+            )}
+
             <div className="flex flex-col gap-3">
+              <button
+                onClick={() => {
+                  this.setState({ hasError: false, error: null });
+                }}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 border-0 cursor-pointer text-sm"
+              >
+                Resume Current View
+              </button>
               <button
                 onClick={() => {
                   this.setState({ hasError: false, error: null });
                   window.location.reload();
                 }}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-xl transition-all shadow-md shadow-blue-600/20 border-0 cursor-pointer text-sm"
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition-all border-0 cursor-pointer text-sm"
               >
                 Refresh Page
               </button>
@@ -66,9 +87,9 @@ export class ErrorBoundary extends React.Component {
                   localStorage.removeItem('wss_refresh_token');
                   window.location.href = '/login';
                 }}
-                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-6 rounded-xl transition-all border-0 cursor-pointer text-sm"
+                className="w-full text-slate-500 hover:text-slate-700 text-xs font-medium py-1 transition-all border-0 bg-transparent cursor-pointer"
               >
-                Clear Session & Log In Again
+                Clear Session & Return to Login
               </button>
             </div>
           </div>

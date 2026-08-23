@@ -139,15 +139,7 @@ const SuperAdminPanel = () => {
   useEffect(() => {
     try {
       localStorage.setItem('superAdminActiveTab', activeTab);
-      const searchParams = new URLSearchParams(window.location.search);
-      if (searchParams.get('tab') !== activeTab) {
-        searchParams.set('tab', activeTab);
-        const newUrl = `${window.location.pathname}?${searchParams.toString()}`;
-        window.history.replaceState(null, '', newUrl);
-      }
-    } catch (e) {
-      // Ignore cross-origin history state errors in HF Spaces/iframes
-    }
+    } catch (e) {}
   }, [activeTab]);
 
   const [sortOrgCol, setSortOrgCol] = useState('Tenant Name');
