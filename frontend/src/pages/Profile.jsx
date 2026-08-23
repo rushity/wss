@@ -430,59 +430,73 @@ export const Profile = () => {
 
       {/* Second Row for Report Branding */}
       {(profile.role === 'super_admin' || profile.role === 'org_admin') && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch mt-6">
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm p-6 flex flex-col h-full lg:col-span-1">
-            <h3 className="font-semibold text-on-surface m-0 mb-4 flex items-center gap-2 border-b border-outline-variant pb-4 text-lg">
-              <span className="material-symbols-outlined text-primary">palette</span>
+        <div className="w-full bg-surface-container-lowest border border-outline-variant/70 rounded-2xl shadow-2xs p-6 mt-6">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="material-symbols-outlined text-[#2563eb] text-[24px]">palette</span>
+            <h3 className="font-bold text-on-surface text-[18px] m-0">
               Report Branding
             </h3>
-            <p className="text-on-surface-variant text-sm mb-6">
-              Upload your organization's logo to customize PDF reports.
-            </p>
-            <div className="flex flex-col flex-1 items-center justify-center border-2 border-dashed border-outline-variant rounded-lg bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer p-6"
-                 onClick={() => {
-                   const fileInput = document.createElement('input');
-                   fileInput.type = 'file';
-                   fileInput.accept = 'image/*';
-                   fileInput.onchange = async (e) => {
-                     const file = e.target.files[0];
-                     if (!file) return;
-                     const formData = new FormData();
-                     formData.append('logo', file);
-                     try {
-                       const res = await fetch('/api/auth/organizations/logo', {
-                         method: 'POST',
-                         headers: { 'Authorization': `Bearer ${token}` },
-                         body: formData
-                       });
-                       if (res.ok) {
-                         toast.success("Report branding updated! Future PDF reports will include your logo.");
-                         fetchBrandingManual();
-                       } else {
-                         const data = await res.json();
-                         toast.error(data.message || "Failed to update report branding.");
-                       }
-                     } catch (err) {
-                       toast.error("Error uploading logo.");
-                     }
-                   };
-                   fileInput.click();
-                 }}>
-              {reportLogoUrl ? (
-                <div className="flex flex-col items-center">
-                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-[100px] max-w-full object-contain rounded mb-4" />
-                  <div className="flex items-center gap-1 text-primary font-bold text-sm">
-                    <span className="material-symbols-outlined text-[16px]">change_circle</span>
-                    <span>Click to change logo</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-center">
-                  <span className="material-symbols-outlined text-[40px] text-primary/60 mb-2">cloud_upload</span>
-                  <span className="font-bold text-on-surface text-sm">Click to upload logo</span>
-                  <span className="text-[12px] text-on-surface-variant mt-1">PNG, JPG up to 5MB</span>
+          </div>
+          <p className="text-on-surface-variant text-sm mb-6 m-0">
+            Customize generated PDF security reports with your organization's logo.
+          </p>
+
+          <div className="border-t border-outline-variant/40 pt-6">
+            <div className="border-2 border-dashed border-outline-variant/60 rounded-xl bg-surface-container-low/30 p-10 flex flex-col items-center justify-center text-center">
+              <span className="material-symbols-outlined text-[#2563eb] text-[44px] mb-3">cloud_upload</span>
+              
+              <h4 className="font-bold text-on-surface text-[16px] mb-1">
+                Upload Organization Logo
+              </h4>
+              <p className="text-on-surface-variant text-sm mb-5">
+                Upload your custom logo to brand all PDF security reports
+              </p>
+
+              {reportLogoUrl && (
+                <div className="mb-4 p-2 bg-surface-container rounded-lg border border-outline-variant/40">
+                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-20 max-w-full object-contain rounded" />
                 </div>
               )}
+
+              <button
+                type="button"
+                onClick={() => {
+                  const fileInput = document.createElement('input');
+                  fileInput.type = 'file';
+                  fileInput.accept = 'image/*';
+                  fileInput.onchange = async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append('logo', file);
+                    try {
+                      const res = await fetch('/api/auth/organizations/logo', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                      });
+                      if (res.ok) {
+                        toast.success("Report branding updated! Future PDF reports will include your logo.");
+                        fetchBrandingManual();
+                      } else {
+                        const data = await res.json();
+                        toast.error(data.message || "Failed to update report branding.");
+                      }
+                    } catch (err) {
+                      toast.error("Error uploading logo.");
+                    }
+                  };
+                  fileInput.click();
+                }}
+                className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-all cursor-pointer shadow-2xs mb-4"
+              >
+                <span className="material-symbols-outlined text-[18px]">upload</span>
+                <span>{reportLogoUrl ? 'Change Logo' : 'Upload Here'}</span>
+              </button>
+
+              <p className="text-on-surface-variant text-[12px] m-0 font-medium">
+                Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
+              </p>
             </div>
           </div>
         </div>
