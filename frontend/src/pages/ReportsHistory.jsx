@@ -28,6 +28,13 @@ export const ReportsHistory = () => {
   const [sortColumn, setSortColumn] = useState('Date');
   const [sortDirection, setSortDirection] = useState('desc');
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 15;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, scanTypeFilter, dateFilter, statusFilter]);
+
   const { token } = useAuth();
   const navigate = useNavigate();
 
@@ -177,6 +184,14 @@ export const ReportsHistory = () => {
     });
   };
 
+  // Calculate Pagination (15 items per page)
+  const sortedScans = getSortedScans();
+  const totalItems = sortedScans.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedScans = sortedScans.slice(startIndex, endIndex);
+
   return (
     <div className="flex flex-col gap-lg text-left w-full">
       
@@ -291,12 +306,12 @@ export const ReportsHistory = () => {
 
         {/* List Items */}
         <div className="flex flex-col divide-y divide-outline-variant">
-          {filteredScans.length === 0 ? (
+          {paginatedScans.length === 0 ? (
             <div className="text-center py-2xl text-on-surface-variant font-body-sm">
               No historical security audits match your search query.
             </div>
           ) : (
-            getSortedScans().map((s) => {
+            paginatedScans.map((s) => {
               const hasCritical = s.vulnerabilities_count?.critical > 0;
               const hasHigh = s.vulnerabilities_count?.high > 0;
 
@@ -404,15 +419,31 @@ export const ReportsHistory = () => {
         </div>
 
         {/* Pagination footer */}
-        <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex justify-between items-center">
+        <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex flex-col sm:flex-row justify-between items-center gap-sm">
           <span className="font-body-sm text-body-sm text-on-surface-variant">
-            Showing 1-{filteredScans.length} of {filteredScans.length} completed logs
+            {totalItems > 0 
+              ? `Showing ${startIndex + 1}-${endIndex} of ${totalItems} completed logs`
+              : `Showing 0 of 0 completed logs`
+            }
           </span>
           <div className="flex items-center gap-sm">
-            <button className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-50 border-0 bg-transparent cursor-pointer flex items-center justify-center" disabled>
+            <span className="font-body-sm text-body-sm text-on-surface-variant mr-xs">
+              Page {currentPage} of {totalPages}
+            </span>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer flex items-center justify-center disabled:cursor-not-allowed"
+              title="Previous Page"
+            >
               <span className="material-symbols-outlined">chevron_left</span>
             </button>
-            <button className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-50 border-0 bg-transparent cursor-pointer flex items-center justify-center" disabled>
+            <button 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage >= totalPages}
+              className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer flex items-center justify-center disabled:cursor-not-allowed"
+              title="Next Page"
+            >
               <span className="material-symbols-outlined">chevron_right</span>
             </button>
           </div>
