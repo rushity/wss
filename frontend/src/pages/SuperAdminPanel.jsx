@@ -125,6 +125,7 @@ const SuperAdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [demoBookings, setDemoBookings] = useState([]);
   const [emailLogs, setEmailLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -604,7 +605,7 @@ const SuperAdminPanel = () => {
   const isSupportEngineer = user?.role === 'support_engineer';
   const isSuperAdmin = user?.role === 'super_admin' || user?.role === 'admin' || sessionStorage.getItem('superAdminAuth') === 'true';
 
-  if (authLoading) {
+  if (authLoading || loading) {
     return (
       <div className="flex h-[70vh] items-center justify-center">
         <div className="flex flex-col items-center gap-3">
