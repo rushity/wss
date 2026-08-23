@@ -199,17 +199,20 @@ export const Layout = ({ children }) => {
         {/* Header Branding */}
         <div className="mb-xl flex flex-col gap-sm">
           <div className="flex items-center gap-sm">
-            <div className="h-14 flex items-center justify-center">
+            <div className="h-12 flex items-center justify-center shrink-0">
               <img src="/logo.png" alt="LarShield Logo" className="h-full object-contain" />
             </div>
-            <div>
-              <h1 className="font-bold brand-gradient tracking-tight m-0 text-[15px] leading-snug">LarShield</h1>
-              <p className="font-label-sm text-[12px] text-on-surface-variant uppercase tracking-wider m-0 font-semibold">
-                {user?.role === 'super_admin' ? 'Super Admin' : 
-                 user?.role === 'admin' ? 'Admin' : 
-                 user?.role === 'support_engineer' ? 'Support Engineer' : 
-                 user?.role === 'org_admin' ? 'Organization Admin' : 
-                 user?.subscription_tier || 'Free Tier'}
+            <div className="flex flex-col justify-center">
+              <h1 className="font-extrabold tracking-tight m-0 text-[18px] leading-none flex items-center">
+                <span className="text-[#0b132a] dark:text-white">Lar</span>
+                <span className="text-[#5856d6]">Shield</span>
+              </h1>
+              <p className="text-[12px] text-[#d97706] uppercase tracking-[0.16em] m-0 font-semibold leading-tight mt-1">
+                {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
+                 user?.role === 'admin' ? 'ADMIN' : 
+                 user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
+                 user?.role === 'org_admin' ? 'ORGANIZATION ADMIN' : 
+                 (user?.subscription_tier ? `${user.subscription_tier.toUpperCase()} TIER` : 'FREE TIER')}
               </p>
             </div>
           </div>
@@ -282,7 +285,13 @@ export const Layout = ({ children }) => {
         {/* Mobile Hamburger menu */}
         <div className="md:hidden flex items-center gap-sm">
           <span className="material-symbols-outlined text-primary cursor-pointer">menu</span>
-          <span className="font-bold brand-gradient text-[15px] leading-snug">LarShield</span>
+          <div className="flex items-center gap-xs">
+            <img src="/logo.png" alt="LarShield Logo" className="h-7 w-7 object-contain" />
+            <span className="font-extrabold tracking-tight text-[16px] leading-none flex items-center">
+              <span className="text-[#0b132a] dark:text-white">Lar</span>
+              <span className="text-[#5856d6]">Shield</span>
+            </span>
+          </div>
         </div>
 
         {/* Search Bar Utility */}
