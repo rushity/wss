@@ -989,15 +989,23 @@ def generate_scan_pdf(scan, vulnerabilities):
             for u_idx, u_vuln in enumerate(unconfirmed_findings, start=1):
                 u_title = getattr(u_vuln, 'title', f"Unconfirmed Finding #{u_idx}")
                 u_cvss = str(getattr(u_vuln, 'cvss_score', '0.0'))
-                u_cat = getattr(u_vuln, 'category', 'General')
-                u_sev = getattr(u_vuln, 'severity', 'Low')
+                u_cat = html.escape(str(getattr(u_vuln, 'category', 'General')))
+                u_sev = str(getattr(u_vuln, 'severity', 'Low')).capitalize()
+                
+                u_sev_lower = u_sev.lower()
+                if 'critical' in u_sev_lower: u_sev_hex = '#DC2626'
+                elif 'high' in u_sev_lower: u_sev_hex = '#EA580C'
+                elif 'medium' in u_sev_lower: u_sev_hex = '#D97706'
+                elif 'low' in u_sev_lower: u_sev_hex = '#99CC33'
+                else: u_sev_hex = '#2563EB'
+
                 u_desc = getattr(u_vuln, 'description', '')
-                u_vec = getattr(u_vuln, 'cvss_vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N')
+                u_vec = html.escape(str(getattr(u_vuln, 'cvss_vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N')))
 
                 elements.append(Paragraph(f"<b>A.{u_idx} {html.escape(u_title)} [Requires Verification]</b>", styles['Heading3']))
                 u_data = [
                     ["Status", Paragraph("<font color='#EA580C'>Requires Verification</font>", normal), "CVSS Score", u_cvss],
-                    ["Category", u_cat, "Severity", Paragraph(f"<font color='#99CC33'>{u_sev}</font>", normal)],
+                    ["Category", u_cat, "Severity", Paragraph(f"<font color='{u_sev_hex}'>{u_sev}</font>", normal)],
                     ["CVSS Vector", u_vec, "", ""]
                 ]
                 u_table = Table(u_data, colWidths=[80, 150, 80, 150])
@@ -1009,9 +1017,46 @@ def generate_scan_pdf(scan, vulnerabilities):
                 ]))
                 elements.append(u_table)
                 elements.append(Spacer(1, 8))
-                desc_p = f"<b>Description:</b><br/>{html.escape(u_desc)}"
-                elements.append(Paragraph(desc_p, normal))
-                elements.append(Spacer(1, 15))
+
+                if u_desc:
+                    u_desc_html = markdown_to_reportlab_html(u_desc)
+                    elements.append(Paragraph(f"<b>Description:</b><br/>{u_desc_html}", normal))
+                    elements.append(Spacer(1, 10))
+
+                u_proof_text = get_proof_of_detection(u_vuln, domain)
+                if u_proof_text:
+                    elements.append(Paragraph("<b>Proof of Detection (Engine Payload Audit Log):</b>", styles['Normal']))
+                    elements.append(Spacer(1, 5))
+                    u_proof_lines = u_proof_text.split('\n')
+                    u_proof_html = []
+                    for line in u_proof_lines:
+                        escaped = html.escape(line).replace(" ", "&nbsp;")
+                        if escaped.startswith("#"):
+                            u_proof_html.append(f"<font color='#94A3B8'>{escaped}</font>")
+                        elif "[Detection]" in escaped or "[System]" in escaped or "[Evidence]" in escaped:
+                            u_proof_html.append(f"<font color='#93C5FD'>{escaped}</font>")
+                        else:
+                            u_proof_html.append(f"<font color='#F8FAFC'>{escaped}</font>")
+                    
+                    u_proof_str = "<br/>".join(u_proof_html)
+                    u_proof_table = Table([[Paragraph(f"<font face='Courier' size='8'>{u_proof_str}</font>", normal)]], colWidths=[460])
+                    u_proof_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#0B0F19")),
+                        ('TOPPADDING', (0,0), (-1,-1), 12),
+                        ('BOTTOMPADDING', (0,0), (-1,-1), 12),
+                        ('LEFTPADDING', (0,0), (-1,-1), 12),
+                        ('RIGHTPADDING', (0,0), (-1,-1), 12),
+                        ('CORNER_RADIUS', (0,0), (-1,-1), 4),
+                    ]))
+                    elements.append(u_proof_table)
+                    elements.append(Spacer(1, 12))
+
+                u_rem = getattr(u_vuln, 'remediation', None)
+                if u_rem:
+                    elements.append(Paragraph("<b>Remediation:</b>", styles['Normal']))
+                    u_rem_html = markdown_to_reportlab_html(u_rem)
+                    elements.append(Paragraph(u_rem_html, normal))
+                    elements.append(Spacer(1, 15))
 
         # Legal Disclaimer & Confidentiality Notice
         elements.append(PageBreak())
