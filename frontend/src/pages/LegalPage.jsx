@@ -5,7 +5,6 @@ export const LEGAL_POLICIES = {
   terms: {
     id: 'terms',
     title: 'Terms of Service',
-    icon: 'gavel',
     effectiveDate: 'August 15, 2026',
     sections: [
       {
@@ -38,7 +37,6 @@ export const LEGAL_POLICIES = {
   privacy: {
     id: 'privacy',
     title: 'Privacy Policy',
-    icon: 'verified_user',
     effectiveDate: 'August 15, 2026',
     intro: 'This Privacy Policy describes how Larshield ("we", "us", or "our") collects, uses, and shares your personal information. We are committed to complying with global data protection laws including the GDPR, CCPA, and India\'s DPDP Act.',
     sections: [
@@ -73,7 +71,6 @@ export const LEGAL_POLICIES = {
     id: 'aup',
     title: 'Acceptable Use Policy',
     subtitle: '(Rules of Engagement)',
-    icon: 'rule',
     effectiveDate: 'August 15, 2026',
     intro: 'This Acceptable Use Policy (AUP) sets the rules of engagement for utilizing the Larshield platform. Violating this policy will result in immediate account termination and potential legal referral.',
     sections: [
@@ -99,7 +96,6 @@ export const LEGAL_POLICIES = {
     id: 'dpa',
     title: 'Data Processing Agreement',
     subtitle: '(DPA)',
-    icon: 'database',
     effectiveDate: 'August 15, 2026',
     intro: 'This DPA forms part of the Terms of Service. It outlines our responsibilities when processing Personal Data on behalf of our enterprise customers as a "Data Processor" under the GDPR and equivalent laws.',
     sections: [
@@ -123,7 +119,6 @@ export const LEGAL_POLICIES = {
   vdp: {
     id: 'vdp',
     title: 'Vulnerability Disclosure Policy',
-    icon: 'bug_report',
     effectiveDate: 'August 15, 2026',
     intro: 'Larshield is committed to ensuring the security of our platform. We welcome and support the efforts of the independent security research community to help us improve.',
     sections: [
@@ -160,16 +155,11 @@ export const LegalPage = () => {
   const { policyId } = useParams();
   const navigate = useNavigate();
 
-  // Normalize policy key (e.g. 'tos' -> 'terms')
   let currentKey = (policyId || 'terms').toLowerCase();
   if (currentKey === 'tos') currentKey = 'terms';
   if (!LEGAL_POLICIES[currentKey]) currentKey = 'terms';
 
   const currentPolicy = LEGAL_POLICIES[currentKey];
-
-  const handleTabChange = (key) => {
-    navigate(`/legal/${key}`);
-  };
 
   const navList = [
     { key: 'terms', label: 'Terms of Service', icon: 'description' },
@@ -192,7 +182,7 @@ export const LegalPage = () => {
                 return (
                   <button
                     key={item.key}
-                    onClick={() => handleTabChange(item.key)}
+                    onClick={() => navigate(`/legal/${item.key}`)}
                     className={`w-full text-left px-md py-sm rounded-lg flex items-center gap-sm transition-all border-0 cursor-pointer text-body-md ${
                       isActive
                         ? 'bg-primary/10 text-primary font-bold border-l-4 border-primary'
