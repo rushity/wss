@@ -876,6 +876,19 @@ const SuperAdminPanel = () => {
     }
   };
 
+  const handleCancelBooking = (booking) => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Cancel Demo Booking',
+      desc: `Are you sure you want to cancel the demo call booking for ${booking.email || 'this lead'}?`,
+      type: 'error',
+      onConfirm: async () => {
+        await handleUpdateBookingStatus(booking.id, 'cancelled');
+        closeConfirm();
+      }
+    });
+  };
+
   const handleOpenReschedule = (booking) => {
     const rawDate = booking.meeting_date || '';
     const rawTime = booking.meeting_time || '';
@@ -923,24 +936,36 @@ const SuperAdminPanel = () => {
     }
   };
 
-  const handleDeleteBooking = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to delete this demo booking lead?")) return;
-    try {
-      const res = await fetch(`/api/demo/bookings/${bookingId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('wss_token')}`
+  const handleDeleteBooking = (booking) => {
+    const bookingId = typeof booking === 'object' ? booking.id : booking;
+    const email = typeof booking === 'object' && booking.email ? booking.email : '';
+    setConfirmModal({
+      isOpen: true,
+      title: 'Delete Demo Lead',
+      desc: email 
+        ? `Are you sure you want to permanently delete the demo lead for ${email}?`
+        : 'Are you sure you want to permanently delete this demo booking lead?',
+      type: 'error',
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`/api/demo/bookings/${bookingId}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('wss_token')}`
+            }
+          });
+          if (res.ok) {
+            toast.success("Demo lead deleted successfully");
+            fetchStats();
+          } else {
+            toast.error("Failed to delete demo lead");
+          }
+        } catch (err) {
+          toast.error("Error deleting lead");
         }
-      });
-      if (res.ok) {
-        toast.success("Demo lead deleted successfully");
-        fetchStats();
-      } else {
-        toast.error("Failed to delete demo lead");
+        closeConfirm();
       }
-    } catch (err) {
-      toast.error("Error deleting lead");
-    }
+    });
   };
 
   return (
@@ -1422,7 +1447,7 @@ const SuperAdminPanel = () => {
                               {/* Cancel / Couldn't Conduct Button */}
                               {b.status !== 'cancelled' && (
                                 <button
-                                  onClick={() => handleUpdateBookingStatus(b.id, 'cancelled')}
+                                  onClick={() => handleCancelBooking(b)}
                                   className="bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white border border-red-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
                                   title="Mark as Cancelled or Couldn't Show Demo"
                                 >
@@ -1443,7 +1468,7 @@ const SuperAdminPanel = () => {
 
                               {/* Delete Lead Button */}
                               <button
-                                onClick={() => handleDeleteBooking(b.id)}
+                                onClick={() => handleDeleteBooking(b)}
                                 className="text-on-surface-variant hover:text-red-600 border-0 bg-transparent p-1 cursor-pointer transition-colors"
                                 title="Delete Lead"
                               >
