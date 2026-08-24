@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { toast } from 'react-hot-toast';
 
 export const Profile = () => {
   const { token, logout } = useAuth();
+  const fileInputRef = useRef(null);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -624,15 +625,18 @@ export const Profile = () => {
           <div className="border-t border-[#f3f4f6] pt-6">
             <div
               onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={`relative border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 ${
+              onClick={() => fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer ${
                 isDragging
                   ? 'border-[#2563eb] bg-[#eff6ff] scale-[1.005]'
                   : 'border-[#d1d5db] bg-[#f9fafb] hover:border-[#9ca3af] hover:bg-[#f3f4f6]'
               }`}
             >
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={(e) => {
@@ -640,7 +644,7 @@ export const Profile = () => {
                     handleUploadLogoFile(e.target.files[0]);
                   }
                 }}
-                className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
+                className="hidden"
               />
 
               <div className="pointer-events-none flex flex-col items-center justify-center">
@@ -665,6 +669,10 @@ export const Profile = () => {
               <button
                 type="button"
                 disabled={uploadingLogo}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
                 className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
