@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../components/AuthContext';
+import { getInitials } from '../components/Layout';
 import { toast } from 'react-hot-toast';
 
 export const Profile = () => {
@@ -418,13 +419,13 @@ export const Profile = () => {
           </div>
 
           <div className="flex flex-col items-center text-center mt-2 mb-6">
-            <div className="w-20 h-20 rounded-full bg-primary-container/50 flex items-center justify-center mb-4">
-              <span className="text-primary text-3xl font-bold uppercase">
-                {profile.email ? profile.email.charAt(0) : '?'}
+            <div className="w-20 h-20 rounded-full bg-primary-container/50 border-2 border-primary/20 flex items-center justify-center mb-4 shadow-sm">
+              <span className="text-primary text-3xl font-bold uppercase tracking-wider">
+                {getInitials(profile)}
               </span>
             </div>
             <h2 className="font-bold text-on-surface m-0 text-xl">
-              {profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : profile.email.split('@')[0]}
+              {profile.first_name || profile.last_name ? `${profile.first_name || ''} ${profile.last_name || ''}`.trim() : (profile.name || profile.email.split('@')[0])}
             </h2>
             <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full bg-primary-container/30 text-primary font-semibold uppercase tracking-wider text-xs border border-primary/20">
               {(profile.role || 'user').replace(/_/g, ' ')}

@@ -385,21 +385,22 @@ export const Dashboard = () => {
 
           return (
             <div className="w-full bg-[#020617] border border-[#1e293b] rounded-xl overflow-hidden shadow-2xl">
-              <div className="bg-[#0f172a] px-md py-sm border-b border-[#1e293b] flex flex-wrap items-center justify-between gap-sm">
-                <div className="flex items-center gap-sm">
-                  <span className="relative flex h-3 w-3">
-                    <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${activeScan.status === 'scanning' ? 'bg-red-400' : 'bg-yellow-400'} opacity-75`}></span>
-                    <span className={`relative inline-flex rounded-full h-3 w-3 ${activeScan.status === 'scanning' ? 'bg-red-500' : 'bg-yellow-500'}`}></span>
-                  </span>
-                  <span className="font-label-md text-label-md text-white font-bold tracking-tight ml-1">
-                    LIVE AUDIT — {activeScan.target_url}
-                  </span>
-                </div>
+              <div className="bg-[#0f172a] px-md py-sm border-b border-[#1e293b] flex items-center justify-between gap-sm min-w-0">
+                {/* Left Section: Live Audit Title + Scrollable Scan Tabs */}
+                <div className="flex items-center gap-sm min-w-0 flex-1 overflow-hidden">
+                  <div className="flex items-center gap-sm shrink-0">
+                    <span className="relative flex h-3 w-3">
+                      <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${activeScan.status === 'scanning' ? 'bg-red-400' : 'bg-yellow-400'} opacity-75`}></span>
+                      <span className={`relative inline-flex rounded-full h-3 w-3 ${activeScan.status === 'scanning' ? 'bg-red-500' : 'bg-yellow-500'}`}></span>
+                    </span>
+                    <span className="font-label-md text-label-md text-white font-bold tracking-tight ml-1 whitespace-nowrap">
+                      LIVE AUDIT — {activeScan.target_url}
+                    </span>
+                  </div>
 
-                <div className="flex items-center gap-sm flex-wrap">
-                  {/* Interactive Scan Tabs when multiple scans are active or queued */}
+                  {/* Interactive Scan Tabs when multiple scans are active or queued (Scrollable horizontally) */}
                   {runningScansList.length > 1 && (
-                    <div className="flex items-center gap-1 bg-[#020617] p-1 rounded-lg border border-[#1e293b]">
+                    <div className="flex items-center gap-1 bg-[#020617] p-1 rounded-lg border border-[#1e293b] overflow-x-auto scrollbar-none shrink min-w-0 max-w-full">
                       {runningScansList.map((s) => {
                         const isSelected = activeScan.id === s.id;
                         const domainName = getCleanDomain(s.target_url);
@@ -414,7 +415,7 @@ export const Dashboard = () => {
                                 startLogPolling(s);
                               }
                             }}
-                            className={`px-2.5 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer ${
+                            className={`px-2.5 py-1 rounded text-xs font-mono transition-all flex items-center gap-1.5 cursor-pointer shrink-0 whitespace-nowrap ${
                               isSelected
                                 ? 'bg-sky-500/20 text-sky-300 border border-sky-500/40 font-semibold shadow-sm shadow-sky-500/20'
                                 : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 border border-transparent'
@@ -431,8 +432,11 @@ export const Dashboard = () => {
                       })}
                     </div>
                   )}
+                </div>
 
-                  <span className="font-label-sm text-label-sm text-slate-400 bg-slate-800 px-sm py-[2px] rounded uppercase">
+                {/* Right Section: QUICK SCAN, +N QUEUED NEXT, ● RUNNING (Pinned strictly to the right side) */}
+                <div className="flex items-center gap-xs md:gap-sm shrink-0 ml-auto">
+                  <span className="font-label-sm text-label-sm text-slate-400 bg-slate-800 px-sm py-[2px] rounded uppercase shrink-0 whitespace-nowrap">
                     {activeScan.scan_type} Scan
                   </span>
 
@@ -449,7 +453,7 @@ export const Dashboard = () => {
                           startLogPolling(nextTarget);
                         }
                       }}
-                      className="font-label-sm text-label-sm text-sky-400 bg-sky-950/40 border border-sky-800/60 hover:bg-sky-900/60 hover:border-sky-700 px-sm py-[2px] rounded uppercase cursor-pointer transition-colors flex items-center gap-1 group"
+                      className="font-label-sm text-label-sm text-sky-400 bg-sky-950/40 border border-sky-800/60 hover:bg-sky-900/60 hover:border-sky-700 px-sm py-[2px] rounded uppercase cursor-pointer transition-colors flex items-center gap-1 group shrink-0 whitespace-nowrap"
                       title="Click to view next queued scan in audit terminal"
                     >
                       <span>+{runningScansList.filter(s => s.id !== activeScan.id).length} Queued Next</span>
@@ -457,7 +461,7 @@ export const Dashboard = () => {
                     </button>
                   )}
 
-                  <span className={`font-label-sm text-label-sm ${activeScan.status === 'scanning' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' : 'text-sky-400 bg-sky-400/10 border-sky-400/20'} border px-sm py-[2px] rounded uppercase animate-pulse`}>
+                  <span className={`font-label-sm text-label-sm ${activeScan.status === 'scanning' ? 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20' : 'text-sky-400 bg-sky-400/10 border-sky-400/20'} border px-sm py-[2px] rounded uppercase animate-pulse shrink-0 whitespace-nowrap`}>
                     ● {activeScan.status === 'scanning' ? 'Running' : 'Queued'}
                   </span>
                 </div>

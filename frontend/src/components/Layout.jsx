@@ -2,6 +2,40 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
+export const getInitials = (userData) => {
+  if (!userData) return 'DP';
+  const firstName = (userData.first_name || '').trim();
+  const lastName = (userData.last_name || '').trim();
+  if (firstName || lastName) {
+    const f = firstName.charAt(0);
+    const l = lastName.charAt(0);
+    if (f && l) return `${f}${l}`.toUpperCase();
+    if (f) return f.toUpperCase();
+    if (l) return l.toUpperCase();
+  }
+  const name = (userData.name || userData.full_name || '').trim();
+  if (name) {
+    const parts = name.split(/\s+/);
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[parts.length - 1].charAt(0)}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+  const email = (userData.email || '').trim();
+  if (email) {
+    const username = email.split('@')[0];
+    const parts = username.split(/[._-]/);
+    if (parts.length >= 2 && parts[0] && parts[1]) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    if (username.length >= 2) {
+      return username.substring(0, 2).toUpperCase();
+    }
+    return username.charAt(0).toUpperCase();
+  }
+  return 'DP';
+};
+
 export const Layout = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -457,7 +491,7 @@ export const Layout = ({ children }) => {
                 <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>calendar_today</span>
               </button>
             )}
-            
+
             {user && (
               <div className="relative ml-sm" ref={profileRef}>
                 <button 
@@ -467,17 +501,26 @@ export const Layout = ({ children }) => {
                   }}
                   className="flex items-center gap-xs border-0 bg-transparent cursor-pointer hover:opacity-80 transition-opacity"
                 >
-                  <span className="material-symbols-outlined text-on-surface-variant dark:text-surface-variant" style={{ fontSize: '28px', fontVariationSettings: "'FILL' 1" }}>account_circle</span>
+                  <div className="w-8 h-8 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-xs uppercase shadow-sm">
+                    {getInitials(user)}
+                  </div>
                   <span className="hidden lg:inline text-xs font-semibold text-on-surface-variant dark:text-surface-variant">
-                    {user.email.split('@')[0]}
+                    {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.email.split('@')[0]}
                   </span>
                 </button>
                 
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-xs w-48 bg-surface border border-outline-variant rounded-lg shadow-lg overflow-hidden z-50">
-                    <div className="px-md py-sm border-b border-outline-variant bg-surface-container-low">
-                      <p className="font-label-md text-label-md font-bold text-on-surface truncate">{user.email}</p>
-                      <p className="font-body-sm text-body-sm text-on-surface-variant capitalize">{(user.role || 'User').replace(/_/g, ' ')}</p>
+                  <div className="absolute right-0 mt-xs w-52 bg-surface border border-outline-variant rounded-lg shadow-lg overflow-hidden z-50">
+                    <div className="px-md py-sm border-b border-outline-variant bg-surface-container-low flex items-center gap-sm">
+                      <div className="w-9 h-9 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center font-bold text-sm uppercase shrink-0">
+                        {getInitials(user)}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <p className="font-label-md text-label-md font-bold text-on-surface truncate m-0">
+                          {user.first_name || user.last_name ? `${user.first_name || ''} ${user.last_name || ''}`.trim() : user.email}
+                        </p>
+                        <p className="font-body-sm text-[11px] text-on-surface-variant capitalize m-0 truncate">{(user.role || 'User').replace(/_/g, ' ')}</p>
+                      </div>
                     </div>
                     <div className="p-xs">
                       <button 

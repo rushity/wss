@@ -23,6 +23,7 @@ const OrganizationPage = React.lazy(() => import('./pages/OrganizationPage').the
 const LogsAndThreats = React.lazy(() => import('./pages/LogsAndThreats'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Help = React.lazy(() => import('./pages/Help').then(module => ({ default: module.Help })));
+const LegalPage = React.lazy(() => import('./pages/LegalPage').then(module => ({ default: module.LegalPage })));
 
 function App() {
   return (
@@ -44,6 +45,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/pricing" element={<Layout><Pricing /></Layout>} />
+              <Route path="/legal" element={<Navigate to="/legal/terms" replace />} />
+              <Route path="/legal/:policyId" element={<Layout><LegalPage /></Layout>} />
 
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
