@@ -173,7 +173,7 @@ export const LegalPage = () => {
     <div className="max-w-6xl mx-auto w-full animate-fade-in py-md">
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
         {/* Left Navigation Sidebar */}
-        <div className="lg:col-span-4 flex flex-col gap-md">
+        <div className="lg:col-span-3 flex flex-col gap-md">
           <div className="bg-surface border border-outline-variant rounded-xl p-md shadow-sm">
             <h2 className="text-lg font-bold text-on-surface mb-md px-xs">Legal & Compliance</h2>
             <nav className="flex flex-col gap-xs">
@@ -215,7 +215,7 @@ export const LegalPage = () => {
         </div>
 
         {/* Right Policy Document Content */}
-        <div className="lg:col-span-8">
+        <div className="lg:col-span-9">
           <div className="bg-surface border border-outline-variant rounded-xl p-lg md:p-xl shadow-sm min-h-[550px]">
             <h1 className="text-2xl font-bold text-on-surface mb-xs">
               {currentPolicy.title} {currentPolicy.subtitle && <span className="text-on-surface-variant text-base font-normal">{currentPolicy.subtitle}</span>}

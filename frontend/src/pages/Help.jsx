@@ -9,8 +9,8 @@ export const Help = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full animate-fade-in">
-      <div className="mb-xl text-center pt-lg">
+    <div className="max-w-6xl mx-auto w-full animate-fade-in py-md">
+      <div className="mb-xl text-center pt-sm">
         <h1 className="text-3xl font-bold text-on-surface mb-sm">How can we help you?</h1>
         <p className="text-on-surface-variant font-body-lg max-w-2xl mx-auto">
           Search our knowledge base or browse the frequently asked questions below to find the answers you need to secure your infrastructure.
@@ -102,19 +102,37 @@ export const Help = () => {
             </div>
           </div>
 
-          {/* FAQ 5: How is the Security Risk Score calculated? */}
+          {/* FAQ 5: How can I manage members in my organization? */}
           <div className={`border rounded-lg overflow-hidden transition-all duration-200 ${activeFaq === 4 ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface hover:border-outline'}`}>
             <button 
               onClick={() => toggleFaq(4)}
               className="w-full text-left px-md py-md flex items-center justify-between focus:outline-none cursor-pointer border-0 bg-transparent"
             >
-              <span className="font-label-lg font-bold text-on-surface pr-sm">How is the Security Risk Score calculated?</span>
+              <span className="font-label-lg font-bold text-on-surface pr-sm">How can I manage members in my organization?</span>
               <span className="material-symbols-outlined text-on-surface-variant transition-transform duration-200" style={{ transform: activeFaq === 4 ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                 expand_more
               </span>
             </button>
+            <div className={`px-md overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === 4 ? 'max-h-[500px] pb-md opacity-100' : 'max-h-0 opacity-0'}`}>
+              <p className="text-on-surface-variant font-body-md leading-relaxed m-0 border-t border-outline-variant/30 pt-sm">
+                If you are an Organization Admin, go to the 'Organization' settings. From there, you can invite new members via email, manage their roles (e.g., Executive User, Admin), and revoke access if necessary.
+              </p>
+            </div>
+          </div>
+
+          {/* FAQ 6: How is the Security Risk Score calculated? */}
+          <div className={`border rounded-lg overflow-hidden transition-all duration-200 ${activeFaq === 5 ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface hover:border-outline'}`}>
+            <button 
+              onClick={() => toggleFaq(5)}
+              className="w-full text-left px-md py-md flex items-center justify-between focus:outline-none cursor-pointer border-0 bg-transparent"
+            >
+              <span className="font-label-lg font-bold text-on-surface pr-sm">How is the Security Risk Score calculated?</span>
+              <span className="material-symbols-outlined text-on-surface-variant transition-transform duration-200" style={{ transform: activeFaq === 5 ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                expand_more
+              </span>
+            </button>
             
-            <div className={`px-md overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === 4 ? 'max-h-[2500px] pb-md opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`px-md overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === 5 ? 'max-h-[2500px] pb-md opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="border-t border-outline-variant/30 pt-md flex flex-col gap-md text-on-surface-variant font-body-md">
                 <p className="m-0 leading-relaxed">
                   This assessment utilizes an enterprise CVSS-weighted, category-capped vulnerability risk scoring algorithm. The score calculation is fully deterministic, auditable, and reproducible.
@@ -200,19 +218,19 @@ export const Help = () => {
             </div>
           </div>
 
-          {/* FAQ 6: Privacy Policy & Data Handling */}
-          <div className={`border rounded-lg overflow-hidden transition-all duration-200 ${activeFaq === 5 ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface hover:border-outline'}`}>
+          {/* FAQ 7: Privacy Policy & Data Handling */}
+          <div className={`border rounded-lg overflow-hidden transition-all duration-200 ${activeFaq === 6 ? 'border-primary bg-primary/5' : 'border-outline-variant bg-surface hover:border-outline'}`}>
             <button 
-              onClick={() => toggleFaq(5)}
+              onClick={() => toggleFaq(6)}
               className="w-full text-left px-md py-md flex items-center justify-between focus:outline-none cursor-pointer border-0 bg-transparent"
             >
               <span className="font-label-lg font-bold text-on-surface pr-sm">Privacy Policy & Data Handling</span>
-              <span className="material-symbols-outlined text-on-surface-variant transition-transform duration-200" style={{ transform: activeFaq === 5 ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+              <span className="material-symbols-outlined text-on-surface-variant transition-transform duration-200" style={{ transform: activeFaq === 6 ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                 expand_more
               </span>
             </button>
             
-            <div className={`px-md overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === 5 ? 'max-h-[500px] pb-md opacity-100' : 'max-h-0 opacity-0'}`}>
+            <div className={`px-md overflow-hidden transition-all duration-300 ease-in-out ${activeFaq === 6 ? 'max-h-[500px] pb-md opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="border-t border-outline-variant/30 pt-sm flex flex-col gap-sm text-on-surface-variant font-body-md">
                 <p className="m-0 leading-relaxed">
                   We are fully committed to protecting your data and privacy. We align our data collection and handling procedures with global standards, including GDPR, CCPA, and India's DPDP Act.
