@@ -94,8 +94,7 @@ export const LEGAL_POLICIES = {
   },
   dpa: {
     id: 'dpa',
-    title: 'Data Processing Agreement',
-    subtitle: '(DPA)',
+    title: 'Data Processing Agreement (DPA)',
     effectiveDate: 'August 15, 2026',
     intro: 'This DPA forms part of the Terms of Service. It outlines our responsibilities when processing Personal Data on behalf of our enterprise customers as a "Data Processor" under the GDPR and equivalent laws.',
     sections: [
@@ -170,7 +169,16 @@ export const LegalPage = () => {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto w-full animate-fade-in py-md">
+    <div className="max-w-6xl mx-auto w-full animate-fade-in py-sm">
+      {/* Back Button */}
+      <button
+        onClick={() => navigate(-1)}
+        className="inline-flex items-center gap-xs text-on-surface-variant hover:text-primary transition-colors mb-md cursor-pointer border-0 bg-transparent font-bold text-sm p-0"
+      >
+        <span className="material-symbols-outlined text-[20px]">arrow_back</span>
+        <span>Back</span>
+      </button>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg items-start">
         {/* Left Navigation Sidebar */}
         <div className="lg:col-span-3 flex flex-col gap-md">
