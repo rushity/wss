@@ -1110,21 +1110,56 @@ def generate_scan_pdf(scan, vulnerabilities):
             from datetime import datetime
             
             # --- Header ---
+            # 1. Left Logo (LarShield Brand)
             if has_local_logo:
                 try:
-                    canvas_obj.drawImage(ImageReader(logo_path), 40, letter[1] - 55, width=120, height=40, preserveAspectRatio=True, mask='auto')
-                except Exception:
-                    pass
+                    img_reader_l = ImageReader(logo_path)
+                    lw, lh = img_reader_l.getSize()
+                    l_aspect = lw / float(lh) if lh > 0 else 1.0
+                    l_target_h = 32
+                    l_target_w = min(110, l_target_h * l_aspect)
+                    l_target_h = l_target_w / l_aspect
+                    canvas_obj.drawImage(
+                        img_reader_l,
+                        40,
+                        letter[1] - 16 - l_target_h,
+                        width=l_target_w,
+                        height=l_target_h,
+                        mask='auto'
+                    )
+                except Exception as e:
+                    print(f"[PDF Header] Left logo error: {e}")
             
-            canvas_obj.setFont('Helvetica-Bold', 12)
-            canvas_obj.drawCentredString(letter[0] / 2.0, letter[1] - 35, "Web Application VAPT Report")
+            # 2. Center Header Text
+            canvas_obj.setFont('Helvetica-Bold', 11)
+            canvas_obj.setFillColor(colors.HexColor("#0F172A"))
+            canvas_obj.drawCentredString(letter[0] / 2.0, letter[1] - 34, "Web Application VAPT Report")
             
+            # 3. Right Logo (Client Organization)
             hdr_logo_stream = get_org_logo_stream()
             if hdr_logo_stream:
                 try:
-                    canvas_obj.drawImage(ImageReader(hdr_logo_stream), letter[0] - 160, letter[1] - 55, width=120, height=40, preserveAspectRatio=True, mask='auto')
-                except Exception:
-                    pass
+                    img_reader_r = ImageReader(hdr_logo_stream)
+                    rw, rh = img_reader_r.getSize()
+                    r_aspect = rw / float(rh) if rh > 0 else 1.0
+                    r_target_h = 32
+                    r_target_w = min(120, r_target_h * r_aspect)
+                    r_target_h = r_target_w / r_aspect
+                    canvas_obj.drawImage(
+                        img_reader_r,
+                        letter[0] - 40 - r_target_w,
+                        letter[1] - 16 - r_target_h,
+                        width=r_target_w,
+                        height=r_target_h,
+                        mask='auto'
+                    )
+                except Exception as e:
+                    print(f"[PDF Header] Right logo error: {e}")
+
+            # 4. Clean Header Horizontal Line
+            canvas_obj.setStrokeColor(colors.HexColor("#CBD5E1"))
+            canvas_obj.setLineWidth(0.75)
+            canvas_obj.line(40, letter[1] - 52, letter[0] - 40, letter[1] - 52)
                     
             # --- Footer ---
             canvas_obj.setFont('Helvetica', 9)
