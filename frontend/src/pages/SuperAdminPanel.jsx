@@ -129,6 +129,59 @@ const BillingTierCard = ({ tier, onSave }) => {
   );
 };
 
+// Helper functions for Reschedule Modal Date & Time
+const parseToISODate = (dateStr) => {
+  if (!dateStr) return new Date().toISOString().split('T')[0];
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return dateStr;
+  const parsed = new Date(dateStr);
+  if (!isNaN(parsed.getTime())) {
+    const yyyy = parsed.getFullYear();
+    const mm = String(parsed.getMonth() + 1).padStart(2, '0');
+    const dd = String(parsed.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+  return new Date().toISOString().split('T')[0];
+};
+
+const formatToReadableDate = (isoStr) => {
+  if (!isoStr) return '';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return isoStr;
+  const [yyyy, mm, dd] = isoStr.split('-');
+  const parsed = new Date(parseInt(yyyy, 10), parseInt(mm, 10) - 1, parseInt(dd, 10));
+  if (!isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  }
+  return isoStr;
+};
+
+const parseToISOTime = (timeStr) => {
+  if (!timeStr) return '09:00';
+  if (/^\d{2}:\d{2}$/.test(timeStr)) return timeStr;
+  const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+  if (match) {
+    let hours = parseInt(match[1], 10);
+    const minutes = match[2];
+    const ampm = match[3] ? match[3].toUpperCase() : null;
+    if (ampm === 'PM' && hours < 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    return `${String(hours).padStart(2, '0')}:${minutes}`;
+  }
+  return '09:00';
+};
+
+const formatTo12HrTime = (isoTime) => {
+  if (!isoTime) return '';
+  if (/AM|PM/i.test(isoTime)) return isoTime;
+  const [hStr, mStr] = isoTime.split(':');
+  if (hStr !== undefined && mStr !== undefined) {
+    let h = parseInt(hStr, 10);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return `${String(h).padStart(2, '0')}:${mStr} ${ampm}`;
+  }
+  return isoTime;
+};
+
 const SuperAdminPanel = () => {
   const { user, refreshAccessToken, loading: authLoading } = useAuth();
 
@@ -330,7 +383,9 @@ const SuperAdminPanel = () => {
     bookingId: null,
     email: '',
     meetingDate: '',
+    isoDate: '',
     meetingTime: '',
+    isoTime: '',
     status: 'rescheduled'
   });
 
@@ -822,13 +877,22 @@ const SuperAdminPanel = () => {
   };
 
   const handleOpenReschedule = (booking) => {
+    const rawDate = booking.meeting_date || '';
+    const rawTime = booking.meeting_time || '';
+    const isoDate = parseToISODate(rawDate);
+    const isoTime = parseToISOTime(rawTime);
+    const formattedDate = formatToReadableDate(isoDate);
+    const formattedTime = formatTo12HrTime(isoTime);
+
     setRescheduleModal({
       isOpen: true,
       bookingId: booking.id,
       email: booking.email,
-      meetingDate: booking.meeting_date || '',
-      meetingTime: booking.meeting_time || '',
-      status: 'rescheduled'
+      meetingDate: formattedDate,
+      isoDate: isoDate,
+      meetingTime: formattedTime,
+      isoTime: isoTime,
+      status: booking.status === 'pending' || !booking.status ? 'rescheduled' : booking.status
     });
   };
 
@@ -842,14 +906,14 @@ const SuperAdminPanel = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          meeting_date: rescheduleModal.meetingDate,
-          meeting_time: rescheduleModal.meetingTime,
+          meeting_date: rescheduleModal.meetingDate || formatToReadableDate(rescheduleModal.isoDate),
+          meeting_time: rescheduleModal.meetingTime || formatTo12HrTime(rescheduleModal.isoTime),
           status: rescheduleModal.status
         })
       });
       if (res.ok) {
         toast.success("Demo booking rescheduled successfully!");
-        setRescheduleModal({ isOpen: false, bookingId: null, email: '', meetingDate: '', meetingTime: '', status: 'rescheduled' });
+        setRescheduleModal({ isOpen: false, bookingId: null, email: '', meetingDate: '', isoDate: '', meetingTime: '', isoTime: '', status: 'rescheduled' });
         fetchStats();
       } else {
         toast.error("Failed to reschedule demo booking");
@@ -1598,79 +1662,141 @@ const SuperAdminPanel = () => {
         )}
       </CustomModal>
 
-      {/* Reschedule Demo Call Modal */}
-      {rescheduleModal.isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
-          <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}></div>
-          <div className="relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl max-w-md w-full p-6 z-10 animate-slide-up text-left font-sans hide-scrollbar">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">edit_calendar</span>
-                Reschedule Demo Call
-              </h3>
-              <button onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })} className="text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer p-1">
-                <span className="material-symbols-outlined text-[20px]">close</span>
-              </button>
-            </div>
-            <form onSubmit={handleSaveReschedule} className="mt-4 flex flex-col gap-4">
-              <div>
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block mb-1">Lead Email</label>
-                <input type="text" disabled value={rescheduleModal.email} className="w-full bg-slate-100 border border-slate-200 rounded-lg p-2.5 text-xs text-slate-700 font-bold" />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Date</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. August 28, 2026"
-                  value={rescheduleModal.meetingDate}
-                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingDate: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">New Meeting Time</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. 04:00 PM"
-                  value={rescheduleModal.meetingTime}
-                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, meetingTime: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">Update Status</label>
-                <select
-                  value={rescheduleModal.status}
-                  onChange={(e) => setRescheduleModal({ ...rescheduleModal, status: e.target.value })}
-                  className="w-full border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 dark:text-white dark:bg-slate-800 focus:outline-none focus:border-primary cursor-pointer"
-                >
-                  <option value="rescheduled">Rescheduled</option>
-                  <option value="pending">Pending</option>
-                  <option value="completed">Completed / Conducted</option>
-                  <option value="cancelled">Cancelled / Not Conducted</option>
-                </select>
-              </div>
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-slate-600 border border-slate-300 hover:bg-slate-100 cursor-pointer bg-white"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-primary hover:brightness-110 shadow-sm cursor-pointer border-0"
-                >
-                  Save & Update
-                </button>
-              </div>
-            </form>
+      {/* Reschedule Demo Call Modal using CustomModal */}
+      <CustomModal
+        isOpen={rescheduleModal.isOpen}
+        onClose={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}
+        title="Reschedule Demo Call"
+        description="Select a new meeting date, time slot, and update booking status."
+        maxWidth="max-w-lg"
+      >
+        <form onSubmit={handleSaveReschedule} className="flex flex-col gap-4 text-left">
+          <div>
+            <label className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-1">Lead Email</label>
+            <input
+              type="text"
+              disabled
+              value={rescheduleModal.email}
+              className="w-full bg-surface-container border border-outline-variant/60 rounded-lg p-2.5 text-xs text-on-surface-variant font-bold cursor-not-allowed"
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-xs font-bold text-on-surface block">New Meeting Date</label>
+              {rescheduleModal.meetingDate && (
+                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[13px]">calendar_today</span>
+                  {rescheduleModal.meetingDate}
+                </span>
+              )}
+            </div>
+            <input
+              type="date"
+              required
+              value={rescheduleModal.isoDate}
+              onChange={(e) => {
+                const newIso = e.target.value;
+                setRescheduleModal(prev => ({
+                  ...prev,
+                  isoDate: newIso,
+                  meetingDate: formatToReadableDate(newIso)
+                }));
+              }}
+              className="w-full border border-outline-variant rounded-lg p-2.5 text-xs text-on-surface bg-surface-container-lowest focus:border-primary outline-none cursor-pointer"
+            />
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-1">
+              <label className="text-xs font-bold text-on-surface block">New Meeting Time</label>
+              {rescheduleModal.meetingTime && (
+                <span className="text-[11px] font-bold text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20 flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[13px]">schedule</span>
+                  {rescheduleModal.meetingTime}
+                </span>
+              )}
+            </div>
+
+            {/* Time Picker */}
+            <input
+              type="time"
+              required
+              value={rescheduleModal.isoTime}
+              onChange={(e) => {
+                const newIso = e.target.value;
+                setRescheduleModal(prev => ({
+                  ...prev,
+                  isoTime: newIso,
+                  meetingTime: formatTo12HrTime(newIso)
+                }));
+              }}
+              className="w-full border border-outline-variant rounded-lg p-2.5 text-xs text-on-surface bg-surface-container-lowest focus:border-primary outline-none cursor-pointer mb-2"
+            />
+
+            {/* Quick Time Slots */}
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Quick Select Time Slot:</span>
+              <div className="grid grid-cols-4 gap-1.5">
+                {['09:00 AM', '10:00 AM', '11:00 AM', '02:00 PM', '04:00 PM', '05:00 PM', '06:00 PM', '09:30 PM'].map((slot) => {
+                  const isSelected = rescheduleModal.meetingTime === slot;
+                  return (
+                    <button
+                      key={slot}
+                      type="button"
+                      onClick={() => {
+                        setRescheduleModal(prev => ({
+                          ...prev,
+                          meetingTime: slot,
+                          isoTime: parseToISOTime(slot)
+                        }));
+                      }}
+                      className={`py-1.5 px-1 text-center text-[10.5px] font-bold border rounded-lg transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-primary text-white border-primary shadow-xs'
+                          : 'bg-surface-container-low border-outline-variant/60 text-on-surface-variant hover:bg-surface-container-high'
+                      }`}
+                    >
+                      {slot}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-bold text-on-surface block mb-1">Update Booking Status</label>
+            <select
+              value={rescheduleModal.status}
+              onChange={(e) => setRescheduleModal({ ...rescheduleModal, status: e.target.value })}
+              className="w-full border border-outline-variant rounded-lg p-2.5 text-xs text-on-surface bg-surface-container-lowest focus:border-primary outline-none cursor-pointer"
+            >
+              <option value="rescheduled">Rescheduled</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed / Conducted</option>
+              <option value="cancelled">Cancelled / Not Conducted</option>
+            </select>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-outline-variant">
+            <button
+              type="button"
+              onClick={() => setRescheduleModal({ ...rescheduleModal, isOpen: false })}
+              className="px-4 py-2 rounded-lg text-xs font-bold text-on-surface-variant hover:bg-surface-container cursor-pointer bg-transparent border border-outline-variant"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 rounded-lg text-xs font-bold text-white bg-primary hover:brightness-110 shadow-sm cursor-pointer border-0 flex items-center gap-1"
+            >
+              <span className="material-symbols-outlined text-[16px]">save</span>
+              Save & Update
+            </button>
+          </div>
+        </form>
+      </CustomModal>
     </div>
   );
 };
