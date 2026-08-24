@@ -970,54 +970,48 @@ def generate_scan_pdf(scan, vulnerabilities):
             elements.append(Paragraph(rem_final_text, normal))
             elements.append(Spacer(1, 25))
 
-        # --- APPENDIX: REQUIRES MANUAL VERIFICATION & LEGAL DISCLAIMER ---
-        elements.append(PageBreak())
-        elements.append(Paragraph("<b>Appendix: Requires Manual Verification</b>", heading2))
-        elements.append(Spacer(1, 5))
-        elements.append(Paragraph("The following findings were flagged by automated heuristic signatures or out-of-band probes, but lack full payload confirmation. They are excluded from executive summary severity counts and require manual verification by a security engineer.", normal))
-        elements.append(Spacer(1, 15))
-
-        target_url = scan.target_url if (scan and getattr(scan, 'target_url', None)) else 'https://www.target.com'
-
-        # Appendix Item A.1
-        elements.append(Paragraph("<b>A.1 Blind XSS Payloads Submitted to 1 Form(s) — Awaiting Callback [Requires Verification]</b>", styles['Heading3']))
-        a1_data = [
-            ["Status", Paragraph("<font color='#EA580C'>Requires Verification</font>", normal), "CVSS Score", "8.2"],
-            ["Category", "Blind XSS", "Severity", Paragraph("<font color='#99CC33'>Low</font>", normal)],
-            ["CVSS Vector", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N", "", ""]
+        # --- APPENDIX: REQUIRES MANUAL VERIFICATION (ONLY IF UNCONFIRMED FINDINGS EXIST) ---
+        unconfirmed_findings = [
+            v for v in (findings or [])
+            if getattr(v, 'requires_verification', False)
+            or (getattr(v, 'confidence', '') and str(getattr(v, 'confidence', '')).lower() in ['unconfirmed', 'requires verification', 'heuristic'])
         ]
-        a1_table = Table(a1_data, colWidths=[80, 150, 80, 150])
-        a1_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F9FAFB")),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E5E7EB")),
-            ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-            ('FONTNAME', (2,0), (2,-1), 'Helvetica-Bold'),
-        ]))
-        elements.append(a1_table)
-        elements.append(Spacer(1, 8))
-        a1_desc = f"<b>Description:</b><br/>Out-of-band XSS payloads were submitted to 1 form endpoint(s).<br/>Callback listener configured at: <font name='Courier'>https://xss-reporting.internal/callback</font><br/>&bull; {html.escape(target_url)} (injection attempted)<br/><br/><i>This is NOT a confirmed finding. Blind XSS requires an external callback to verify execution. Monitor your XSS hunter / callback server for incoming requests from https://xss-reporting.internal/callback. If a callback is received, escalate to Critical.</i>"
-        elements.append(Paragraph(a1_desc, normal))
-        elements.append(Spacer(1, 15))
 
-        # Appendix Item A.2
-        elements.append(Paragraph("<b>A.2 XML External Entity (XXE) — Error-Based Detection [Requires Verification]</b>", styles['Heading3']))
-        a2_data = [
-            ["Status", Paragraph("<font color='#EA580C'>Requires Verification</font>", normal), "CVSS Score", "3.9"],
-            ["Category", "Injection", "Severity", Paragraph("<font color='#99CC33'>Low</font>", normal)],
-            ["CVSS Vector", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N", "", ""]
-        ]
-        a2_table = Table(a2_data, colWidths=[80, 150, 80, 150])
-        a2_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F9FAFB")),
-            ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E5E7EB")),
-            ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
-            ('FONTNAME', (2,0), (2,-1), 'Helvetica-Bold'),
-        ]))
-        elements.append(a2_table)
-        elements.append(Spacer(1, 8))
-        a2_desc = f"<b>Description:</b><br/>An Unconfirmed XXE indicator was detected at {html.escape(target_url)} via XML error messages.<br/>Error pattern matched: <font name='Courier'>XML</font><br/><b>Confidence:</b> Unconfirmed &mdash; this is based on a single error substring match. It may be a false positive (generic XML error on any malformed input). Manual verification is required before treating as exploitable.<br/>If a single payload(s) triggered this: 1 independent payload(s) matched error patterns."
-        elements.append(Paragraph(a2_desc, normal))
-        elements.append(Spacer(1, 20))
+        if unconfirmed_findings:
+            elements.append(PageBreak())
+            elements.append(Paragraph("<b>Appendix: Requires Manual Verification</b>", heading2))
+            elements.append(Spacer(1, 5))
+            elements.append(Paragraph("The following findings were flagged by automated heuristic signatures or out-of-band probes, but lack full payload confirmation. They are excluded from executive summary severity counts and require manual verification by a security engineer.", normal))
+            elements.append(Spacer(1, 15))
+
+            target_url = scan.target_url if (scan and getattr(scan, 'target_url', None)) else 'https://www.target.com'
+
+            for u_idx, u_vuln in enumerate(unconfirmed_findings, start=1):
+                u_title = getattr(u_vuln, 'title', f"Unconfirmed Finding #{u_idx}")
+                u_cvss = str(getattr(u_vuln, 'cvss_score', '0.0'))
+                u_cat = getattr(u_vuln, 'category', 'General')
+                u_sev = getattr(u_vuln, 'severity', 'Low')
+                u_desc = getattr(u_vuln, 'description', '')
+                u_vec = getattr(u_vuln, 'cvss_vector', 'CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N')
+
+                elements.append(Paragraph(f"<b>A.{u_idx} {html.escape(u_title)} [Requires Verification]</b>", styles['Heading3']))
+                u_data = [
+                    ["Status", Paragraph("<font color='#EA580C'>Requires Verification</font>", normal), "CVSS Score", u_cvss],
+                    ["Category", u_cat, "Severity", Paragraph(f"<font color='#99CC33'>{u_sev}</font>", normal)],
+                    ["CVSS Vector", u_vec, "", ""]
+                ]
+                u_table = Table(u_data, colWidths=[80, 150, 80, 150])
+                u_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0,0), (-1,-1), colors.HexColor("#F9FAFB")),
+                    ('GRID', (0,0), (-1,-1), 0.5, colors.HexColor("#E5E7EB")),
+                    ('FONTNAME', (0,0), (0,-1), 'Helvetica-Bold'),
+                    ('FONTNAME', (2,0), (2,-1), 'Helvetica-Bold'),
+                ]))
+                elements.append(u_table)
+                elements.append(Spacer(1, 8))
+                desc_p = f"<b>Description:</b><br/>{html.escape(u_desc)}"
+                elements.append(Paragraph(desc_p, normal))
+                elements.append(Spacer(1, 15))
 
         # Legal Disclaimer & Confidentiality Notice
         elements.append(PageBreak())
