@@ -154,6 +154,12 @@ export const LegalPage = () => {
   const { policyId } = useParams();
   const navigate = useNavigate();
 
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+    const mainElement = document.querySelector('main');
+    if (mainElement) mainElement.scrollTop = 0;
+  }, [policyId]);
+
   let currentKey = (policyId || 'terms').toLowerCase();
   if (currentKey === 'tos') currentKey = 'terms';
   if (!LEGAL_POLICIES[currentKey]) currentKey = 'terms';
