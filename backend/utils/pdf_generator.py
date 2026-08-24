@@ -1155,11 +1155,6 @@ def generate_scan_pdf(scan, vulnerabilities):
                     )
                 except Exception as e:
                     print(f"[PDF Header] Right logo error: {e}")
-
-            # 4. Clean Header Horizontal Line
-            canvas_obj.setStrokeColor(colors.HexColor("#CBD5E1"))
-            canvas_obj.setLineWidth(0.75)
-            canvas_obj.line(40, letter[1] - 52, letter[0] - 40, letter[1] - 52)
                     
             # --- Footer ---
             canvas_obj.setFont('Helvetica', 9)
