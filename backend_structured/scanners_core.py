@@ -1781,8 +1781,10 @@ def generate_scan_pdf(scan, vulnerabilities):
             elements.append(Spacer(1, 25))
 
         # --- APPENDIX: REQUIRES MANUAL VERIFICATION (ONLY IF UNCONFIRMED FINDINGS EXIST) ---
+        target_findings_list = vulnerabilities if 'vulnerabilities' in locals() and vulnerabilities is not None else (findings if 'findings' in locals() and findings is not None else getattr(scan, 'vulnerabilities', []))
+        
         unconfirmed_findings = [
-            v for v in (findings or [])
+            v for v in (target_findings_list or [])
             if getattr(v, 'requires_verification', False)
             or (getattr(v, 'confidence', '') and str(getattr(v, 'confidence', '')).lower() in ['unconfirmed', 'requires verification', 'heuristic'])
         ]
