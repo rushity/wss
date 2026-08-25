@@ -418,33 +418,70 @@ export const ReportsHistory = () => {
           )}
         </div>
 
-        {/* Pagination footer */}
-        <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex flex-col sm:flex-row justify-between items-center gap-sm">
-          <span className="font-body-sm text-body-sm text-on-surface-variant">
-            {totalItems > 0 
-              ? `Showing ${startIndex + 1}-${endIndex} of ${totalItems} completed logs`
-              : `Showing 0 of 0 completed logs`
-            }
-          </span>
-          <div className="flex items-center gap-sm">
-            <span className="font-body-sm text-body-sm text-on-surface-variant mr-xs">
-              Page {currentPage} of {totalPages}
+        {/* Standard Pagination footer */}
+        <div className="px-lg py-md border-t border-outline-variant bg-surface-container-low flex flex-col sm:flex-row justify-between items-center gap-sm text-[13px] text-on-surface-variant">
+          <div className="flex items-center gap-2">
+            <span className="font-body-sm text-body-sm text-on-surface-variant">Rows per page:</span>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="bg-surface border border-outline-variant text-on-surface rounded px-2 py-1 text-xs font-bold focus:outline-none cursor-pointer"
+            >
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
+            <span className="font-body-sm text-body-sm text-on-surface-variant ml-2 font-medium">
+              {totalItems > 0 
+                ? `${startIndex + 1} - ${endIndex} of ${totalItems} records`
+                : `0 of 0 records`
+              }
             </span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
             <button 
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer flex items-center justify-center disabled:cursor-not-allowed"
-              title="Previous Page"
+              className="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              <span className="material-symbols-outlined">chevron_left</span>
+              Previous
             </button>
+
+            <div className="flex items-center gap-1 px-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(p => p === 1 || p === totalPages || Math.abs(p - currentPage) <= 1)
+                .map((page, idx, arr) => {
+                  const prev = arr[idx - 1];
+                  return (
+                    <React.Fragment key={page}>
+                      {prev && page - prev > 1 && <span className="px-1 text-on-surface-variant text-xs">...</span>}
+                      <button
+                        onClick={() => setCurrentPage(page)}
+                        className={`w-7 h-7 rounded text-xs font-bold transition-colors cursor-pointer ${
+                          currentPage === page
+                            ? 'bg-primary text-on-primary'
+                            : 'bg-surface hover:bg-surface-variant border border-outline-variant text-on-surface'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    </React.Fragment>
+                  );
+                })}
+            </div>
+
             <button 
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage >= totalPages}
-              className="p-[4px] rounded hover:bg-surface-variant text-on-surface-variant transition-colors disabled:opacity-30 border-0 bg-transparent cursor-pointer flex items-center justify-center disabled:cursor-not-allowed"
-              title="Next Page"
+              className="px-3 py-1.5 rounded-lg border border-outline-variant bg-surface hover:bg-surface-variant text-on-surface font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
             >
-              <span className="material-symbols-outlined">chevron_right</span>
+              Next
             </button>
           </div>
         </div>

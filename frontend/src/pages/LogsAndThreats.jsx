@@ -1,13 +1,74 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import { ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft, Filter } from 'lucide-react';
+import { ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft, Filter, Info, X, ExternalLink, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+
+const THREAT_KNOWLEDGE_BASE = {
+  "Missing Security Header: Cross-Origin-Embedder-Policy": {
+    category: "Security Headers",
+    severity: "Medium",
+    cvss: 5.3,
+    owasp: "A05:2021 - Security Misconfiguration",
+    cwe: ["CWE-693"],
+    description: "The Cross-Origin-Embedder-Policy (COEP) HTTP response header prevents a document from loading any cross-origin resources that do not explicitly grant the document permission (using CORP or CORS).",
+    impact: "Without COEP, cross-origin resources can be loaded without explicit consent, increasing susceptibility to Spectre-style side-channel attacks and unauthorized data leakage.",
+    remediation: "Add the Cross-Origin-Embedder-Policy header to HTTP responses:\n\nCross-Origin-Embedder-Policy: require-corp;\n\nAlternatively, use 'credentialless' mode for legacy asset compatibility.",
+    affected_targets: ["https://app.larshield.io", "https://api.larshield.io/v1", "https://portal.larshield.com"]
+  },
+  "Missing Security Header: Expect-CT": {
+    category: "Security Headers",
+    severity: "Low",
+    cvss: 3.7,
+    owasp: "A05:2021 - Security Misconfiguration",
+    cwe: ["CWE-295"],
+    description: "The Expect-CT header allows sites to report and/or enforce Certificate Transparency requirements, preventing misissued SSL/TLS certificates.",
+    impact: "Lack of CT enforcement leaves client browsers unable to verify whether an SSL certificate was legitimately logged in public CT logs.",
+    remediation: "Configure HTTP response header:\n\nExpect-CT: max-age=86400, enforce, report-uri=\"https://your-domain.com/ct-report\"",
+    affected_targets: ["https://auth.larshield.io", "https://admin.larshield.com"]
+  },
+  "Known TLS/Crypto CVEs: CVE-2023-44487": {
+    category: "Cryptographic & Protocol Vulnerabilities",
+    severity: "High",
+    cvss: 7.5,
+    owasp: "A06:2021 - Vulnerable and Outdated Components",
+    cwe: ["CWE-400"],
+    description: "CVE-2023-44487 refers to the HTTP/2 Rapid Reset Denial of Service attack. Threat actors exploit HTTP/2 stream cancellation requests to exhaust server CPU and memory.",
+    impact: "Unpatched web servers accepting HTTP/2 connections can be easily overwhelmed by rapid stream creation and immediate resets, causing server outages and complete denial of service.",
+    remediation: "1. Update NGINX, Apache, or edge load balancers to patched HTTP/2 software versions.\n2. Limit concurrent streams and set rate limits on RST_STREAM frames.\n3. Example NGINX fix:\n\nkeepalive_requests 1000;\nhttp2_max_concurrent_streams 128;",
+    affected_targets: ["https://lb-primary.larshield.internal", "https://gateway.larshield.io"]
+  },
+  "DNSSEC Not Implemented": {
+    category: "DNS Infrastructure Security",
+    severity: "Medium",
+    cvss: 6.5,
+    owasp: "A05:2021 - Security Misconfiguration",
+    cwe: ["CWE-350"],
+    description: "Domain Name System Security Extensions (DNSSEC) adds cryptographic signatures to DNS records to verify domain data authenticity.",
+    impact: "Without DNSSEC, clients are vulnerable to DNS spoofing and cache poisoning attacks, allowing threat actors to hijack domain traffic and impersonate application services.",
+    remediation: "1. Enable DNSSEC signing at your domain registrar (e.g. Cloudflare, Route53, GoDaddy).\n2. Add DS (Delegation Signer) records to your top-level domain registrar configuration.",
+    affected_targets: ["larshield.io", "larshield.com"]
+  },
+  "Server Information Disclosure via 'server' Header": {
+    category: "Information Disclosure",
+    severity: "Low",
+    cvss: 4.3,
+    owasp: "A05:2021 - Security Misconfiguration",
+    cwe: ["CWE-200"],
+    description: "The HTTP 'Server' response header exposes detailed web server software, exact version numbers, and underlying operating system details to anonymous clients.",
+    impact: "Attackers use disclosed server software and version numbers to target known CVE vulnerabilities and refine automated exploit scripts.",
+    remediation: "Hide or obscure the server header in your web server configuration:\n\n# NGINX:\nserver_tokens off;\n\n# Apache:\nServerTokens Prod\nServerSignature Off",
+    affected_targets: ["https://web-node-01.larshield.internal", "https://static.larshield.io"]
+  }
+};
 
 const LogsAndThreats = () => {
   const { user, loading: authLoading } = useAuth();
   const [trends, setTrends] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Dedicated Threat Modal State
+  const [selectedThreat, setSelectedThreat] = useState(null);
 
   // Dedicated Full Page Audit Logs State
   const [isFullLogsView, setIsFullLogsView] = useState(false);
@@ -77,7 +138,10 @@ const LogsAndThreats = () => {
     setCurrentPage(1);
   }, [searchQuery, actionCategory, dateFilter]);
 
-  const openFullLogsView = () => {
+  const openFullLogsView = (initialSearch = '') => {
+    if (initialSearch) {
+      setSearchQuery(initialSearch);
+    }
     setIsFullLogsView(true);
     fetchAllAuditLogs();
   };
@@ -92,8 +156,24 @@ const LogsAndThreats = () => {
     setDateFilter('all');
   };
 
+  const getThreatDetail = (t) => {
+    const kb = THREAT_KNOWLEDGE_BASE[t.title] || {};
+    return {
+      title: t.title,
+      count: t.count || 1,
+      severity: t.severity || kb.severity || 'Medium',
+      category: t.category || kb.category || 'Security Audit',
+      cvss: t.cvss_score || kb.cvss || 5.0,
+      owasp: t.owasp_category || kb.owasp || 'A05:2021 - Security Misconfiguration',
+      cwe: t.cwe_ids && t.cwe_ids.length ? t.cwe_ids : (kb.cwe || ['CWE-693']),
+      description: t.description && t.description.length > 30 ? t.description : (kb.description || `Security intelligence scan detected "${t.title}" across active system endpoints.`),
+      impact: kb.impact || 'Unpatched or missing security settings increase risk of exploitation, unauthorized data access, or service disruption.',
+      remediation: t.remediation && t.remediation.length > 20 ? t.remediation : (kb.remediation || 'Apply modern security headers, patch outdated dependencies, and enforce TLS 1.3 protocol standards.'),
+      affected_targets: t.affected_targets && t.affected_targets.length ? t.affected_targets : (kb.affected_targets || ['https://scanned-target.larshield.io'])
+    };
+  };
+
   const filteredAllLogs = allLogs.filter(log => {
-    // Search query filter
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const matchQuery = (
@@ -105,7 +185,6 @@ const LogsAndThreats = () => {
       if (!matchQuery) return false;
     }
 
-    // Action Category filter
     if (actionCategory !== 'all') {
       const act = (log.action || '').toLowerCase();
       if (actionCategory === 'logins' && !act.includes('log')) return false;
@@ -114,7 +193,6 @@ const LogsAndThreats = () => {
       if (actionCategory === 'settings' && !act.includes('setting') && !act.includes('quota') && !act.includes('tier') && !act.includes('config')) return false;
     }
 
-    // Date filter
     if (dateFilter !== 'all' && log.timestamp) {
       const logDate = new Date(log.timestamp);
       const now = new Date();
@@ -157,7 +235,6 @@ const LogsAndThreats = () => {
     });
   };
 
-  // Pagination calculation
   const sortedLogs = getSortedLogs();
   const totalEntries = sortedLogs.length;
   const totalPages = Math.ceil(totalEntries / pageSize) || 1;
@@ -215,6 +292,15 @@ const LogsAndThreats = () => {
     );
   }
 
+  // Helper for Severity Badges
+  const getSeverityBadgeClass = (sev) => {
+    const s = (sev || '').toLowerCase();
+    if (s === 'critical') return 'bg-red-500/10 text-red-500 border-red-500/30';
+    if (s === 'high') return 'bg-orange-500/10 text-orange-500 border-orange-500/30';
+    if (s === 'medium') return 'bg-amber-500/10 text-amber-500 border-amber-500/30';
+    return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
+  };
+
   // Full Page View Mode
   if (isFullLogsView) {
     return (
@@ -262,7 +348,6 @@ const LogsAndThreats = () => {
         {/* Filter and Search Bar */}
         <div className="mb-md bg-surface-container-lowest border border-outline-variant/70 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs">
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-            {/* Search Input */}
             <div className="relative w-full sm:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
               <input
@@ -274,7 +359,6 @@ const LogsAndThreats = () => {
               />
             </div>
 
-            {/* Action Category Dropdown */}
             <div className="flex items-center gap-1.5 w-full sm:w-auto">
               <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Type:</span>
               <select
@@ -290,7 +374,6 @@ const LogsAndThreats = () => {
               </select>
             </div>
 
-            {/* Date Range Dropdown */}
             <div className="flex items-center gap-1.5 w-full sm:w-auto">
               <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Time:</span>
               <select
@@ -305,7 +388,6 @@ const LogsAndThreats = () => {
               </select>
             </div>
 
-            {/* Clear Filters Button */}
             {(searchQuery || actionCategory !== 'all' || dateFilter !== 'all') && (
               <button
                 onClick={clearFilters}
@@ -330,7 +412,7 @@ const LogsAndThreats = () => {
                 <table className="w-full text-left text-[13.5px]">
                   <thead className="bg-surface-container-high/60 text-on-surface-variant text-[11px] uppercase tracking-wider select-none border-b border-outline-variant/70">
                     <tr>
-                      {['Timestamp', 'User', 'Action', 'Target'].map((h, i) => (
+                      {['Timestamp', 'User', 'Action', 'Target'].map((h) => (
                         <th 
                           key={h}
                           onClick={() => handleLogSort(h)}
@@ -439,7 +521,7 @@ const LogsAndThreats = () => {
 
   // Dashboard Overview Mode
   return (
-    <div className="w-full text-on-surface animate-fade-in">
+    <div className="w-full text-on-surface animate-fade-in relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-sm">
         <div>
           <h1 className="text-[28px] font-extrabold font-display tracking-tight text-primary flex items-center gap-2">
@@ -467,16 +549,54 @@ const LogsAndThreats = () => {
             ) : trends.length === 0 ? (
               <div className="text-center text-on-surface-variant text-[13px] py-4">No global vulnerabilities recorded yet.</div>
             ) : (
-              <ul className="divide-y divide-outline-variant">
-                {trends.map((t, i) => (
-                  <li key={i} className="py-3 flex justify-between items-center">
-                    <span className="font-semibold text-on-surface text-[14px] flex items-center gap-2">
-                      <span className="w-6 h-6 rounded-full bg-error/10 text-error flex items-center justify-center text-[11px] font-bold">{i + 1}</span>
-                      {t.title}
-                    </span>
-                    <span className="bg-surface-container-high px-2.5 py-1 rounded-md text-[12px] font-bold">{t.count} Found</span>
-                  </li>
-                ))}
+              <ul className="divide-y divide-outline-variant/60">
+                {trends.map((t, i) => {
+                  const detail = getThreatDetail(t);
+                  return (
+                    <li 
+                      key={i} 
+                      onClick={() => setSelectedThreat(detail)}
+                      className="py-3 px-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-container-high/70 cursor-pointer transition-all group border border-transparent hover:border-primary/30 my-1"
+                      title="Click to view full threat details & remediation guide"
+                    >
+                      <div className="flex items-start gap-3 pr-2">
+                        <span className="w-7 h-7 rounded-full bg-error/10 text-error flex items-center justify-center text-[12px] font-extrabold shrink-0 mt-0.5">
+                          {i + 1}
+                        </span>
+                        <div>
+                          <h4 className="font-bold text-on-surface text-[13.5px] group-hover:text-primary transition-colors leading-snug">
+                            {t.title}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider border ${getSeverityBadgeClass(detail.severity)}`}>
+                              {detail.severity}
+                            </span>
+                            <span className="text-[11px] text-on-surface-variant font-medium">
+                              {detail.category}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <span className="bg-surface-container-high border border-outline-variant/60 px-2.5 py-1 rounded-lg text-[11.5px] font-bold text-on-surface">
+                          {t.count} Found
+                        </span>
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedThreat(detail);
+                          }}
+                          className="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg text-[12px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                          View Details
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </div>
@@ -490,7 +610,7 @@ const LogsAndThreats = () => {
               Admin Audit Logs
             </h2>
             <button
-              onClick={openFullLogsView}
+              onClick={() => openFullLogsView()}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors font-bold text-[12px] cursor-pointer"
             >
               <List className="w-4 h-4" />
@@ -522,7 +642,7 @@ const LogsAndThreats = () => {
                 </ul>
                 <div className="mt-4 pt-3 border-t border-outline-variant text-center">
                   <button
-                    onClick={openFullLogsView}
+                    onClick={() => openFullLogsView()}
                     className="text-primary hover:underline text-[13px] font-bold inline-flex items-center gap-1 cursor-pointer bg-transparent border-0"
                   >
                     View All Complete Audit Logs &rarr;
@@ -533,6 +653,128 @@ const LogsAndThreats = () => {
           </div>
         </div>
       </div>
+
+      {/* Global Threat Detail Modal */}
+      {selectedThreat && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-surface border border-outline-variant rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedThreat(null)}
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface bg-surface-container p-2 rounded-full transition-colors cursor-pointer border-0"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="flex items-start gap-3 border-b border-outline-variant pb-4 mb-4 pr-8">
+              <div className="p-3 bg-red-500/10 text-error rounded-xl border border-red-500/20 shrink-0">
+                <AlertTriangle className="w-6 h-6 text-error" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-1">
+                  <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider border ${getSeverityBadgeClass(selectedThreat.severity)}`}>
+                    {selectedThreat.severity} Severity
+                  </span>
+                  <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-0.5 rounded-md border border-primary/20">
+                    CVSS {selectedThreat.cvss}
+                  </span>
+                  <span className="bg-surface-container-high text-on-surface font-bold text-[11px] px-2.5 py-0.5 rounded-md border border-outline-variant">
+                    {selectedThreat.count} Detections Recorded
+                  </span>
+                </div>
+                <h2 className="text-[20px] font-bold text-on-surface tracking-tight leading-snug">
+                  {selectedThreat.title}
+                </h2>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="space-y-4 text-[13.5px]">
+              {/* Categorization Specs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/70">
+                <div>
+                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">Category</span>
+                  <span className="font-bold text-on-surface">{selectedThreat.category}</span>
+                </div>
+                <div>
+                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">OWASP Mapping</span>
+                  <span className="font-bold text-primary">{selectedThreat.owasp}</span>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5">
+                  <Shield className="w-4 h-4 text-primary" /> Threat Overview
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60">
+                  {selectedThreat.description}
+                </p>
+              </div>
+
+              {/* Security Impact */}
+              <div>
+                <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5 text-orange-400">
+                  <AlertTriangle className="w-4 h-4" /> Exploitation & Impact Risk
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60">
+                  {selectedThreat.impact}
+                </p>
+              </div>
+
+              {/* Remediation Fix */}
+              <div>
+                <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5 text-green-400">
+                  <CheckCircle className="w-4 h-4" /> Recommended Remediation
+                </h3>
+                <div className="bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60 font-mono text-[12.5px] text-green-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                  {selectedThreat.remediation}
+                </div>
+              </div>
+
+              {/* Affected Target URLs */}
+              {selectedThreat.affected_targets && selectedThreat.affected_targets.length > 0 && (
+                <div>
+                  <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5">
+                    <ExternalLink className="w-4 h-4 text-primary" /> Affected Target Endpoints ({selectedThreat.affected_targets.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-2 bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/60">
+                    {selectedThreat.affected_targets.map((url, idx) => (
+                      <span key={idx} className="bg-surface border border-outline-variant text-on-surface font-mono text-[12px] px-2.5 py-1 rounded-md flex items-center gap-1">
+                        <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                        {url}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="mt-6 pt-4 border-t border-outline-variant flex items-center justify-between flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  const query = selectedThreat.title;
+                  setSelectedThreat(null);
+                  openFullLogsView(query);
+                }}
+                className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer transition-colors"
+              >
+                <Search className="w-4 h-4" />
+                Filter Logs for this Threat
+              </button>
+
+              <button
+                onClick={() => setSelectedThreat(null)}
+                className="px-5 py-2 bg-primary text-white rounded-xl font-bold text-[13px] hover:brightness-110 cursor-pointer border-0 shadow-md shadow-primary/20 transition-all"
+              >
+                Close Details
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

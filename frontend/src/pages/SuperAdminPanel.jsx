@@ -12,6 +12,78 @@ const DEFAULT_BILLING_TIERS = [
   { id: 'enterprise', name: 'Custom Solutions', badge: 'ENTERPRISE', monthly_price: 0, yearly_price: 0 }
 ];
 
+const TablePagination = ({ currentPage, totalEntries, pageSize, onPageChange, onPageSizeChange }) => {
+  const totalPages = Math.ceil(totalEntries / pageSize) || 1;
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalEntries);
+
+  return (
+    <div className="p-4 border-t border-outline-variant/60 bg-surface-container-lowest flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-on-surface-variant">
+      <div className="flex items-center gap-2">
+        <span className="font-medium">Rows per page:</span>
+        <select
+          value={pageSize}
+          onChange={(e) => {
+            onPageSizeChange(Number(e.target.value));
+            onPageChange(1);
+          }}
+          className="bg-surface border border-outline-variant/60 text-on-surface rounded px-2 py-1 text-[12px] font-bold focus:outline-none cursor-pointer"
+        >
+          <option value={10}>10</option>
+          <option value={25}>25</option>
+          <option value={50}>50</option>
+          <option value={100}>100</option>
+        </select>
+        <span className="ml-2 font-medium">
+          {totalEntries === 0 ? '0 of 0 records' : `${startIndex + 1} - ${endIndex} of ${totalEntries} records`}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <button
+          onClick={() => onPageChange(Math.max(1, validCurrentPage - 1))}
+          disabled={validCurrentPage === 1}
+          className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+        >
+          Previous
+        </button>
+
+        <div className="flex items-center gap-1 px-1">
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .filter(p => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+            .map((page, idx, arr) => {
+              const prev = arr[idx - 1];
+              return (
+                <React.Fragment key={page}>
+                  {prev && page - prev > 1 && <span className="px-1 text-on-surface-variant text-[12px]">...</span>}
+                  <button
+                    onClick={() => onPageChange(page)}
+                    className={`w-7 h-7 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
+                      validCurrentPage === page
+                        ? 'bg-primary text-on-primary shadow-2xs'
+                        : 'bg-surface hover:bg-surface-container-high border border-outline-variant/60 text-on-surface'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                </React.Fragment>
+              );
+            })}
+        </div>
+
+        <button
+          onClick={() => onPageChange(Math.min(totalPages, validCurrentPage + 1))}
+          disabled={validCurrentPage >= totalPages}
+          className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  );
+};
+
 const BillingTierCard = ({ tier, onSave }) => {
   const [monthly, setMonthly] = useState(((tier.monthly_price || 0) / 100).toFixed(2));
   const [yearly, setYearly] = useState(((tier.yearly_price || 0) / 100).toFixed(2));
@@ -237,6 +309,22 @@ const SuperAdminPanel = () => {
 
   const [sortBillCol, setSortBillCol] = useState('Date');
   const [sortBillDir, setSortBillDir] = useState('desc');
+
+  // Pagination state for SuperAdmin tables
+  const [orgPage, setOrgPage] = useState(1);
+  const [orgPageSize, setOrgPageSize] = useState(25);
+
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize, setUserPageSize] = useState(25);
+
+  const [auditPage, setAuditPage] = useState(1);
+  const [auditPageSize, setAuditPageSize] = useState(25);
+
+  const [bookingPage, setBookingPage] = useState(1);
+  const [bookingPageSize, setBookingPageSize] = useState(25);
+
+  const [emailPage, setEmailPage] = useState(1);
+  const [emailPageSize, setEmailPageSize] = useState(25);
 
   const handleOrgSort = (column) => {
     if (column === 'Quotas' || column === 'Actions') return;
@@ -1234,7 +1322,7 @@ const SuperAdminPanel = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
-                  {getSortedOrgs().map((org) => (
+                  {getSortedOrgs().slice((orgPage - 1) * orgPageSize, orgPage * orgPageSize).map((org) => (
                     <tr key={org.id} className="hover:bg-surface-container transition-colors group">
                       <td className="px-md py-sm"><div className="font-bold text-on-surface text-[14px]">{org.name}</div></td>
                       <td className="px-md py-sm"><span className="px-2 py-0.5 rounded border text-[11px] font-bold tracking-wide bg-surface-container-high border-outline-variant text-on-surface-variant">{org.tier || org.subscription_tier}</span></td>
@@ -1281,6 +1369,13 @@ const SuperAdminPanel = () => {
                 </tbody>
               </table>
             )}
+            <TablePagination
+              currentPage={orgPage}
+              totalEntries={getSortedOrgs().length}
+              pageSize={orgPageSize}
+              onPageChange={setOrgPage}
+              onPageSizeChange={setOrgPageSize}
+            />
           </div>
         </div>
       )}
@@ -1317,7 +1412,7 @@ const SuperAdminPanel = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-outline-variant">
-                  {getSortedUsers().map((u) => (
+                  {getSortedUsers().slice((userPage - 1) * userPageSize, userPage * userPageSize).map((u) => (
                     <tr key={u.id} className="hover:bg-surface-container transition-colors group">
                       <td className="px-md py-sm font-bold text-on-surface text-[14px]">{u.email}</td>
                       <td className="px-md py-sm"><span className="px-2 py-0.5 rounded border text-[11px] font-bold tracking-wide bg-surface-container-high border-outline-variant text-on-surface-variant">{u.role}</span></td>
@@ -1354,6 +1449,13 @@ const SuperAdminPanel = () => {
                 </tbody>
               </table>
             )}
+            <TablePagination
+              currentPage={userPage}
+              totalEntries={getSortedUsers().length}
+              pageSize={userPageSize}
+              onPageChange={setUserPage}
+              onPageSizeChange={setUserPageSize}
+            />
           </div>
         </div>
       )}
@@ -1363,30 +1465,39 @@ const SuperAdminPanel = () => {
           <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md"><span className="material-symbols-outlined text-primary mr-2">history</span> Full System Audit Logs</h2>
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
             {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching logs...</div> : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm border-collapse">
-                  <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant">
-                    <tr>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Date & Time</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Admin User</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Action / Event</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Organization / Target</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant">
-                    {auditLogs.length === 0 ? <tr><td colSpan="4" className="p-10 text-center text-on-surface-variant">No audit logs found.</td></tr> : auditLogs.map((log) => (
-                      <tr key={log.id} className="hover:bg-surface-container transition-colors">
-                        <td className="px-md py-sm text-[13px] text-on-surface-variant">{new Date(log.created_at || log.timestamp).toLocaleString()}</td>
-                        <td className="px-md py-sm"><div className="font-bold text-on-surface text-[13px]">{log.user_email}</div></td>
-                        <td className="px-md py-sm text-[13px] text-on-surface-variant font-medium">
-                          {log.action.includes('Terminated') ? <span className="text-error font-bold">{log.action}</span> : log.action}
-                        </td>
-                        <td className="px-md py-sm font-bold text-[13px] text-on-surface">{log.target_name || log.target_id || '-'}</td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm border-collapse">
+                    <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant">
+                      <tr>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Date & Time</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Admin User</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Action / Event</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Organization / Target</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant">
+                      {auditLogs.length === 0 ? <tr><td colSpan="4" className="p-10 text-center text-on-surface-variant">No audit logs found.</td></tr> : auditLogs.slice((auditPage - 1) * auditPageSize, auditPage * auditPageSize).map((log) => (
+                        <tr key={log.id} className="hover:bg-surface-container transition-colors">
+                          <td className="px-md py-sm text-[13px] text-on-surface-variant">{new Date(log.created_at || log.timestamp).toLocaleString()}</td>
+                          <td className="px-md py-sm"><div className="font-bold text-on-surface text-[13px]">{log.user_email}</div></td>
+                          <td className="px-md py-sm text-[13px] text-on-surface-variant font-medium">
+                            {log.action.includes('Terminated') ? <span className="text-error font-bold">{log.action}</span> : log.action}
+                          </td>
+                          <td className="px-md py-sm font-bold text-[13px] text-on-surface">{log.target_name || log.target_id || '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <TablePagination
+                  currentPage={auditPage}
+                  totalEntries={auditLogs.length}
+                  pageSize={auditPageSize}
+                  onPageChange={setAuditPage}
+                  onPageSizeChange={setAuditPageSize}
+                />
+              </>
             )}
           </div>
         </div>
@@ -1399,98 +1510,100 @@ const SuperAdminPanel = () => {
             {demoBookings.length === 0 ? (
               <div className="p-xl text-center text-on-surface-variant font-bold">No demo bookings found.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-surface-container-lowest border-b border-outline-variant">
-                    <tr>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Email</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Size</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Date & Time</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Status</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant">
-                    {demoBookings.map(b => {
-                      const statusStyle =
-                        b.status === 'completed'
-                          ? 'bg-green-500/10 text-green-600 border-green-500/30'
-                          : b.status === 'cancelled'
-                          ? 'bg-red-500/10 text-red-600 border-red-500/30'
-                          : b.status === 'rescheduled'
-                          ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
-                          : 'bg-orange-500/10 text-orange-600 border-orange-500/30';
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-surface-container-lowest border-b border-outline-variant">
+                      <tr>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Email</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Size</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Date & Time</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Status</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant">
+                      {demoBookings.slice((bookingPage - 1) * bookingPageSize, bookingPage * bookingPageSize).map(b => {
+                        const statusStyle =
+                          b.status === 'completed'
+                            ? 'bg-green-500/10 text-green-600 border-green-500/30'
+                            : b.status === 'cancelled'
+                            ? 'bg-red-500/10 text-red-600 border-red-500/30'
+                            : b.status === 'rescheduled'
+                            ? 'bg-blue-500/10 text-blue-600 border-blue-500/30'
+                            : 'bg-orange-500/10 text-orange-600 border-orange-500/30';
 
-                      const statusLabel =
-                        b.status === 'completed' ? 'Completed / Conducted' :
-                        b.status === 'cancelled' ? 'Cancelled / Not Conducted' :
-                        b.status === 'rescheduled' ? 'Rescheduled' : 'Pending';
+                        const statusLabel =
+                          b.status === 'completed' ? 'Completed / Conducted' :
+                          b.status === 'cancelled' ? 'Cancelled / Not Conducted' :
+                          b.status === 'rescheduled' ? 'Rescheduled' : 'Pending';
 
-                      return (
-                        <tr key={b.id} className="hover:bg-surface-container-lowest transition-colors">
-                          <td className="px-md py-sm font-bold text-on-surface text-[13px]">{b.email}</td>
-                          <td className="px-md py-sm text-on-surface-variant text-[13px]">{b.company_size?.replace('Company Size: ', '')}</td>
-                          <td className="px-md py-sm text-on-surface-variant text-[13px]">
-                            {b.meeting_date} <br/>
-                            <span className="text-[11px] font-bold text-primary">{b.meeting_time}</span>
-                          </td>
-                          <td className="px-md py-sm">
-                            <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${statusStyle}`}>
-                              {statusLabel}
-                            </span>
-                          </td>
-                          <td className="px-md py-sm">
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              {/* Complete Button */}
-                              {b.status !== 'completed' && (
+                        return (
+                          <tr key={b.id} className="hover:bg-surface-container-lowest transition-colors">
+                            <td className="px-md py-sm font-bold text-on-surface text-[13px]">{b.email}</td>
+                            <td className="px-md py-sm text-on-surface-variant text-[13px]">{b.company_size?.replace('Company Size: ', '')}</td>
+                            <td className="px-md py-sm text-on-surface-variant text-[13px]">
+                              {b.meeting_date} <br/>
+                              <span className="text-[11px] font-bold text-primary">{b.meeting_time}</span>
+                            </td>
+                            <td className="px-md py-sm">
+                              <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${statusStyle}`}>
+                                {statusLabel}
+                              </span>
+                            </td>
+                            <td className="px-md py-sm">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                {b.status !== 'completed' && (
+                                  <button
+                                    onClick={() => handleUpdateBookingStatus(b.id, 'completed')}
+                                    className="bg-green-600 text-white border-0 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] hover:bg-green-700 transition-all flex items-center gap-1 shadow-xs"
+                                    title="Mark Demo as Completed"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">check_circle</span>
+                                    Complete
+                                  </button>
+                                )}
+                                {b.status !== 'cancelled' && (
+                                  <button
+                                    onClick={() => handleCancelBooking(b)}
+                                    className="bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white border border-red-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
+                                    title="Mark as Cancelled or Couldn't Show Demo"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">cancel</span>
+                                    Cancelled
+                                  </button>
+                                )}
                                 <button
-                                  onClick={() => handleUpdateBookingStatus(b.id, 'completed')}
-                                  className="bg-green-600 text-white border-0 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] hover:bg-green-700 transition-all flex items-center gap-1 shadow-xs"
-                                  title="Mark Demo as Completed"
+                                  onClick={() => handleOpenReschedule(b)}
+                                  className="bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
+                                  title="Reschedule Date & Time"
                                 >
-                                  <span className="material-symbols-outlined text-[14px]">check_circle</span>
-                                  Complete
+                                  <span className="material-symbols-outlined text-[14px]">edit_calendar</span>
+                                  Reschedule
                                 </button>
-                              )}
-
-                              {/* Cancel / Couldn't Conduct Button */}
-                              {b.status !== 'cancelled' && (
                                 <button
-                                  onClick={() => handleCancelBooking(b)}
-                                  className="bg-red-500/10 text-red-600 hover:bg-red-600 hover:text-white border border-red-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
-                                  title="Mark as Cancelled or Couldn't Show Demo"
+                                  onClick={() => handleDeleteBooking(b)}
+                                  className="text-on-surface-variant hover:text-red-600 border-0 bg-transparent p-1 cursor-pointer transition-colors"
+                                  title="Delete Lead"
                                 >
-                                  <span className="material-symbols-outlined text-[14px]">cancel</span>
-                                  Cancelled
+                                  <span className="material-symbols-outlined text-[16px]">delete</span>
                                 </button>
-                              )}
-
-                              {/* Reschedule Button */}
-                              <button
-                                onClick={() => handleOpenReschedule(b)}
-                                className="bg-blue-500/10 text-blue-600 hover:bg-blue-600 hover:text-white border border-blue-500/30 py-1 px-2.5 rounded font-bold cursor-pointer text-[11px] transition-all flex items-center gap-1"
-                                title="Reschedule Date & Time"
-                              >
-                                <span className="material-symbols-outlined text-[14px]">edit_calendar</span>
-                                Reschedule
-                              </button>
-
-                              {/* Delete Lead Button */}
-                              <button
-                                onClick={() => handleDeleteBooking(b)}
-                                className="text-on-surface-variant hover:text-red-600 border-0 bg-transparent p-1 cursor-pointer transition-colors"
-                                title="Delete Lead"
-                              >
-                                <span className="material-symbols-outlined text-[16px]">delete</span>
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <TablePagination
+                  currentPage={bookingPage}
+                  totalEntries={demoBookings.length}
+                  pageSize={bookingPageSize}
+                  onPageChange={setBookingPage}
+                  onPageSizeChange={setBookingPageSize}
+                />
+              </>
             )}
           </div>
         </div>
@@ -1503,32 +1616,41 @@ const SuperAdminPanel = () => {
             {emailLogs.length === 0 ? (
               <div className="p-xl text-center text-on-surface-variant font-bold">No emails sent yet.</div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-surface-container-lowest border-b border-outline-variant">
-                    <tr>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Timestamp</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Recipient</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Subject</th>
-                      <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-outline-variant">
-                    {emailLogs.map(log => (
-                      <tr key={log.id} className="hover:bg-surface-container-lowest transition-colors">
-                        <td className="px-md py-sm text-on-surface-variant text-[13px]">{new Date(log.sent_at).toLocaleString()}</td>
-                        <td className="px-md py-sm font-bold text-on-surface text-[13px]">{log.recipient}</td>
-                        <td className="px-md py-sm text-on-surface-variant text-[13px]">{log.subject}</td>
-                        <td className="px-md py-sm">
-                          <span className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${log.status === 'sent' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
-                            {log.status}
-                          </span>
-                        </td>
+              <>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead className="bg-surface-container-lowest border-b border-outline-variant">
+                      <tr>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Timestamp</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Recipient</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Subject</th>
+                        <th className="px-md py-sm font-bold text-[12px] uppercase tracking-wider">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-outline-variant">
+                      {emailLogs.slice((emailPage - 1) * emailPageSize, emailPage * emailPageSize).map(log => (
+                        <tr key={log.id} className="hover:bg-surface-container-lowest transition-colors">
+                          <td className="px-md py-sm text-on-surface-variant text-[13px]">{new Date(log.sent_at).toLocaleString()}</td>
+                          <td className="px-md py-sm font-bold text-on-surface text-[13px]">{log.recipient}</td>
+                          <td className="px-md py-sm text-on-surface-variant text-[13px]">{log.subject}</td>
+                          <td className="px-md py-sm">
+                            <span className={`px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider ${log.status === 'sent' ? 'bg-green-500/10 text-green-600' : 'bg-red-500/10 text-red-600'}`}>
+                              {log.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <TablePagination
+                  currentPage={emailPage}
+                  totalEntries={emailLogs.length}
+                  pageSize={emailPageSize}
+                  onPageChange={setEmailPage}
+                  onPageSizeChange={setEmailPageSize}
+                />
+              </>
             )}
           </div>
         </div>

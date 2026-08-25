@@ -1154,13 +1154,36 @@ def get_global_stats(current_user):
             'created_at': p.created_at.isoformat() + 'Z' if p.created_at else None
         })
         
-    # Get global vulnerability trends
+    # Get global vulnerability trends enriched with details
     trends_query = db.session.query(
         Vulnerability.title,
         db.func.count(Vulnerability.id).label('count')
-    ).group_by(Vulnerability.title).order_by(db.func.count(Vulnerability.id).desc()).limit(5).all()
+    ).filter(Vulnerability.is_false_positive.isnot(True))\
+     .group_by(Vulnerability.title).order_by(db.func.count(Vulnerability.id).desc()).limit(15).all()
     
-    trends_data = [{'title': t[0], 'count': t[1]} for t in trends_query]
+    trends_data = []
+    for title, count in trends_query:
+        sample = Vulnerability.query.filter_by(title=title).filter(Vulnerability.is_false_positive.isnot(True)).first()
+        
+        affected_scans = db.session.query(Scan.target_url)\
+            .join(Vulnerability, Vulnerability.scan_id == Scan.id)\
+            .filter(Vulnerability.title == title)\
+            .distinct().limit(5).all()
+        affected_urls = [s[0] for s in affected_scans if s[0]]
+
+        trends_data.append({
+            'title': title,
+            'count': count,
+            'severity': sample.severity if sample else 'Medium',
+            'category': sample.category if sample else 'Security Audit',
+            'description': sample.description if sample else f'Global vulnerability "{title}" identified across multiple scanned targets.',
+            'remediation': sample.remediation if sample else 'Review server configuration files, apply security patches, and enforce strict HTTP security headers.',
+            'cvss_score': sample.cvss_score if (sample and sample.cvss_score) else 5.0,
+            'owasp_category': getattr(sample, 'owasp_category', None) or 'A05:2021 - Security Misconfiguration',
+            'cwe_ids': getattr(sample, 'cwe_ids', None) or [],
+            'evidence': getattr(sample, 'evidence', None) or '',
+            'affected_targets': affected_urls
+        })
     
     # Get recent audit logs enriched with user emails and target names (limit 10 for dashboard preview)
     audit_logs_query = AuditLog.query.order_by(AuditLog.created_at.desc()).limit(10).all()
