@@ -466,190 +466,160 @@ const LogsAndThreats = () => {
     if (!selectedThreat) return null;
 
     const severityColorMap = {
-      critical: {
-        border: 'border-l-red-500',
-        banner: 'from-red-500/15 via-surface-container to-surface-container-lowest',
-        badge: 'bg-red-500/10 text-red-500 border-red-500/30',
-        glow: 'shadow-red-500/10',
-      },
-      high: {
-        border: 'border-l-orange-500',
-        banner: 'from-orange-500/15 via-surface-container to-surface-container-lowest',
-        badge: 'bg-orange-500/10 text-orange-500 border-orange-500/30',
-        glow: 'shadow-orange-500/10',
-      },
-      medium: {
-        border: 'border-l-amber-500',
-        banner: 'from-amber-500/15 via-surface-container to-surface-container-lowest',
-        badge: 'bg-amber-500/10 text-amber-500 border-amber-500/30',
-        glow: 'shadow-amber-500/10',
-      },
-      low: {
-        border: 'border-l-blue-500',
-        banner: 'from-blue-500/15 via-surface-container to-surface-container-lowest',
-        badge: 'bg-blue-500/10 text-blue-500 border-blue-500/30',
-        glow: 'shadow-blue-500/10',
-      },
+      critical: { border: 'border-t-red-500', badge: 'bg-red-500/10 text-red-500 border-red-500/30' },
+      high: { border: 'border-t-orange-500', badge: 'bg-orange-500/10 text-orange-500 border-orange-500/30' },
+      medium: { border: 'border-t-amber-500', badge: 'bg-amber-500/10 text-amber-500 border-amber-500/30' },
+      low: { border: 'border-t-blue-500', badge: 'bg-blue-500/10 text-blue-500 border-blue-500/30' },
     };
 
     const sevKey = (selectedThreat.severity || 'medium').toLowerCase();
     const activeSev = severityColorMap[sevKey] || severityColorMap.medium;
 
     return (
-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 pt-12 sm:pt-16 z-[9999] animate-fade-in overflow-y-auto">
-        <div className={`bg-surface border border-outline-variant/80 rounded-3xl max-w-3xl w-full shadow-2xl relative my-auto overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
+      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 z-[9999] animate-fade-in">
+        <div className={`bg-surface border border-outline-variant/80 rounded-2xl max-w-2xl w-full shadow-2xl relative my-auto overflow-hidden flex flex-col transition-all duration-200 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
           
-          {/* Header Banner with Premium Gradient Accent */}
-          <div className={`bg-gradient-to-r ${activeSev.banner} p-6 sm:p-7 border-b border-outline-variant/70 relative`}>
+          {/* Header Banner */}
+          <div className="bg-surface-container-low p-4 sm:p-5 border-b border-outline-variant/70 relative">
             <button
               onClick={() => setSelectedThreat(null)}
-              className="absolute top-5 right-5 text-on-surface-variant hover:text-on-surface bg-surface-container-high/80 hover:bg-surface-container-highest p-2 rounded-full transition-all cursor-pointer border border-outline-variant/60 shadow-2xs hover:scale-105"
-              title="Close Diagnostic Window"
+              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface bg-surface-container-high p-1.5 rounded-full transition-all cursor-pointer border border-outline-variant/60 hover:scale-105"
+              title="Close"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
 
-            <div className="flex items-center gap-2.5 flex-wrap mb-3.5 pr-12">
-              <span className={`px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider border shadow-2xs flex items-center gap-1.5 ${getSeverityBadgeClass(selectedThreat.severity)}`}>
-                <ShieldAlert className="w-3.5 h-3.5 animate-pulse" />
-                {selectedThreat.severity} SEVERITY
+            <div className="flex items-center gap-2 flex-wrap mb-2 pr-10">
+              <span className={`px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border flex items-center gap-1 ${getSeverityBadgeClass(selectedThreat.severity)}`}>
+                <ShieldAlert className="w-3 h-3" />
+                {selectedThreat.severity}
               </span>
-              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[11px] font-black px-3.5 py-1 rounded-full border border-cyan-500/30 shadow-2xs font-mono">
+              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-cyan-500/30 font-mono">
                 CVSS {selectedThreat.cvss}
               </span>
-              <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-black px-3.5 py-1 rounded-full border border-red-500/30 shadow-2xs flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-ping"></span>
-                {selectedThreat.count} Detections Recorded
+              <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[10px] font-black px-2.5 py-0.5 rounded-md border border-red-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                {selectedThreat.count} Detections
               </span>
             </div>
 
-            <h2 className="text-[22px] sm:text-[24px] font-extrabold text-on-surface tracking-tight leading-snug font-display">
+            <h2 className="text-[18px] sm:text-[20px] font-bold text-on-surface tracking-tight leading-snug font-display">
               {selectedThreat.title}
             </h2>
           </div>
 
-          {/* Modal Body Scroll Container */}
-          <div className="p-6 sm:p-7 space-y-6 overflow-y-auto text-[13.5px] bg-surface">
+          {/* Modal Body: Compact Executive 2-Column Layout (No Scroll Required) */}
+          <div className="p-4 sm:p-5 space-y-3.5 text-[12.5px] bg-surface">
             
-            {/* Category & OWASP Specifications Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-surface-container-lowest p-4.5 rounded-2xl border border-outline-variant/70 shadow-2xs flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">
-                    Vulnerability Category
-                  </span>
-                  <span className="font-extrabold text-on-surface text-[15px]">{selectedThreat.category}</span>
+            {/* Top Row: Category & OWASP Compact Badges */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-surface-container-lowest p-2.5 px-3 rounded-xl border border-outline-variant/60 flex items-center gap-2.5">
+                <Layers className="w-4 h-4 text-primary shrink-0" />
+                <div className="truncate">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-0.5">Category</span>
+                  <span className="font-bold text-on-surface text-[12.5px] truncate block">{selectedThreat.category}</span>
                 </div>
               </div>
 
-              <div className="bg-surface-container-lowest p-4.5 rounded-2xl border border-outline-variant/70 shadow-2xs flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 shrink-0">
-                  <Shield className="w-5 h-5" />
-                </div>
-                <div>
-                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">
-                    OWASP Standard Compliance
-                  </span>
-                  <span className="font-extrabold text-indigo-500 text-[14.5px]">{selectedThreat.owasp}</span>
+              <div className="bg-surface-container-lowest p-2.5 px-3 rounded-xl border border-outline-variant/60 flex items-center gap-2.5">
+                <Shield className="w-4 h-4 text-indigo-500 shrink-0" />
+                <div className="truncate">
+                  <span className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-0.5">OWASP Standard</span>
+                  <span className="font-bold text-indigo-500 text-[12.5px] truncate block">{selectedThreat.owasp}</span>
                 </div>
               </div>
             </div>
 
-            {/* Threat Overview Card */}
-            <div className="bg-surface-container-lowest p-5 rounded-2xl border-l-4 border-l-primary border border-outline-variant/70 shadow-2xs">
-              <h3 className="font-bold text-on-surface text-[14.5px] mb-2 flex items-center gap-2">
-                <Shield className="w-4.5 h-4.5 text-primary" /> Vulnerability Overview & Technical Details
-              </h3>
-              <p className="text-on-surface-variant leading-relaxed text-[14px]">
-                {selectedThreat.description}
-              </p>
+            {/* Middle Grid: Overview & Impact */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-surface-container-lowest p-3 rounded-xl border-l-3 border-l-primary border border-outline-variant/60">
+                <h3 className="font-bold text-on-surface text-[12px] mb-1 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-primary" /> Threat Overview
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed text-[12px] line-clamp-4">
+                  {selectedThreat.description}
+                </p>
+              </div>
+
+              <div className="bg-surface-container-lowest p-3 rounded-xl border-l-3 border-l-amber-500 border border-outline-variant/60">
+                <h3 className="font-bold text-amber-600 dark:text-amber-400 text-[12px] mb-1 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Exploitation & Impact Risk
+                </h3>
+                <p className="text-on-surface-variant leading-relaxed text-[12px] line-clamp-4">
+                  {selectedThreat.impact}
+                </p>
+              </div>
             </div>
 
-            {/* Security Impact Card */}
-            <div className="bg-surface-container-lowest p-5 rounded-2xl border-l-4 border-l-amber-500 border border-outline-variant/70 shadow-2xs">
-              <h3 className="font-bold text-amber-600 dark:text-amber-400 text-[14.5px] mb-2 flex items-center gap-2">
-                <AlertTriangle className="w-4.5 h-4.5" /> Exploitation & Impact Risk Analysis
-              </h3>
-              <p className="text-on-surface-variant leading-relaxed text-[14px]">
-                {selectedThreat.impact}
-              </p>
-            </div>
-
-            {/* Code Remediation Terminal Box (IDE Style) */}
-            <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/70 shadow-2xs overflow-hidden">
-              <div className="bg-surface-container-high/80 px-4 py-3 border-b border-outline-variant/60 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-1.5 mr-2">
-                    <span className="w-3 h-3 rounded-full bg-red-500/80 inline-block"></span>
-                    <span className="w-3 h-3 rounded-full bg-amber-500/80 inline-block"></span>
-                    <span className="w-3 h-3 rounded-full bg-green-500/80 inline-block"></span>
-                  </div>
-                  <h3 className="font-bold text-on-surface text-[13px] flex items-center gap-2 font-mono">
-                    <Terminal className="w-4 h-4 text-green-500" /> Recommended Security Fix
-                  </h3>
-                </div>
+            {/* Code Remediation Terminal Box */}
+            <div className="bg-surface-container-lowest rounded-xl border border-outline-variant/60 overflow-hidden">
+              <div className="bg-surface-container-high/60 px-3 py-1.5 border-b border-outline-variant/60 flex items-center justify-between">
+                <h3 className="font-bold text-on-surface text-[11.5px] flex items-center gap-1.5 font-mono">
+                  <Terminal className="w-3.5 h-3.5 text-green-500" /> Recommended Remediation
+                </h3>
 
                 <button
                   onClick={() => copyToClipboard(selectedThreat.remediation)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded-lg text-[12px] font-bold border border-outline-variant/80 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                  className="flex items-center gap-1 px-2 py-0.5 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded text-[11px] font-bold border border-outline-variant/70 cursor-pointer transition-all active:scale-95"
                 >
-                  {copiedCode ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4 text-primary" />}
-                  {copiedCode ? 'Copied to Clipboard' : 'Copy Code Snippet'}
+                  {copiedCode ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3 text-primary" />}
+                  {copiedCode ? 'Copied' : 'Copy'}
                 </button>
               </div>
 
-              <div className="bg-[#0a0f1d] text-[#38bdf8] font-mono text-[13px] p-4.5 leading-relaxed overflow-x-auto whitespace-pre-wrap selection:bg-primary/30 selection:text-white">
+              <div className="bg-[#090d16] text-[#38bdf8] font-mono text-[11.5px] p-2.5 leading-snug overflow-x-auto whitespace-pre-wrap max-h-24">
                 {selectedThreat.remediation}
               </div>
             </div>
 
             {/* Affected Target Endpoints */}
             {selectedThreat.affected_targets && selectedThreat.affected_targets.length > 0 && (
-              <div className="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant/70 shadow-2xs">
-                <h3 className="font-bold text-on-surface text-[14.5px] mb-3 flex items-center gap-2">
-                  <ExternalLink className="w-4.5 h-4.5 text-primary" /> Affected Target Endpoints ({selectedThreat.affected_targets.length})
+              <div className="bg-surface-container-lowest p-2.5 rounded-xl border border-outline-variant/60">
+                <h3 className="font-bold text-on-surface text-[11.5px] mb-1.5 flex items-center gap-1.5">
+                  <ExternalLink className="w-3.5 h-3.5 text-primary" /> Affected Targets ({selectedThreat.affected_targets.length})
                 </h3>
-                <div className="flex flex-wrap gap-2.5">
-                  {selectedThreat.affected_targets.map((url, idx) => (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedThreat.affected_targets.slice(0, 3).map((url, idx) => (
                     <a
                       key={idx}
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-surface-container border border-outline-variant/80 hover:border-primary/50 text-on-surface font-mono text-[12px] px-3.5 py-2 rounded-xl flex items-center gap-2 font-medium transition-all hover:scale-[1.01]"
+                      className="bg-surface-container border border-outline-variant/70 hover:border-primary/50 text-on-surface font-mono text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
                     >
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                       {url}
-                      <ExternalLink className="w-3.5 h-3.5 opacity-50 ml-1" />
                     </a>
                   ))}
+                  {selectedThreat.affected_targets.length > 3 && (
+                    <span className="bg-surface-container text-on-surface-variant font-mono text-[11px] px-2 py-0.5 rounded-md font-bold">
+                      +{selectedThreat.affected_targets.length - 3} more
+                    </span>
+                  )}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Modal Actions Footer */}
-          <div className="p-5 bg-surface-container-lowest border-t border-outline-variant/80 flex items-center justify-between flex-wrap gap-3">
+          {/* Compact Actions Footer */}
+          <div className="p-3 px-4 bg-surface-container-lowest border-t border-outline-variant/70 flex items-center justify-between flex-wrap gap-2">
             <button
               onClick={() => {
                 const query = selectedThreat.title;
                 setSelectedThreat(null);
                 openFullLogsView(query);
               }}
-              className="px-5 py-3 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-[13.5px] flex items-center gap-2 cursor-pointer transition-all active:scale-95 shadow-2xs"
+              className="px-3.5 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-lg font-bold text-[12px] flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
             >
-              <Search className="w-4.5 h-4.5" />
+              <Search className="w-3.5 h-3.5" />
               Filter Audit Logs for this Threat
             </button>
 
             <button
               onClick={() => setSelectedThreat(null)}
-              className="px-7 py-3 bg-primary text-white hover:brightness-110 rounded-xl font-bold text-[13.5px] cursor-pointer border-0 shadow-lg shadow-primary/25 transition-all active:scale-95"
+              className="px-5 py-2 bg-primary text-white hover:brightness-110 rounded-lg font-bold text-[12px] cursor-pointer border-0 shadow-md shadow-primary/20 transition-all active:scale-95"
             >
-              Close Diagnostic Window
+              Close
             </button>
           </div>
         </div>
