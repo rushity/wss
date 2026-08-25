@@ -119,11 +119,14 @@ export const Profile = () => {
         headers: { 'Authorization': `Bearer ${token}` },
         body: formData
       });
+      const data = await res.json();
       if (res.ok) {
+        if (data.report_logo_url) {
+          setReportLogoUrl(data.report_logo_url);
+        }
         toast.success("Report branding updated! Future PDF reports will include your logo.");
         fetchBrandingManual();
       } else {
-        const data = await res.json();
         toast.error(data.message || "Failed to update report branding.");
       }
     } catch (err) {

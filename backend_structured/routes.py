@@ -815,7 +815,11 @@ def upload_organization_logo(current_user):
     if current_user.role not in ('org_admin', 'super_admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
-    org = db.session.get(Organization, current_user.org_id)
+    org = None
+    if current_user.org_id:
+        org = db.session.get(Organization, current_user.org_id)
+    if not org and current_user.role == 'super_admin':
+        org = db.session.query(Organization).first()
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
 
@@ -910,7 +914,11 @@ def manage_webhook(current_user):
     if current_user.role not in ('org_admin', 'super_admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
-    org = db.session.get(Organization, current_user.org_id)
+    org = None
+    if current_user.org_id:
+        org = db.session.get(Organization, current_user.org_id)
+    if not org and current_user.role == 'super_admin':
+        org = db.session.query(Organization).first()
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
 
