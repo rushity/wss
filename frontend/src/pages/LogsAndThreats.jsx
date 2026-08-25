@@ -316,10 +316,6 @@ const LogsAndThreats = () => {
               </button>
             )}
           </div>
-
-          <div className="text-[12.5px] text-on-surface-variant font-medium shrink-0">
-            Showing <strong className="text-on-surface font-bold">{totalEntries === 0 ? 0 : startIndex + 1} - {endIndex}</strong> of {totalEntries} entries
-          </div>
         </div>
 
         {/* Audit Logs Data Table */}
