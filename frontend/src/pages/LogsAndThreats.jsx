@@ -19,6 +19,10 @@ const LogsAndThreats = () => {
   const [actionCategory, setActionCategory] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+
   const [sortLogCol, setSortLogCol] = useState('Timestamp');
   const [sortLogDir, setSortLogDir] = useState('desc');
 
@@ -68,6 +72,10 @@ const LogsAndThreats = () => {
     const interval = setInterval(() => fetchStats(false), 15000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, actionCategory, dateFilter]);
 
   const openFullLogsView = () => {
     setIsFullLogsView(true);
@@ -148,6 +156,15 @@ const LogsAndThreats = () => {
       return 0;
     });
   };
+
+  // Pagination calculation
+  const sortedLogs = getSortedLogs();
+  const totalEntries = sortedLogs.length;
+  const totalPages = Math.ceil(totalEntries / pageSize) || 1;
+  const validCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (validCurrentPage - 1) * pageSize;
+  const endIndex = Math.min(startIndex + pageSize, totalEntries);
+  const paginatedLogs = sortedLogs.slice(startIndex, endIndex);
 
   const exportLogsToCSV = () => {
     if (!filteredAllLogs.length) return;
@@ -301,57 +318,123 @@ const LogsAndThreats = () => {
           </div>
 
           <div className="text-[12.5px] text-on-surface-variant font-medium shrink-0">
-            Showing <strong className="text-on-surface font-bold">{getSortedLogs().length}</strong> of {allLogs.length} entries
+            Showing <strong className="text-on-surface font-bold">{totalEntries === 0 ? 0 : startIndex + 1} - {endIndex}</strong> of {totalEntries} entries
           </div>
         </div>
 
         {/* Audit Logs Data Table */}
-        <div className="bg-surface-container-lowest border border-outline-variant/70 rounded-xl overflow-hidden shadow-2xs">
+        <div className="bg-surface-container-lowest border border-outline-variant/70 rounded-xl overflow-hidden shadow-2xs flex flex-col">
           {loadingAllLogs ? (
             <div className="text-center py-16 text-on-surface-variant text-[14px]">Loading full audit history...</div>
           ) : filteredAllLogs.length === 0 ? (
             <div className="text-center py-16 text-on-surface-variant text-[14px]">No audit logs match your search filter.</div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-[13.5px]">
-                <thead className="bg-surface-container-high/60 text-on-surface-variant text-[11px] uppercase tracking-wider select-none border-b border-outline-variant/70">
-                  <tr>
-                    {['Timestamp', 'User', 'Action', 'Target'].map((h, i) => (
-                      <th 
-                        key={h}
-                        onClick={() => handleLogSort(h)}
-                        className="p-3.5 cursor-pointer hover:bg-surface-container-highest transition-colors group"
-                      >
-                        <div className="flex items-center gap-xs font-bold">
-                          {h}
-                          <span className={`material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-50 transition-opacity ${sortLogCol === h ? 'opacity-100 group-hover:opacity-100 text-primary' : ''}`}>
-                            {sortLogCol === h && sortLogDir === 'desc' ? 'arrow_downward' : 'arrow_upward'}
-                          </span>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-outline-variant/60">
-                  {getSortedLogs().map((log, i) => (
-                    <tr key={log.id || i} className="hover:bg-surface-container-lowest/80 transition-colors">
-                      <td className="p-3.5 text-[12px] font-mono text-on-surface-variant whitespace-nowrap">
-                        {new Date(log.timestamp).toLocaleString()}
-                      </td>
-                      <td className="p-3.5 font-bold text-on-surface">
-                        {log.user_email || log.admin_id || 'System'}
-                      </td>
-                      <td className="p-3.5 text-on-surface">
-                        {log.action}
-                      </td>
-                      <td className="p-3.5 text-[12.5px] text-on-surface-variant">
-                        {log.target_name || log.target_id || '-'}
-                      </td>
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13.5px]">
+                  <thead className="bg-surface-container-high/60 text-on-surface-variant text-[11px] uppercase tracking-wider select-none border-b border-outline-variant/70">
+                    <tr>
+                      {['Timestamp', 'User', 'Action', 'Target'].map((h, i) => (
+                        <th 
+                          key={h}
+                          onClick={() => handleLogSort(h)}
+                          className="p-3.5 cursor-pointer hover:bg-surface-container-highest transition-colors group"
+                        >
+                          <div className="flex items-center gap-xs font-bold">
+                            {h}
+                            <span className={`material-symbols-outlined text-[14px] opacity-0 group-hover:opacity-50 transition-opacity ${sortLogCol === h ? 'opacity-100 group-hover:opacity-100 text-primary' : ''}`}>
+                              {sortLogCol === h && sortLogDir === 'desc' ? 'arrow_downward' : 'arrow_upward'}
+                            </span>
+                          </div>
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/60">
+                    {paginatedLogs.map((log, i) => (
+                      <tr key={log.id || i} className="hover:bg-surface-container-lowest/80 transition-colors">
+                        <td className="p-3.5 text-[12px] font-mono text-on-surface-variant whitespace-nowrap">
+                          {new Date(log.timestamp).toLocaleString()}
+                        </td>
+                        <td className="p-3.5 font-bold text-on-surface">
+                          {log.user_email || log.admin_id || 'System'}
+                        </td>
+                        <td className="p-3.5 text-on-surface">
+                          {log.action}
+                        </td>
+                        <td className="p-3.5 text-[12.5px] text-on-surface-variant">
+                          {log.target_name || log.target_id || '-'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="p-4 border-t border-outline-variant/60 bg-surface-container-lowest/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-on-surface-variant">
+                <div className="flex items-center gap-2">
+                  <span>Rows per page:</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSize(Number(e.target.value));
+                      setCurrentPage(1);
+                    }}
+                    className="bg-surface border border-outline-variant/60 text-on-surface rounded-md px-2 py-1 text-[12px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                    <option value={200}>200</option>
+                  </select>
+                  <span className="ml-2 font-medium">
+                    {totalEntries === 0 ? '0' : `${startIndex + 1} - ${endIndex}`} of {totalEntries} records
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={validCurrentPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalPages || Math.abs(p - validCurrentPage) <= 1)
+                      .map((page, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        return (
+                          <React.Fragment key={page}>
+                            {prev && page - prev > 1 && <span className="px-1 text-on-surface-variant text-[12px]">...</span>}
+                            <button
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-8 h-8 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
+                                validCurrentPage === page
+                                  ? 'bg-primary text-on-primary shadow-2xs'
+                                  : 'bg-surface hover:bg-surface-container-high border border-outline-variant/60 text-on-surface'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={validCurrentPage >= totalPages}
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
