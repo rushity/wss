@@ -619,26 +619,29 @@ export const AlertSettingsPage = () => {
   const profileEmail = user ? user.email : 'alex.mercer@larxiuswss.io';
   const profileRole = user?.role ? `Role: ${user.role}` : 'Lead Security Engineer';
 
-  const isSchedulerAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst', 'read_only', 'read_only_user'].includes(user?.role);
-  const isAdminOrSuper = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
+  const isSchedulerAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst'].includes(user?.role);
+  const isDemoBookingsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
+  const isNotificationsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst', 'executive_user'].includes(user?.role);
+  const isApiKeysAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst'].includes(user?.role);
+  const isTeamAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
+  const isBillingAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
 
   const tabItems = [
     { id: 'profile', label: 'My Profile', icon: 'person' }
   ];
 
-  if (isSchedulerAllowed) {
-    tabItems.push({ id: 'scheduler', label: 'Scheduler', icon: 'schedule' });
-    tabItems.push({ id: 'demoBookings', label: 'Demo Bookings', icon: 'event_available' });
-  }
+  if (isSchedulerAllowed) tabItems.push({ id: 'scheduler', label: 'Scheduler', icon: 'schedule' });
+  if (isDemoBookingsAllowed) tabItems.push({ id: 'demoBookings', label: 'Demo Bookings', icon: 'event_available' });
+  if (isNotificationsAllowed) tabItems.push({ id: 'notifications', label: 'Notifications', icon: 'notifications' });
+  if (isApiKeysAllowed) tabItems.push({ id: 'apiKeys', label: 'API Keys', icon: 'key' });
+  if (isTeamAllowed) tabItems.push({ id: 'team', label: 'Team', icon: 'group' });
+  if (isBillingAllowed) tabItems.push({ id: 'billing', label: 'Billing', icon: 'credit_card' });
 
-  if (isAdminOrSuper) {
-    tabItems.push(
-      { id: 'notifications', label: 'Notifications', icon: 'notifications' },
-      { id: 'apiKeys', label: 'API Keys', icon: 'key' },
-      { id: 'team', label: 'Team', icon: 'group' },
-      { id: 'billing', label: 'Billing', icon: 'credit_card' }
-    );
-  }
+  useEffect(() => {
+    if (tabItems.length > 0 && !tabItems.some(t => t.id === activeTab)) {
+      setActiveTab(tabItems[0].id);
+    }
+  }, [user?.role, activeTab, tabItems.length]);
 
   return (
     <div className="flex flex-col gap-gutter text-left w-full">
