@@ -216,12 +216,13 @@ export const Layout = ({ children }) => {
                 <span className="text-[#0b132a] dark:text-white">Lar</span>
                 <span className="text-[#5856d6]">Shield</span>
               </h1>
-              <p className="text-[12px] text-[#d97706] uppercase tracking-[0.16em] m-0 font-semibold leading-tight mt-1">
+              <p className="text-[12px] text-[#64748b] dark:text-slate-400 uppercase tracking-[0.14em] m-0 font-medium leading-tight mt-1">
                 {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
                  user?.role === 'admin' ? 'ADMIN' : 
                  user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
-                 user?.role === 'org_admin' ? 'ORGANIZATION ADMIN' : 
-                 (user?.subscription_tier ? `${user.subscription_tier.toUpperCase()} TIER` : 'FREE TIER')}
+                 user?.role === 'org_admin' ? 'ORG ADMIN' : 
+                 user?.role === 'executive_user' ? 'EXECUTIVE' : 
+                 (user?.subscription_tier ? `${user.subscription_tier.toUpperCase()} TIER` : 'ORG ADMIN')}
               </p>
             </div>
           </div>
