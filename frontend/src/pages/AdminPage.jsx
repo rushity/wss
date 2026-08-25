@@ -236,7 +236,7 @@ const AdminPageContent = () => {
   };
 
   const handleProvisionTenant = () => {
-    setPromptValues({ tier: 'quick', name: '', admin_email: '' });
+    setPromptValues({ tier: 'none', name: '', admin_email: '' });
     setPromptModal({
       isOpen: true,
       title: 'Add New Organization',
@@ -248,6 +248,7 @@ const AdminPageContent = () => {
           label: 'Subscription Tier', 
           type: 'select', 
           options: [
+            { label: 'None', value: 'none' },
             { label: 'Quick', value: 'quick' },
             { label: 'Advanced', value: 'advanced' },
             { label: 'Deep', value: 'deep' },
@@ -284,13 +285,13 @@ const AdminPageContent = () => {
   };
 
   const handleEditTenant = (org) => {
-    const rawTier = (org.tier || org.subscription_tier || 'quick');
+    const rawTier = (org.tier || org.subscription_tier || 'none');
     const isCustom = rawTier.toLowerCase().includes('custom') || rawTier.toLowerCase().includes('enterprise');
     const initialTier = isCustom 
       ? 'Enterprise(Custom)' 
-      : ['quick', 'advanced', 'deep'].includes(rawTier.toLowerCase()) 
+      : ['none', 'quick', 'advanced', 'deep'].includes(rawTier.toLowerCase()) 
         ? rawTier.toLowerCase() 
-        : 'quick';
+        : 'none';
 
     setPromptValues({ 
       name: org.name, 
@@ -307,6 +308,7 @@ const AdminPageContent = () => {
           label: 'Subscription Tier', 
           type: 'select', 
           options: [
+            { label: 'None', value: 'none' },
             { label: 'Quick', value: 'quick' },
             { label: 'Advanced', value: 'advanced' },
             { label: 'Deep', value: 'deep' },
