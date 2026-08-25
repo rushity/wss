@@ -604,8 +604,8 @@ export const AlertSettingsPage = () => {
     }
   };
 
-  const isSchedulerAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
-  const isDemoBookingsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
+  const isSchedulerAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst'].includes(user?.role);
+  const isDemoBookingsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst'].includes(user?.role);
   const isNotificationsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
   const isApiKeysAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
   const isTeamAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
