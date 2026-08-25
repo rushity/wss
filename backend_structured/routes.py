@@ -982,7 +982,7 @@ def suspend_organization(current_user, org_id):
 @auth_bp.route('/impersonate/<org_id>', methods=['POST'])
 @token_required
 def impersonate_org(current_user, org_id):
-    if current_user.role != 'super_admin':
+    if current_user.role not in ['super_admin', 'admin']:
         return jsonify({'message': 'Permission denied'}), 403
         
     target_user = User.query.filter_by(org_id=org_id, role='org_admin').first()
@@ -1681,10 +1681,13 @@ def get_scans_history(current_user):
     try:
 
         limit_val = request.args.get('limit', 50, type=int)
-        if current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
-            scans_query = Scan.query
+        org_id_param = request.args.get('org_id')
+        if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+            scans_query = Scan.query.filter_by(org_id=org_id_param)
         elif current_user.org_id:
             scans_query = Scan.query.filter_by(org_id=current_user.org_id)
+        elif current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
+            scans_query = Scan.query
         else:
             scans_query = Scan.query.filter_by(user_id=current_user.id)
 
@@ -2014,13 +2017,15 @@ vuln_bp = Blueprint('vulnerabilities', __name__)
 
 @vuln_bp.route('/summary', methods=['GET'])
 @token_required
-@cache.cached(timeout=30, query_string=True)
 def get_vulnerabilities_summary(current_user):
     try:
-        if current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
-            scan_filter = (Scan.id.isnot(None),)
+        org_id_param = request.args.get('org_id')
+        if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+            scan_filter = (Scan.org_id == org_id_param,)
         elif current_user.org_id:
             scan_filter = (Scan.org_id == current_user.org_id,)
+        elif current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
+            scan_filter = (Scan.id.isnot(None),)
         else:
             scan_filter = (Scan.user_id == current_user.id,)
 
