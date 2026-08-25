@@ -638,10 +638,11 @@ export const AlertSettingsPage = () => {
   if (isBillingAllowed) tabItems.push({ id: 'billing', label: 'Billing', icon: 'credit_card' });
 
   useEffect(() => {
-    if (tabItems.length > 0 && !tabItems.some(t => t.id === activeTab)) {
-      setActiveTab(tabItems[0].id);
+    const isAllowed = tabItems.some(t => t.id === activeTab);
+    if (!isAllowed) {
+      setActiveTab('profile');
     }
-  }, [user?.role, activeTab, tabItems.length]);
+  }, [user?.role, activeTab]);
 
   return (
     <div className="flex flex-col gap-gutter text-left w-full">
@@ -680,7 +681,7 @@ export const AlertSettingsPage = () => {
 
       {/* Tab Switch Contents */}
 
-      {activeTab === 'scheduler' && (
+      {activeTab === 'scheduler' && isSchedulerAllowed && (
         <div className="max-w-3xl mx-auto w-full">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm mb-lg">
             <h2 className="font-headline-md text-headline-md font-bold mb-md flex items-center gap-sm border-b pb-sm">
@@ -775,7 +776,7 @@ export const AlertSettingsPage = () => {
         </div>
       )}
 
-      {activeTab === 'demoBookings' && (
+      {activeTab === 'demoBookings' && isDemoBookingsAllowed && (
         <div className="max-w-3xl mx-auto w-full">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm mb-lg">
             <h2 className="font-headline-md text-headline-md font-bold mb-md flex items-center gap-sm border-b pb-sm">
@@ -872,7 +873,7 @@ export const AlertSettingsPage = () => {
       )}
 
       {/* 2. Notifications Tab (History) */}
-      {activeTab === 'notifications' && (
+      {activeTab === 'notifications' && isNotificationsAllowed && (
         <div className="max-w-3xl mx-auto w-full">
           {/* Notification History Panel */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-lg shadow-sm flex flex-col max-h-[700px]">
@@ -912,7 +913,7 @@ export const AlertSettingsPage = () => {
       )}
 
       {/* 3. Billing Tab */}
-      {activeTab === 'billing' && (
+      {activeTab === 'billing' && isBillingAllowed && (
         <div className="max-w-3xl mx-auto w-full flex flex-col gap-gutter">
 
           {/* Subscription & Billing */}
@@ -1056,12 +1057,12 @@ export const AlertSettingsPage = () => {
 
 
       {/* Profile Tab */}
-      {activeTab === 'profile' && (
+      {(activeTab === 'profile' || !tabItems.some(t => t.id === activeTab)) && (
         <Profile />
       )}
 
       {/* Team Tab */}
-      {activeTab === 'team' && (
+      {activeTab === 'team' && isTeamAllowed && (
         <div className="w-full flex flex-col gap-lg">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface-container/50">
@@ -1397,7 +1398,7 @@ export const AlertSettingsPage = () => {
       )}
 
       {/* API Keys Tab (Placeholder) */}
-      {activeTab === 'apiKeys' && (
+      {activeTab === 'apiKeys' && isApiKeysAllowed && (
         <div className="w-full">
           <div className="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm mb-lg overflow-hidden relative min-h-[400px] flex items-center justify-center">
 
