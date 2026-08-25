@@ -78,6 +78,10 @@ const LogsAndThreats = () => {
   const [isFullThreatsView, setIsFullThreatsView] = useState(false);
   const [threatSearch, setThreatSearch] = useState('');
   const [threatSeverityFilter, setThreatSeverityFilter] = useState('all');
+  const [threatCategoryFilter, setThreatCategoryFilter] = useState('all');
+  const [threatOwaspFilter, setThreatOwaspFilter] = useState('all');
+  const [threatSortCol, setThreatSortCol] = useState('severity');
+  const [threatSortDir, setThreatSortDir] = useState('desc');
   const [fullThreatsPage, setFullThreatsPage] = useState(1);
   const [fullThreatsPageSize, setFullThreatsPageSize] = useState(10);
 
@@ -150,7 +154,7 @@ const LogsAndThreats = () => {
 
   useEffect(() => {
     setFullThreatsPage(1);
-  }, [threatSearch, threatSeverityFilter]);
+  }, [threatSearch, threatSeverityFilter, threatCategoryFilter, threatOwaspFilter, threatSortCol, threatSortDir]);
 
   const openFullLogsView = (initialSearch = '') => {
     if (initialSearch) {
@@ -180,6 +184,10 @@ const LogsAndThreats = () => {
   const clearThreatFilters = () => {
     setThreatSearch('');
     setThreatSeverityFilter('all');
+    setThreatCategoryFilter('all');
+    setThreatOwaspFilter('all');
+    setThreatSortCol('severity');
+    setThreatSortDir('desc');
   };
 
   const copyToClipboard = (text) => {
@@ -233,17 +241,62 @@ const LogsAndThreats = () => {
   const endThreatCardIdx = Math.min(startThreatCardIdx + threatCardPageSize, totalThreatCount);
   const paginatedCardThreats = allThreatDetails.slice(startThreatCardIdx, endThreatCardIdx);
 
-  // Full Page Threat View Filtering & Pagination
+  // Dynamic unique categories and OWASPs
+  const uniqueThreatCategories = Array.from(new Set(allThreatDetails.map(t => t.category).filter(Boolean)));
+  const uniqueThreatOwasps = Array.from(new Set(allThreatDetails.map(t => t.owasp).filter(Boolean)));
+
+  const handleThreatSort = (column) => {
+    if (threatSortCol === column) {
+      setThreatSortDir(threatSortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setThreatSortCol(column);
+      setThreatSortDir(column === 'title' || column === 'category' ? 'asc' : 'desc');
+    }
+  };
+
+  // Full Page Threat View Filtering & Sorting
   const filteredFullThreats = allThreatDetails.filter(t => {
     if (threatSearch) {
       const q = threatSearch.toLowerCase();
-      const match = t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || t.owasp.toLowerCase().includes(q);
+      const match = t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || t.owasp.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
       if (!match) return false;
     }
     if (threatSeverityFilter !== 'all') {
       if (t.severity.toLowerCase() !== threatSeverityFilter.toLowerCase()) return false;
     }
+    if (threatCategoryFilter !== 'all') {
+      if (t.category !== threatCategoryFilter) return false;
+    }
+    if (threatOwaspFilter !== 'all') {
+      if (t.owasp !== threatOwaspFilter) return false;
+    }
     return true;
+  }).sort((a, b) => {
+    let aVal, bVal;
+    const sevWeight = { 'critical': 4, 'high': 3, 'medium': 2, 'low': 1 };
+    switch (threatSortCol) {
+      case 'title':
+        aVal = a.title.toLowerCase(); bVal = b.title.toLowerCase();
+        break;
+      case 'severity':
+        aVal = sevWeight[a.severity.toLowerCase()] || 0;
+        bVal = sevWeight[b.severity.toLowerCase()] || 0;
+        break;
+      case 'cvss':
+        aVal = Number(a.cvss) || 0; bVal = Number(b.cvss) || 0;
+        break;
+      case 'category':
+        aVal = a.category.toLowerCase(); bVal = b.category.toLowerCase();
+        break;
+      case 'detections':
+        aVal = Number(a.count) || 0; bVal = Number(b.count) || 0;
+        break;
+      default:
+        aVal = 0; bVal = 0;
+    }
+    if (aVal < bVal) return threatSortDir === 'asc' ? -1 : 1;
+    if (aVal > bVal) return threatSortDir === 'asc' ? 1 : -1;
+    return 0;
   });
 
   const totalFullThreatEntries = filteredFullThreats.length;
@@ -470,25 +523,81 @@ const LogsAndThreats = () => {
 
         {/* Filter and Search Bar */}
         <div className="mb-md bg-surface-container-lowest border border-outline-variant/70 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs">
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
-            <div className="relative w-full sm:w-80">
+          <div className="flex flex-wrap items-center gap-3 w-full flex-1">
+            
+            {/* Search Input */}
+            <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
               <input
                 type="text"
-                placeholder="Search vulnerability title, OWASP, or category..."
+                placeholder="Search threat title, OWASP, CWE..."
                 value={threatSearch}
                 onChange={(e) => setThreatSearch(e.target.value)}
                 className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/60 rounded-lg text-[13px] text-on-surface focus:outline-none focus:border-primary"
               />
             </div>
 
-            {(threatSearch || threatSeverityFilter !== 'all') && (
+            {/* Category Filter */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Category:</span>
+              <select
+                value={threatCategoryFilter}
+                onChange={(e) => setThreatCategoryFilter(e.target.value)}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto max-w-[200px] truncate"
+              >
+                <option value="all">All Categories</option>
+                {uniqueThreatCategories.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* OWASP Filter */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">OWASP:</span>
+              <select
+                value={threatOwaspFilter}
+                onChange={(e) => setThreatOwaspFilter(e.target.value)}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto max-w-[220px] truncate"
+              >
+                <option value="all">All OWASP Standards</option>
+                {uniqueThreatOwasps.map(owasp => (
+                  <option key={owasp} value={owasp}>{owasp}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sort By Dropdown */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Sort By:</span>
+              <select
+                value={`${threatSortCol}_${threatSortDir}`}
+                onChange={(e) => {
+                  const parts = e.target.value.split('_');
+                  setThreatSortCol(parts[0]);
+                  setThreatSortDir(parts[1]);
+                }}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto"
+              >
+                <option value="severity_desc">Highest Severity</option>
+                <option value="severity_asc">Lowest Severity</option>
+                <option value="cvss_desc">Highest CVSS</option>
+                <option value="cvss_asc">Lowest CVSS</option>
+                <option value="detections_desc">Most Detections</option>
+                <option value="detections_asc">Least Detections</option>
+                <option value="title_asc">Title (A-Z)</option>
+                <option value="title_desc">Title (Z-A)</option>
+              </select>
+            </div>
+
+            {/* Reset Button */}
+            {(threatSearch || threatSeverityFilter !== 'all' || threatCategoryFilter !== 'all' || threatOwaspFilter !== 'all' || threatSortCol !== 'severity') && (
               <button
                 onClick={clearThreatFilters}
-                className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1"
+                className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1 ml-auto"
               >
                 <span className="material-symbols-outlined text-[16px]">close</span>
-                Reset Search Filters
+                Reset All Filters
               </button>
             )}
           </div>
@@ -507,11 +616,36 @@ const LogsAndThreats = () => {
                   <thead className="bg-surface-container-high/60 text-on-surface-variant text-[11px] uppercase tracking-wider select-none border-b border-outline-variant/70">
                     <tr>
                       <th className="p-3.5 font-bold w-12 text-center">#</th>
-                      <th className="p-3.5 font-bold">Threat Title & Description</th>
-                      <th className="p-3.5 font-bold">Severity</th>
-                      <th className="p-3.5 font-bold">CVSS</th>
-                      <th className="p-3.5 font-bold">Category & OWASP</th>
-                      <th className="p-3.5 font-bold text-center">Detections</th>
+                      <th onClick={() => handleThreatSort('title')} className="p-3.5 font-bold cursor-pointer hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1">
+                          Threat Title & Description
+                          {threatSortCol === 'title' && <span className="text-[12px] text-primary">{threatSortDir === 'asc' ? '▲' : '▼'}</span>}
+                        </div>
+                      </th>
+                      <th onClick={() => handleThreatSort('severity')} className="p-3.5 font-bold cursor-pointer hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1">
+                          Severity
+                          {threatSortCol === 'severity' && <span className="text-[12px] text-primary">{threatSortDir === 'asc' ? '▲' : '▼'}</span>}
+                        </div>
+                      </th>
+                      <th onClick={() => handleThreatSort('cvss')} className="p-3.5 font-bold cursor-pointer hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1">
+                          CVSS
+                          {threatSortCol === 'cvss' && <span className="text-[12px] text-primary">{threatSortDir === 'asc' ? '▲' : '▼'}</span>}
+                        </div>
+                      </th>
+                      <th onClick={() => handleThreatSort('category')} className="p-3.5 font-bold cursor-pointer hover:text-primary transition-colors">
+                        <div className="flex items-center gap-1">
+                          Category & OWASP
+                          {threatSortCol === 'category' && <span className="text-[12px] text-primary">{threatSortDir === 'asc' ? '▲' : '▼'}</span>}
+                        </div>
+                      </th>
+                      <th onClick={() => handleThreatSort('detections')} className="p-3.5 font-bold text-center cursor-pointer hover:text-primary transition-colors">
+                        <div className="flex items-center justify-center gap-1">
+                          Detections
+                          {threatSortCol === 'detections' && <span className="text-[12px] text-primary">{threatSortDir === 'asc' ? '▲' : '▼'}</span>}
+                        </div>
+                      </th>
                       <th className="p-3.5 font-bold text-right pr-6">Action</th>
                     </tr>
                   </thead>
