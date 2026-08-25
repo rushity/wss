@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
-export const ProtectedRoute = ({ requiredRole }) => {
+export const ProtectedRoute = ({ requiredRole, children }) => {
   const { token, loading, user } = useAuth();
 
   if (loading) {
@@ -44,5 +44,5 @@ export const ProtectedRoute = ({ requiredRole }) => {
     }
   }
 
-  return <Outlet />;
+  return children ? children : <Outlet />;
 };
