@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { 
   ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft, Filter, 
-  Info, X, ExternalLink, Shield, AlertTriangle, CheckCircle, Copy, Check, Terminal, Layers, Eye
+  Info, X, ExternalLink, Shield, AlertTriangle, CheckCircle, Copy, Check, Terminal, Layers, Eye,
+  Clock, Radio, FileText
 } from 'lucide-react';
 
 const THREAT_KNOWLEDGE_BASE = {
@@ -73,6 +74,7 @@ const LogsAndThreats = () => {
   // Selected Threat Detail Modal State
   const [selectedThreat, setSelectedThreat] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedBrief, setCopiedBrief] = useState(false);
   
   // Full Page Threat Intelligence View State
   const [isFullThreatsView, setIsFullThreatsView] = useState(false);
@@ -201,6 +203,33 @@ const LogsAndThreats = () => {
     setThreatSortDir('desc');
   };
 
+  const copyBriefToClipboard = (threat) => {
+    if (!threat) return;
+    const text = `[LARSHIELD EXECUTIVE THREAT BRIEF]
+Threat Title: ${threat.title}
+Severity: ${threat.severity} | CVSS Score: ${threat.cvss} | Detections: ${threat.count}
+CWE Standard: ${threat.cwe} | Remediation SLA: ${threat.sla}
+Category: ${threat.category}
+OWASP Standard: ${threat.owasp}
+Attack Vector: ${threat.attackVector}
+
+THREAT OVERVIEW:
+${threat.description}
+
+EXPLOITATION & IMPACT RISK:
+${threat.impact}
+
+RECOMMENDED SECURITY FIX:
+${threat.remediation}
+
+AFFECTED TARGET ENDPOINTS (${threat.affected_targets.length}):
+${threat.affected_targets.join('\n')}`;
+
+    navigator.clipboard.writeText(text);
+    setCopiedBrief(true);
+    setTimeout(() => setCopiedBrief(false), 2000);
+  };
+
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text);
     setCopiedCode(true);
@@ -220,14 +249,20 @@ const LogsAndThreats = () => {
     );
     const kb = (kbKey ? THREAT_KNOWLEDGE_BASE[kbKey] : null) || {};
 
+    const sev = t.severity || kb.severity || 'Medium';
+    const isUrgent = sev.toLowerCase() === 'critical' || sev.toLowerCase() === 'high';
+    const rawCwe = t.cwe_ids && t.cwe_ids.length ? (Array.isArray(t.cwe_ids) ? t.cwe_ids[0] : t.cwe_ids) : (kb.cwe ? (Array.isArray(kb.cwe) ? kb.cwe[0] : kb.cwe) : 'CWE-693');
+
     return {
       title: titleKey || kbKey || 'Security Vulnerability',
       count: t.count || 1,
-      severity: t.severity || kb.severity || 'Medium',
+      severity: sev,
       category: t.category || kb.category || 'Security Headers',
       cvss: t.cvss_score || t.cvss || kb.cvss || 5.3,
       owasp: t.owasp_category || t.owasp || kb.owasp || 'A05:2021 - Security Misconfiguration',
-      cwe: t.cwe_ids && t.cwe_ids.length ? t.cwe_ids : (kb.cwe || ['CWE-693']),
+      cwe: rawCwe,
+      sla: isUrgent ? 'Fix Required: Within 24 Hours' : 'Fix Required: Within 7 Days',
+      attackVector: kb.attack_vector || (titleKey.toLowerCase().includes('cve') || titleKey.toLowerCase().includes('tls') ? 'Network / Remote Exploitable' : 'HTTP Header Misconfiguration'),
       description: t.description && t.description.length > 20 ? t.description : (kb.description || `Security intelligence scan detected "${titleKey}" across active system endpoints.`),
       impact: t.impact || kb.impact || 'Unpatched or missing security settings increase risk of exploitation, unauthorized data access, or service disruption.',
       remediation: t.remediation && t.remediation.length > 20 ? t.remediation : (kb.remediation || 'add_header Cross-Origin-Embedder-Policy "require-corp" always;'),
@@ -511,17 +546,24 @@ const LogsAndThreats = () => {
               <X className="w-5 h-5" />
             </button>
 
-            <div className="flex items-center gap-2.5 flex-wrap mb-2 pr-10">
-              <span className={`px-3 py-1 rounded-md text-[11px] font-black uppercase tracking-wider border flex items-center gap-1.5 ${getSeverityBadgeClass(selectedThreat.severity)}`}>
+            <div className="flex items-center gap-2 flex-wrap mb-2 pr-10">
+              <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-black uppercase tracking-wider border flex items-center gap-1 ${getSeverityBadgeClass(selectedThreat.severity)}`}>
                 <ShieldAlert className="w-3.5 h-3.5" />
                 {selectedThreat.severity} SEVERITY
               </span>
-              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[11px] font-black px-3 py-1 rounded-md border border-cyan-500/30 font-mono">
+              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-cyan-500/30 font-mono">
                 CVSS {selectedThreat.cvss}
               </span>
-              <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-black px-3 py-1 rounded-md border border-red-500/30 flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                {selectedThreat.count} Detections Recorded
+              <span className="bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-purple-500/30 font-mono">
+                {selectedThreat.cwe}
+              </span>
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {selectedThreat.sla}
+              </span>
+              <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-red-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                {selectedThreat.count} Detections
               </span>
             </div>
 
@@ -533,45 +575,55 @@ const LogsAndThreats = () => {
           {/* Modal Body: Spacious Executive View (Zero Scrollbar) */}
           <div className="p-4 sm:p-5 px-5 sm:px-6 space-y-3.5 text-sm bg-surface overflow-hidden">
             
-            {/* Top Row: Category & OWASP Standard Badges */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="bg-surface-container-lowest p-3 px-4 rounded-xl border border-outline-variant/60 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
-                  <Layers className="w-4 h-4" />
+            {/* Top Row: Category, OWASP Standard & Attack Vector Badges */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="bg-surface-container-lowest p-2.5 px-3 rounded-xl border border-outline-variant/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <Layers className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
-                  <span className="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-1">Vulnerability Category</span>
-                  <span className="font-bold text-on-surface text-sm truncate block">{selectedThreat.category}</span>
+                  <span className="text-[9.5px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-0.5">Category</span>
+                  <span className="font-bold text-on-surface text-[12px] truncate block">{selectedThreat.category}</span>
                 </div>
               </div>
 
-              <div className="bg-surface-container-lowest p-3 px-4 rounded-xl border border-outline-variant/60 flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
-                  <Shield className="w-4 h-4" />
+              <div className="bg-surface-container-lowest p-2.5 px-3 rounded-xl border border-outline-variant/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
+                  <Shield className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
-                  <span className="text-[10.5px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-1">OWASP Standard</span>
-                  <span className="font-bold text-indigo-500 text-sm truncate block">{selectedThreat.owasp}</span>
+                  <span className="text-[9.5px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-0.5">OWASP Standard</span>
+                  <span className="font-bold text-indigo-500 text-[12px] truncate block">{selectedThreat.owasp}</span>
+                </div>
+              </div>
+
+              <div className="bg-surface-container-lowest p-2.5 px-3 rounded-xl border border-outline-variant/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+                  <Radio className="w-3.5 h-3.5" />
+                </div>
+                <div className="truncate">
+                  <span className="text-[9.5px] font-bold text-on-surface-variant uppercase tracking-wider block leading-none mb-0.5">Attack Vector</span>
+                  <span className="font-bold text-rose-500 text-[12px] truncate block">{selectedThreat.attackVector}</span>
                 </div>
               </div>
             </div>
 
             {/* Middle Grid: Threat Overview & Exploitation Risk */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="bg-surface-container-lowest p-3.5 px-4 rounded-xl border-l-4 border-l-primary border border-outline-variant/60">
-                <h3 className="font-bold text-on-surface text-sm mb-1.5 flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-primary" /> Threat Overview
+              <div className="bg-surface-container-lowest p-3 px-3.5 rounded-xl border-l-4 border-l-primary border border-outline-variant/60">
+                <h3 className="font-bold text-on-surface text-xs mb-1 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-primary" /> Threat Overview
                 </h3>
-                <p className="text-on-surface-variant leading-relaxed text-[12.5px] sm:text-[13px] line-clamp-3">
+                <p className="text-on-surface-variant leading-relaxed text-[12px] line-clamp-3">
                   {selectedThreat.description}
                 </p>
               </div>
 
-              <div className="bg-surface-container-lowest p-3.5 px-4 rounded-xl border-l-4 border-l-amber-500 border border-outline-variant/60">
-                <h3 className="font-bold text-amber-600 dark:text-amber-400 text-sm mb-1.5 flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4" /> Exploitation & Impact Risk
+              <div className="bg-surface-container-lowest p-3 px-3.5 rounded-xl border-l-4 border-l-amber-500 border border-outline-variant/60">
+                <h3 className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-1 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Exploitation & Impact Risk
                 </h3>
-                <p className="text-on-surface-variant leading-relaxed text-[12.5px] sm:text-[13px] line-clamp-3">
+                <p className="text-on-surface-variant leading-relaxed text-[12px] line-clamp-3">
                   {selectedThreat.impact}
                 </p>
               </div>
@@ -593,32 +645,32 @@ const LogsAndThreats = () => {
                 </button>
               </div>
 
-              <div className="bg-[#090d16] text-[#38bdf8] font-mono text-[12px] p-3 leading-relaxed whitespace-pre-wrap max-h-20 overflow-hidden">
+              <div className="bg-[#090d16] text-[#38bdf8] font-mono text-[11.5px] p-2.5 leading-relaxed whitespace-pre-wrap max-h-16 overflow-hidden">
                 {selectedThreat.remediation}
               </div>
             </div>
 
             {/* Affected Target Endpoints */}
             {selectedThreat.affected_targets && selectedThreat.affected_targets.length > 0 && (
-              <div className="bg-surface-container-lowest p-3 px-4 rounded-xl border border-outline-variant/60">
-                <h3 className="font-bold text-on-surface text-xs mb-1.5 flex items-center gap-2">
+              <div className="bg-surface-container-lowest p-2.5 px-3.5 rounded-xl border border-outline-variant/60">
+                <h3 className="font-bold text-on-surface text-xs mb-1 flex items-center gap-1.5">
                   <ExternalLink className="w-3.5 h-3.5 text-primary" /> Affected Target Endpoints ({selectedThreat.affected_targets.length})
                 </h3>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {selectedThreat.affected_targets.slice(0, 4).map((url, idx) => (
                     <a
                       key={idx}
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-surface-container border border-outline-variant/70 hover:border-primary text-on-surface font-mono text-xs px-2.5 py-1 rounded-md flex items-center gap-1.5 transition-all"
+                      className="bg-surface-container border border-outline-variant/70 hover:border-primary text-on-surface font-mono text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                       {url}
                     </a>
                   ))}
                   {selectedThreat.affected_targets.length > 4 && (
-                    <span className="bg-surface-container text-on-surface-variant font-mono text-xs px-2.5 py-1 rounded-md font-bold">
+                    <span className="bg-surface-container text-on-surface-variant font-mono text-[11px] px-2 py-0.5 rounded-md font-bold">
                       +{selectedThreat.affected_targets.length - 4} more
                     </span>
                   )}
@@ -628,25 +680,36 @@ const LogsAndThreats = () => {
           </div>
 
           {/* Actions Footer */}
-          <div className="p-3.5 px-5 sm:px-6 bg-surface-container-lowest border-t border-outline-variant/70 flex items-center justify-between flex-wrap gap-3">
+          <div className="p-3 px-5 sm:px-6 bg-surface-container-lowest border-t border-outline-variant/70 flex items-center justify-between flex-wrap gap-2.5">
             <button
               onClick={() => {
                 const query = selectedThreat.title;
                 setSelectedThreat(null);
                 openFullLogsView(query);
               }}
-              className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
             >
               <Search className="w-4 h-4" />
               Filter Audit Logs for this Threat
             </button>
 
-            <button
-              onClick={() => setSelectedThreat(null)}
-              className="px-6 py-2 bg-primary text-white hover:brightness-110 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border-0 shadow-md shadow-primary/20 transition-all active:scale-95"
-            >
-              Close Diagnostic Window
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => copyBriefToClipboard(selectedThreat)}
+                className="px-3.5 py-1.5 bg-surface-container hover:bg-surface-container-highest text-on-surface rounded-xl font-bold text-xs sm:text-sm cursor-pointer border border-outline-variant/70 flex items-center gap-1.5 transition-all active:scale-95"
+                title="Copy Executive Threat Brief to Clipboard"
+              >
+                {copiedBrief ? <Check className="w-4 h-4 text-green-500" /> : <FileText className="w-4 h-4 text-primary" />}
+                {copiedBrief ? 'Brief Copied!' : 'Copy Threat Brief'}
+              </button>
+
+              <button
+                onClick={() => setSelectedThreat(null)}
+                className="px-5 py-1.5 bg-primary text-white hover:brightness-110 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border-0 shadow-md shadow-primary/20 transition-all active:scale-95"
+              >
+                Close Window
+              </button>
+            </div>
           </div>
         </div>
       </div>
