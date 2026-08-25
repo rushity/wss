@@ -533,14 +533,14 @@ ${threat.affected_targets.join('\n')}`;
     const activeSev = severityColorMap[sevKey] || severityColorMap.medium;
 
     return (
-      <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 z-[9999] animate-fade-in overflow-hidden">
-        <div className={`bg-[#0b0f1a] text-slate-100 border border-slate-800 rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl relative overflow-hidden flex flex-col transition-all duration-200 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
+      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 z-[9999] animate-fade-in overflow-hidden">
+        <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl relative overflow-hidden flex flex-col transition-all duration-200 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
           
           {/* Header Banner */}
-          <div className="bg-[#111827]/90 p-4 sm:p-5 px-5 sm:px-6 border-b border-slate-800/80 relative">
+          <div className="bg-slate-50/90 dark:bg-slate-800/80 p-4 sm:p-5 px-5 sm:px-6 border-b border-slate-200 dark:border-slate-800 relative">
             <button
               onClick={() => setSelectedThreat(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-[#1e293b] p-1.5 rounded-full transition-all cursor-pointer border border-slate-700 hover:scale-105"
+              className="absolute top-4 right-4 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white bg-slate-200/60 dark:bg-slate-700 p-1.5 rounded-full transition-all cursor-pointer border border-slate-300/60 dark:border-slate-600 hover:scale-105"
               title="Close"
             >
               <X className="w-5 h-5" />
@@ -551,109 +551,109 @@ ${threat.affected_targets.join('\n')}`;
                 <ShieldAlert className="w-3.5 h-3.5" />
                 {selectedThreat.severity} SEVERITY
               </span>
-              <span className="bg-cyan-500/10 text-cyan-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-cyan-500/30 font-mono">
+              <span className="bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-cyan-500/30 font-mono">
                 CVSS {selectedThreat.cvss}
               </span>
-              <span className="bg-purple-500/10 text-purple-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-purple-500/30 font-mono">
+              <span className="bg-purple-500/10 text-purple-600 dark:text-purple-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-purple-500/30 font-mono">
                 {selectedThreat.cwe}
               </span>
-              <span className="bg-emerald-500/10 text-emerald-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1">
+              <span className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-emerald-500/30 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {selectedThreat.sla}
               </span>
-              <span className="bg-red-500/10 text-red-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-red-500/30 flex items-center gap-1">
+              <span className="bg-red-500/10 text-red-600 dark:text-red-400 text-[11px] font-black px-2.5 py-0.5 rounded-md border border-red-500/30 flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
                 {selectedThreat.count} Detections
               </span>
             </div>
 
-            <h2 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-snug font-display">
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug font-display">
               {selectedThreat.title}
             </h2>
           </div>
 
-          {/* Modal Body: Spacious Executive View (Zero Scrollbar) */}
-          <div className="p-4 sm:p-5 px-5 sm:px-6 space-y-3.5 text-sm bg-[#0b0f1a] overflow-hidden">
+          {/* Modal Body: Pure White Executive Layout */}
+          <div className="p-4 sm:p-5 px-5 sm:px-6 space-y-3.5 text-sm bg-white dark:bg-slate-900 overflow-hidden">
             
             {/* Top Row: Category, OWASP Standard & Attack Vector Badges */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="bg-[#131c2e] p-2.5 px-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-primary/20 text-primary flex items-center justify-center shrink-0">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 px-3 rounded-xl border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
                   <Layers className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
-                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Category</span>
-                  <span className="font-bold text-slate-100 text-[12px] truncate block">{selectedThreat.category}</span>
+                  <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Category</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100 text-[12px] truncate block">{selectedThreat.category}</span>
                 </div>
               </div>
 
-              <div className="bg-[#131c2e] p-2.5 px-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 px-3 rounded-xl border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center shrink-0">
                   <Shield className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
-                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-0.5">OWASP Standard</span>
-                  <span className="font-bold text-indigo-400 text-[12px] truncate block">{selectedThreat.owasp}</span>
+                  <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block leading-none mb-0.5">OWASP Standard</span>
+                  <span className="font-bold text-indigo-600 dark:text-indigo-400 text-[12px] truncate block">{selectedThreat.owasp}</span>
                 </div>
               </div>
 
-              <div className="bg-[#131c2e] p-2.5 px-3 rounded-xl border border-slate-800 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 px-3 rounded-xl border border-slate-200/80 dark:border-slate-700/60 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
                   <Radio className="w-3.5 h-3.5" />
                 </div>
                 <div className="truncate">
-                  <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Attack Vector</span>
-                  <span className="font-bold text-rose-400 text-[12px] truncate block">{selectedThreat.attackVector}</span>
+                  <span className="text-[9.5px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block leading-none mb-0.5">Attack Vector</span>
+                  <span className="font-bold text-rose-600 dark:text-rose-400 text-[12px] truncate block">{selectedThreat.attackVector}</span>
                 </div>
               </div>
             </div>
 
             {/* Middle Grid: Threat Overview & Exploitation Risk */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-              <div className="bg-[#131c2e] p-3 px-3.5 rounded-xl border-l-4 border-l-primary border border-slate-800">
-                <h3 className="font-bold text-slate-100 text-xs mb-1 flex items-center gap-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-3 px-3.5 rounded-xl border-l-4 border-l-primary border border-slate-200/80 dark:border-slate-700/60">
+                <h3 className="font-bold text-slate-900 dark:text-white text-xs mb-1 flex items-center gap-1.5">
                   <Shield className="w-3.5 h-3.5 text-primary" /> Threat Overview
                 </h3>
-                <p className="text-slate-300 leading-relaxed text-[12px] line-clamp-3">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[12px] line-clamp-3">
                   {selectedThreat.description}
                 </p>
               </div>
 
-              <div className="bg-[#131c2e] p-3 px-3.5 rounded-xl border-l-4 border-l-amber-500 border border-slate-800">
-                <h3 className="font-bold text-amber-400 text-xs mb-1 flex items-center gap-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-3 px-3.5 rounded-xl border-l-4 border-l-amber-500 border border-slate-200/80 dark:border-slate-700/60">
+                <h3 className="font-bold text-amber-600 dark:text-amber-400 text-xs mb-1 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" /> Exploitation & Impact Risk
                 </h3>
-                <p className="text-slate-300 leading-relaxed text-[12px] line-clamp-3">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-[12px] line-clamp-3">
                   {selectedThreat.impact}
                 </p>
               </div>
             </div>
 
             {/* Code Remediation Terminal Box */}
-            <div className="bg-[#131c2e] rounded-xl border border-slate-800 overflow-hidden">
-              <div className="bg-[#1e293b]/70 px-3.5 py-1.5 border-b border-slate-800 flex items-center justify-between">
-                <h3 className="font-bold text-slate-200 text-xs flex items-center gap-2 font-mono">
-                  <Terminal className="w-3.5 h-3.5 text-green-400" /> Recommended Security Fix
+            <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 overflow-hidden">
+              <div className="bg-slate-100 dark:bg-slate-800 px-3.5 py-1.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <h3 className="font-bold text-slate-900 dark:text-white text-xs flex items-center gap-2 font-mono">
+                  <Terminal className="w-3.5 h-3.5 text-green-500" /> Recommended Security Fix
                 </h3>
 
                 <button
                   onClick={() => copyToClipboard(selectedThreat.remediation)}
-                  className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0f172a] hover:bg-slate-800 text-slate-200 rounded-md text-xs font-bold border border-slate-700 cursor-pointer transition-all active:scale-95 shadow-2xs"
+                  className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 hover:bg-slate-50 rounded-md text-xs font-bold border border-slate-300 dark:border-slate-600 cursor-pointer transition-all active:scale-95 shadow-2xs"
                 >
-                  {copiedCode ? <Check className="w-3.5 h-3.5 text-green-400" /> : <Copy className="w-3.5 h-3.5 text-primary" />}
+                  {copiedCode ? <Check className="w-3.5 h-3.5 text-green-500" /> : <Copy className="w-3.5 h-3.5 text-primary" />}
                   {copiedCode ? 'Copied' : 'Copy Code Snippet'}
                 </button>
               </div>
 
-              <div className="bg-[#030712] text-[#38bdf8] font-mono text-[11.5px] p-2.5 leading-relaxed whitespace-pre-wrap max-h-16 overflow-hidden">
+              <div className="bg-[#090d16] text-[#38bdf8] font-mono text-[11.5px] p-2.5 leading-relaxed whitespace-pre-wrap max-h-16 overflow-hidden">
                 {selectedThreat.remediation}
               </div>
             </div>
 
             {/* Affected Target Endpoints */}
             {selectedThreat.affected_targets && selectedThreat.affected_targets.length > 0 && (
-              <div className="bg-[#131c2e] p-2.5 px-3.5 rounded-xl border border-slate-800">
-                <h3 className="font-bold text-slate-200 text-xs mb-1 flex items-center gap-1.5">
+              <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 px-3.5 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+                <h3 className="font-bold text-slate-900 dark:text-white text-xs mb-1 flex items-center gap-1.5">
                   <ExternalLink className="w-3.5 h-3.5 text-primary" /> Affected Target Endpoints ({selectedThreat.affected_targets.length})
                 </h3>
                 <div className="flex flex-wrap gap-1.5">
@@ -663,14 +663,14 @@ ${threat.affected_targets.join('\n')}`;
                       href={url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-[#1e293b] border border-slate-700 hover:border-primary text-slate-200 font-mono text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
+                      className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary text-slate-800 dark:text-slate-200 font-mono text-[11px] px-2 py-0.5 rounded-md flex items-center gap-1 transition-all"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500"></span>
                       {url}
                     </a>
                   ))}
                   {selectedThreat.affected_targets.length > 4 && (
-                    <span className="bg-[#1e293b] text-slate-400 font-mono text-[11px] px-2 py-0.5 rounded-md font-bold border border-slate-700">
+                    <span className="bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 font-mono text-[11px] px-2 py-0.5 rounded-md font-bold">
                       +{selectedThreat.affected_targets.length - 4} more
                     </span>
                   )}
@@ -680,14 +680,14 @@ ${threat.affected_targets.join('\n')}`;
           </div>
 
           {/* Actions Footer */}
-          <div className="p-3 px-5 sm:px-6 bg-[#111827] border-t border-slate-800/80 flex items-center justify-between flex-wrap gap-2.5">
+          <div className="p-3 px-5 sm:px-6 bg-slate-50/90 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2.5">
             <button
               onClick={() => {
                 const query = selectedThreat.title;
                 setSelectedThreat(null);
                 openFullLogsView(query);
               }}
-              className="px-3.5 py-1.5 bg-primary/20 hover:bg-primary/30 text-sky-400 border border-primary/40 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
+              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all active:scale-95"
             >
               <Search className="w-4 h-4" />
               Filter Audit Logs for this Threat
@@ -696,16 +696,16 @@ ${threat.affected_targets.join('\n')}`;
             <div className="flex items-center gap-2">
               <button
                 onClick={() => copyBriefToClipboard(selectedThreat)}
-                className="px-3.5 py-1.5 bg-[#1e293b] hover:bg-slate-700 text-slate-200 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border border-slate-700 flex items-center gap-1.5 transition-all active:scale-95"
+                className="px-3.5 py-1.5 bg-white dark:bg-slate-700 hover:bg-slate-100 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border border-slate-300 dark:border-slate-600 flex items-center gap-1.5 transition-all active:scale-95 shadow-2xs"
                 title="Copy Executive Threat Brief to Clipboard"
               >
-                {copiedBrief ? <Check className="w-4 h-4 text-green-400" /> : <FileText className="w-4 h-4 text-sky-400" />}
+                {copiedBrief ? <Check className="w-4 h-4 text-green-500" /> : <FileText className="w-4 h-4 text-primary" />}
                 {copiedBrief ? 'Brief Copied!' : 'Copy Threat Brief'}
               </button>
 
               <button
                 onClick={() => setSelectedThreat(null)}
-                className="px-5 py-1.5 bg-primary text-white hover:brightness-110 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border-0 shadow-md shadow-primary/30 transition-all active:scale-95"
+                className="px-5 py-1.5 bg-primary text-white hover:brightness-110 rounded-xl font-bold text-xs sm:text-sm cursor-pointer border-0 shadow-md shadow-primary/20 transition-all active:scale-95"
               >
                 Close Window
               </button>
