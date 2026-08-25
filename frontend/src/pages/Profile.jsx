@@ -684,46 +684,80 @@ export const Profile = () => {
                 className="hidden"
               />
 
-              {reportLogoUrl && (
-                <div className="mb-6 p-4 bg-white rounded-xl border border-[#e5e7eb] shadow-xs flex items-center justify-center max-w-sm w-full pointer-events-auto">
-                  <img
-                    src={reportLogoUrl}
-                    alt="Organization Logo"
-                    className="max-h-24 max-w-full object-contain"
-                    onError={(e) => {
-                      if (reportLogoUrl && !e.target.dataset.retried) {
-                        e.target.dataset.retried = '1';
-                        if (reportLogoUrl.startsWith('/uploads/')) {
-                          e.target.src = `/api/auth${reportLogoUrl}`;
-                        } else if (reportLogoUrl.startsWith('/api/auth/uploads/')) {
-                          e.target.src = reportLogoUrl.replace('/api/auth', '');
-                        } else if (!reportLogoUrl.startsWith('http')) {
-                          e.target.src = `/uploads/logos/${reportLogoUrl.split('/').pop()}`;
+              {reportLogoUrl ? (
+                <>
+                  <div className="mb-6 p-4 bg-white rounded-xl border border-[#e5e7eb] shadow-xs flex items-center justify-center max-w-sm w-full pointer-events-auto">
+                    <img
+                      src={reportLogoUrl}
+                      alt="Organization Logo"
+                      className="max-h-24 max-w-full object-contain"
+                      onError={(e) => {
+                        if (reportLogoUrl && !e.target.dataset.retried) {
+                          e.target.dataset.retried = '1';
+                          if (reportLogoUrl.startsWith('/uploads/')) {
+                            e.target.src = `/api/auth${reportLogoUrl}`;
+                          } else if (reportLogoUrl.startsWith('/api/auth/uploads/')) {
+                            e.target.src = reportLogoUrl.replace('/api/auth', '');
+                          } else if (!reportLogoUrl.startsWith('http')) {
+                            e.target.src = `/uploads/logos/${reportLogoUrl.split('/').pop()}`;
+                          }
                         }
-                      }
+                      }}
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={uploadingLogo}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
                     }}
-                  />
-                </div>
+                    className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
+                  >
+                    <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
+                      {uploadingLogo ? 'sync' : 'upload_file'}
+                    </span>
+                    <span>{uploadingLogo ? 'Uploading...' : 'Upload Here (Change Logo)'}</span>
+                  </button>
+
+                  <p className="text-[#6b7280] text-sm m-0 font-normal pointer-events-none">
+                    Or drag and drop a new logo file above (PNG, JPG, WebP, SVG up to 5MB)
+                  </p>
+                </>
+              ) : (
+                <>
+                  <div className="w-12 h-12 rounded-full bg-[#eff6ff] flex items-center justify-center mb-3">
+                    <span className="material-symbols-outlined text-[#2563eb] text-[28px]">cloud_upload</span>
+                  </div>
+
+                  <h4 className="font-bold text-[#111827] text-base mb-1 m-0">
+                    Upload Organization Logo
+                  </h4>
+                  <p className="text-[#6b7280] text-xs mb-5 m-0 font-normal">
+                    Upload your custom logo to brand all PDF security reports
+                  </p>
+
+                  <button
+                    type="button"
+                    disabled={uploadingLogo}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      fileInputRef.current?.click();
+                    }}
+                    className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
+                  >
+                    <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
+                      {uploadingLogo ? 'sync' : 'upload_file'}
+                    </span>
+                    <span>{uploadingLogo ? 'Uploading...' : 'Upload Here'}</span>
+                  </button>
+
+                  <p className="text-[#6b7280] text-xs m-0 font-normal pointer-events-none">
+                    Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
+                  </p>
+                </>
               )}
-
-              <button
-                type="button"
-                disabled={uploadingLogo}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  fileInputRef.current?.click();
-                }}
-                className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
-              >
-                <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
-                  {uploadingLogo ? 'sync' : 'upload_file'}
-                </span>
-                <span>{uploadingLogo ? 'Uploading...' : 'Upload Here (Change Logo)'}</span>
-              </button>
-
-              <p className="text-[#6b7280] text-sm m-0 font-normal pointer-events-none">
-                Or drag and drop a new logo file above (PNG, JPG, WebP, SVG up to 5MB)
-              </p>
             </div>
           </div>
         </div>
