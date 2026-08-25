@@ -161,6 +161,7 @@ const LogsAndThreats = () => {
   };
 
   const getThreatDetail = (t) => {
+    if (!t) return null;
     const titleKey = typeof t === 'string' ? t : (t.title || '');
     const kb = THREAT_KNOWLEDGE_BASE[titleKey] || {};
     return {
@@ -172,7 +173,7 @@ const LogsAndThreats = () => {
       owasp: t.owasp_category || kb.owasp || 'A05:2021 - Security Misconfiguration',
       cwe: t.cwe_ids && t.cwe_ids.length ? t.cwe_ids : (kb.cwe || ['CWE-693']),
       description: t.description && t.description.length > 30 ? t.description : (kb.description || `Security intelligence scan detected "${titleKey}" across active system endpoints.`),
-      impact: kb.impact || 'Unpatched or missing security settings increase risk of exploitation, unauthorized data access, or service disruption.',
+      impact: t.impact || kb.impact || 'Unpatched or missing security settings increase risk of exploitation, unauthorized data access, or service disruption.',
       remediation: t.remediation && t.remediation.length > 20 ? t.remediation : (kb.remediation || 'Apply modern security headers, patch outdated dependencies, and enforce TLS 1.3 protocol standards.'),
       affected_targets: t.affected_targets && t.affected_targets.length ? t.affected_targets : (kb.affected_targets || ['https://scanned-target.larshield.io'])
     };
@@ -188,7 +189,7 @@ const LogsAndThreats = () => {
   };
 
   // In-Card Threats Pagination Calculations
-  const allThreatDetails = trends.map(t => getThreatDetail(t));
+  const allThreatDetails = trends.map(t => getThreatDetail(t)).filter(Boolean);
   const totalThreatCount = allThreatDetails.length;
   const totalThreatCardPages = Math.ceil(totalThreatCount / threatCardPageSize) || 1;
   const validThreatCardPage = Math.min(Math.max(1, threatCardPage), totalThreatCardPages);
@@ -587,7 +588,10 @@ const LogsAndThreats = () => {
                     return (
                       <li 
                         key={i} 
-                        onClick={() => setSelectedThreat(detail)}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setSelectedThreat(detail);
+                        }}
                         className="py-3 px-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-container-high/70 cursor-pointer transition-all group border border-transparent hover:border-primary/30 my-1"
                         title="Click to view full threat details & remediation guide"
                       >
@@ -617,6 +621,7 @@ const LogsAndThreats = () => {
                           <button 
                             type="button"
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               setSelectedThreat(detail);
                             }}
@@ -745,7 +750,7 @@ const LogsAndThreats = () => {
         </div>
       </div>
 
-      {/* All Global Threats Modal Popup (Preserving exact card design) */}
+      {/* All Global Threats Modal Popup */}
       {showAllThreatsModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-surface border border-outline-variant rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
@@ -791,7 +796,8 @@ const LogsAndThreats = () => {
                 {filteredModalThreats.map((detail, idx) => (
                   <li 
                     key={idx} 
-                    onClick={() => {
+                    onClick={(e) => {
+                      e.preventDefault();
                       setSelectedThreat(detail);
                     }}
                     className="py-3 px-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-container-high/70 cursor-pointer transition-all group border border-transparent hover:border-primary/30 my-1"
@@ -822,6 +828,7 @@ const LogsAndThreats = () => {
                       <button 
                         type="button"
                         onClick={(e) => {
+                          e.preventDefault();
                           e.stopPropagation();
                           setSelectedThreat(detail);
                         }}
@@ -849,9 +856,9 @@ const LogsAndThreats = () => {
         </div>
       )}
 
-      {/* Global Threat Detail Modal */}
+      {/* Global Threat Detail Modal - High Z-Index to stack cleanly */}
       {selectedThreat && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-fade-in">
           <div className="bg-surface border border-outline-variant rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
             <button
