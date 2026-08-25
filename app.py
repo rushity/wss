@@ -23,12 +23,28 @@ from flask import send_from_directory, abort
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'frontend', 'dist')
 
 
+@app.route('/uploads/<path:filename>')
+def serve_root_uploads(filename):
+    """Serve uploaded logos and static media files directly from uploads directory."""
+    uploads_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
+    file_path = os.path.join(uploads_dir, filename)
+    if os.path.exists(file_path):
+        return send_from_directory(uploads_dir, filename)
+    
+    # Check inside uploads/logos subfolder if requested without 'logos/' prefix
+    logos_dir = os.path.join(uploads_dir, 'logos')
+    if os.path.exists(os.path.join(logos_dir, filename)):
+        return send_from_directory(logos_dir, filename)
+        
+    abort(404)
+
+
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_react(path):
     """Serve React SPA. Static assets go to dist/, everything else → index.html."""
-    # Never intercept API, uploads, or socket.io requests
-    if path.startswith('api/') or path.startswith('uploads/') or path.startswith('socket.io'):
+    # Never intercept API or socket.io requests
+    if path.startswith('api/') or path.startswith('socket.io'):
         abort(404)
     if path and os.path.exists(os.path.join(FRONTEND_DIR, path)):
         res = send_from_directory(FRONTEND_DIR, path)

@@ -686,7 +686,23 @@ export const Profile = () => {
 
               {reportLogoUrl && (
                 <div className="mb-6 p-4 bg-white rounded-xl border border-[#e5e7eb] shadow-xs flex items-center justify-center max-w-sm w-full pointer-events-auto">
-                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-24 max-w-full object-contain" />
+                  <img
+                    src={reportLogoUrl}
+                    alt="Organization Logo"
+                    className="max-h-24 max-w-full object-contain"
+                    onError={(e) => {
+                      if (reportLogoUrl && !e.target.dataset.retried) {
+                        e.target.dataset.retried = '1';
+                        if (reportLogoUrl.startsWith('/uploads/')) {
+                          e.target.src = `/api/auth${reportLogoUrl}`;
+                        } else if (reportLogoUrl.startsWith('/api/auth/uploads/')) {
+                          e.target.src = reportLogoUrl.replace('/api/auth', '');
+                        } else if (!reportLogoUrl.startsWith('http')) {
+                          e.target.src = `/uploads/logos/${reportLogoUrl.split('/').pop()}`;
+                        }
+                      }
+                    }}
+                  />
                 </div>
               )}
 
