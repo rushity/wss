@@ -311,12 +311,7 @@ def generate_scan_pdf(scan, vulnerabilities):
 
         
         # --- PAGE 1: COVER PAGE ---
-        logo_stream_p1 = get_org_logo_stream()
-        if logo_stream_p1:
-            elements.append(Spacer(1, 100))
-            elements.append(create_proportional_image(logo_stream_p1, max_width=180, max_height=170, hAlign='CENTER'))
-            elements.append(Spacer(1, 60))
-        elif has_local_logo:
+        if has_local_logo:
             elements.append(Spacer(1, 100))
             elements.append(create_proportional_image(logo_path, max_width=180, max_height=170, hAlign='CENTER'))
             elements.append(Spacer(1, 60))
@@ -326,11 +321,7 @@ def generate_scan_pdf(scan, vulnerabilities):
         elements.append(PageBreak())
         
         # --- PAGE 2: TITLE & META INFORMATION ---
-        logo_stream_p2 = get_org_logo_stream()
-        if logo_stream_p2:
-            elements.append(create_proportional_image(logo_stream_p2, max_width=130, max_height=120, hAlign='CENTER'))
-            elements.append(Spacer(1, 25))
-        elif has_local_logo:
+        if has_local_logo:
             elements.append(create_proportional_image(logo_path, max_width=130, max_height=120, hAlign='CENTER'))
             elements.append(Spacer(1, 25))    
             
