@@ -533,7 +533,7 @@ ${threat.affected_targets.join('\n')}`;
     const activeSev = severityColorMap[sevKey] || severityColorMap.medium;
 
     return (
-      <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 z-[9999] animate-fade-in overflow-hidden">
+      <div className="fixed inset-0 bg-white/75 dark:bg-slate-950/80 backdrop-blur-md backdrop-saturate-150 flex items-center justify-center p-4 sm:p-6 z-[9999] animate-fade-in overflow-hidden">
         <div className={`bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-3xl lg:max-w-4xl w-full shadow-2xl relative overflow-hidden flex flex-col transition-all duration-200 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
           
           {/* Header Banner */}
