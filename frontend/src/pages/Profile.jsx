@@ -133,6 +133,24 @@ export const Profile = () => {
     }
   };
 
+  const handleRemoveLogo = async () => {
+    try {
+      const res = await fetch('/api/auth/organizations/logo', {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        setReportLogoUrl('');
+        toast.success("Logo removed successfully.");
+        fetchBrandingManual();
+      } else {
+        toast.error("Failed to remove logo.");
+      }
+    } catch (err) {
+      toast.error("Error removing logo.");
+    }
+  };
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -613,24 +631,39 @@ export const Profile = () => {
       {/* Second Row for Report Branding */}
       {(profile.role === 'super_admin' || profile.role === 'org_admin') && (
         <div className="w-full bg-white border border-[#e5e7eb] rounded-xl shadow-xs p-6 md:p-8 mt-6">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="material-symbols-outlined text-[#2563eb] text-[22px]">palette</span>
-            <h3 className="font-bold text-[#111827] text-[18px] m-0">
-              Report Branding
-            </h3>
-          </div>
-          <p className="text-[#4b5563] text-sm mt-1 mb-5 m-0">
-            Customize generated PDF security reports with your organization's logo.
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#2563eb] text-[22px]">palette</span>
+                <h3 className="font-bold text-[#111827] text-[18px] m-0">
+                  Report Branding
+                </h3>
+              </div>
+              <p className="text-[#4b5563] text-sm mt-1 m-0">
+                Customize generated PDF security reports with your organization's logo.
+              </p>
+            </div>
 
-          <div className="border-t border-[#f3f4f6] pt-6">
+            {reportLogoUrl && (
+              <button
+                type="button"
+                onClick={handleRemoveLogo}
+                className="shrink-0 border border-[#fecaca] hover:bg-[#fef2f2] hover:border-[#fca5a5] text-[#dc2626] font-medium text-xs px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition-colors cursor-pointer border-solid self-start sm:self-auto"
+              >
+                <span className="material-symbols-outlined text-[16px]">delete</span>
+                <span>Remove Logo</span>
+              </button>
+            )}
+          </div>
+
+          <div className="border-t border-[#e5e7eb] pt-6">
             <div
               onDragOver={handleDragOver}
               onDragEnter={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`relative border-2 border-dashed rounded-xl py-12 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer ${
+              className={`relative border-2 border-dashed rounded-xl py-10 px-6 flex flex-col items-center justify-center text-center transition-all duration-200 cursor-pointer ${
                 isDragging
                   ? 'border-[#2563eb] bg-[#eff6ff] scale-[1.005]'
                   : 'border-[#d1d5db] bg-[#f9fafb] hover:border-[#9ca3af] hover:bg-[#f3f4f6]'
@@ -648,24 +681,11 @@ export const Profile = () => {
                 className="hidden"
               />
 
-              <div className="pointer-events-none flex flex-col items-center justify-center">
-                <span className={`material-symbols-outlined text-[36px] text-[#2563eb] mb-3 transition-transform ${isDragging ? 'scale-110' : ''} ${uploadingLogo ? 'animate-spin' : ''}`}>
-                  {uploadingLogo ? 'sync' : 'cloud'}
-                </span>
-                
-                <h4 className="font-bold text-[#111827] text-[16px] mb-1 m-0">
-                  {isDragging ? 'Drop Image Here to Upload' : 'Upload Organization Logo'}
-                </h4>
-                <p className="text-[#6b7280] text-sm mt-1 mb-5 m-0">
-                  {isDragging ? 'Release to upload your custom logo immediately' : 'Upload your custom logo to brand all PDF security reports'}
-                </p>
-
-                {reportLogoUrl && (
-                  <div className="mb-5 p-3 bg-white rounded-lg border border-[#e5e7eb] shadow-2xs flex items-center justify-center pointer-events-auto">
-                    <img src={reportLogoUrl} alt="Organization Logo" className="max-h-16 max-w-xs object-contain" />
-                  </div>
-                )}
-              </div>
+              {reportLogoUrl && (
+                <div className="mb-6 p-4 bg-white rounded-xl border border-[#e5e7eb] shadow-xs flex items-center justify-center max-w-sm w-full pointer-events-auto">
+                  <img src={reportLogoUrl} alt="Organization Logo" className="max-h-24 max-w-full object-contain" />
+                </div>
+              )}
 
               <button
                 type="button"
@@ -674,16 +694,16 @@ export const Profile = () => {
                   e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
-                className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
+                className="relative z-20 bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-semibold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm shadow-xs transition-colors cursor-pointer mb-4 disabled:opacity-50"
               >
                 <span className={`material-symbols-outlined text-[18px] ${uploadingLogo ? 'animate-spin' : ''}`}>
-                  {uploadingLogo ? 'sync' : 'upload'}
+                  {uploadingLogo ? 'sync' : 'upload_file'}
                 </span>
-                <span>{uploadingLogo ? 'Uploading...' : (reportLogoUrl ? 'Change Logo' : 'Upload Here')}</span>
+                <span>{uploadingLogo ? 'Uploading...' : 'Upload Here (Change Logo)'}</span>
               </button>
 
-              <p className="text-[#6b7280] text-[12px] m-0 font-normal pointer-events-none">
-                Supported formats: PNG, JPG, WebP, SVG (Max 5MB)
+              <p className="text-[#6b7280] text-sm m-0 font-normal pointer-events-none">
+                Or drag and drop a new logo file above (PNG, JPG, WebP, SVG up to 5MB)
               </p>
             </div>
           </div>

@@ -809,7 +809,7 @@ def manage_single_organization(current_user, org_id):
     db.session.commit()
     return jsonify({'message': 'Tenant updated successfully'}), 200
 
-@auth_bp.route('/organizations/logo', methods=['POST'])
+@auth_bp.route('/organizations/logo', methods=['POST', 'DELETE'])
 @token_required
 def upload_organization_logo(current_user):
     if current_user.role not in ('org_admin', 'super_admin'):
@@ -818,6 +818,11 @@ def upload_organization_logo(current_user):
     org = db.session.get(Organization, current_user.org_id)
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
+
+    if request.method == 'DELETE':
+        org.report_logo_url = None
+        db.session.commit()
+        return jsonify({'message': 'Logo removed successfully', 'report_logo_url': None}), 200
         
     file_bytes = None
     content_type = 'image/png'
