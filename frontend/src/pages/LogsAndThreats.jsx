@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
-import { ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft, Filter } from 'lucide-react';
 
 const LogsAndThreats = () => {
   const { user, loading: authLoading } = useAuth();
@@ -13,7 +13,11 @@ const LogsAndThreats = () => {
   const [isFullLogsView, setIsFullLogsView] = useState(false);
   const [allLogs, setAllLogs] = useState([]);
   const [loadingAllLogs, setLoadingAllLogs] = useState(false);
+  
+  // Filters State
   const [searchQuery, setSearchQuery] = useState('');
+  const [actionCategory, setActionCategory] = useState('all');
+  const [dateFilter, setDateFilter] = useState('all');
   
   const [sortLogCol, setSortLogCol] = useState('Timestamp');
   const [sortLogDir, setSortLogDir] = useState('desc');
@@ -74,15 +78,50 @@ const LogsAndThreats = () => {
     setIsFullLogsView(false);
   };
 
+  const clearFilters = () => {
+    setSearchQuery('');
+    setActionCategory('all');
+    setDateFilter('all');
+  };
+
   const filteredAllLogs = allLogs.filter(log => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      (log.action && log.action.toLowerCase().includes(q)) ||
-      (log.user_email && log.user_email.toLowerCase().includes(q)) ||
-      (log.target_name && log.target_name.toLowerCase().includes(q)) ||
-      (log.target_id && log.target_id.toLowerCase().includes(q))
-    );
+    // Search query filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchQuery = (
+        (log.action && log.action.toLowerCase().includes(q)) ||
+        (log.user_email && log.user_email.toLowerCase().includes(q)) ||
+        (log.target_name && log.target_name.toLowerCase().includes(q)) ||
+        (log.target_id && log.target_id.toLowerCase().includes(q))
+      );
+      if (!matchQuery) return false;
+    }
+
+    // Action Category filter
+    if (actionCategory !== 'all') {
+      const act = (log.action || '').toLowerCase();
+      if (actionCategory === 'logins' && !act.includes('log')) return false;
+      if (actionCategory === 'users' && !act.includes('user') && !act.includes('member') && !act.includes('role')) return false;
+      if (actionCategory === 'scans' && !act.includes('scan')) return false;
+      if (actionCategory === 'settings' && !act.includes('setting') && !act.includes('quota') && !act.includes('tier') && !act.includes('config')) return false;
+    }
+
+    // Date filter
+    if (dateFilter !== 'all' && log.timestamp) {
+      const logDate = new Date(log.timestamp);
+      const now = new Date();
+      if (dateFilter === 'today') {
+        if (logDate.toDateString() !== now.toDateString()) return false;
+      } else if (dateFilter === '7days') {
+        const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        if (logDate < sevenDaysAgo) return false;
+      } else if (dateFilter === '30days') {
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        if (logDate < thirtyDaysAgo) return false;
+      }
+    }
+
+    return true;
   });
 
   const handleLogSort = (column) => {
@@ -204,19 +243,65 @@ const LogsAndThreats = () => {
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="mb-md bg-surface-container-lowest border border-outline-variant/70 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-2xs">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-            <input
-              type="text"
-              placeholder="Search user, action, or target..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/60 rounded-lg text-[13.5px] text-on-surface focus:outline-none focus:border-primary"
-            />
+        <div className="mb-md bg-surface-container-lowest border border-outline-variant/70 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+            {/* Search Input */}
+            <div className="relative w-full sm:w-64">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+              <input
+                type="text"
+                placeholder="Search user, action, or target..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/60 rounded-lg text-[13px] text-on-surface focus:outline-none focus:border-primary"
+              />
+            </div>
+
+            {/* Action Category Dropdown */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Type:</span>
+              <select
+                value={actionCategory}
+                onChange={(e) => setActionCategory(e.target.value)}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto"
+              >
+                <option value="all">All Action Types</option>
+                <option value="logins">Logins & Auth</option>
+                <option value="users">User & Role Changes</option>
+                <option value="scans">Scan Activity</option>
+                <option value="settings">Settings & Quotas</option>
+              </select>
+            </div>
+
+            {/* Date Range Dropdown */}
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Time:</span>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto"
+              >
+                <option value="all">All Time</option>
+                <option value="today">Today</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="30days">Last 30 Days</option>
+              </select>
+            </div>
+
+            {/* Clear Filters Button */}
+            {(searchQuery || actionCategory !== 'all' || dateFilter !== 'all') && (
+              <button
+                onClick={clearFilters}
+                className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+                Reset Filters
+              </button>
+            )}
           </div>
-          <div className="text-[12.5px] text-on-surface-variant font-medium">
-            Showing <strong className="text-on-surface font-bold">{getSortedLogs().length}</strong> audit event entries
+
+          <div className="text-[12.5px] text-on-surface-variant font-medium shrink-0">
+            Showing <strong className="text-on-surface font-bold">{getSortedLogs().length}</strong> of {allLogs.length} entries
           </div>
         </div>
 
