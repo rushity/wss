@@ -218,11 +218,8 @@ export const Layout = ({ children }) => {
               </h1>
               <p className="text-[12px] text-[#64748b] dark:text-slate-400 uppercase tracking-[0.14em] m-0 font-medium leading-tight mt-1">
                 {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
-                 user?.role === 'admin' ? 'ADMIN' : 
                  user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
-                 user?.role === 'org_admin' ? 'ORG ADMIN' : 
-                 user?.role === 'executive_user' ? 'EXECUTIVE' : 
-                 (user?.subscription_tier ? `${user.subscription_tier.toUpperCase()} TIER` : 'ORG ADMIN')}
+                 'ORG ADMIN'}
               </p>
             </div>
           </div>
@@ -297,10 +294,17 @@ export const Layout = ({ children }) => {
           <span className="material-symbols-outlined text-primary cursor-pointer">menu</span>
           <div className="flex items-center gap-xs">
             <img src="/logo.png" alt="LarShield Logo" className="h-7 w-7 object-contain" />
-            <span className="font-extrabold tracking-tight text-[16px] leading-none flex items-center">
-              <span className="text-[#0b132a] dark:text-white">Lar</span>
-              <span className="text-[#5856d6]">Shield</span>
-            </span>
+            <div className="flex flex-col justify-center">
+              <span className="font-extrabold tracking-tight text-[15px] leading-none flex items-center">
+                <span className="text-[#0b132a] dark:text-white">Lar</span>
+                <span className="text-[#5856d6]">Shield</span>
+              </span>
+              <span className="text-[10px] text-[#64748b] dark:text-slate-400 uppercase tracking-[0.12em] font-medium leading-none mt-0.5">
+                {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
+                 user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
+                 'ORG ADMIN'}
+              </span>
+            </div>
           </div>
         </div>
 
