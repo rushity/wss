@@ -70,11 +70,14 @@ const LogsAndThreats = () => {
   // Selected Threat Detail Modal State
   const [selectedThreat, setSelectedThreat] = useState(null);
   
-  // All Threats Modal View State
-  const [showAllThreatsModal, setShowAllThreatsModal] = useState(false);
-  const [allThreatsSearch, setAllThreatsSearch] = useState('');
+  // Full Page Threat Intelligence View State
+  const [isFullThreatsView, setIsFullThreatsView] = useState(false);
+  const [threatSearch, setThreatSearch] = useState('');
+  const [threatSeverityFilter, setThreatSeverityFilter] = useState('all');
+  const [fullThreatsPage, setFullThreatsPage] = useState(1);
+  const [fullThreatsPageSize, setFullThreatsPageSize] = useState(10);
 
-  // Full Page Audit Logs State
+  // Full Page Audit Logs View State
   const [isFullLogsView, setIsFullLogsView] = useState(false);
   const [allLogs, setAllLogs] = useState([]);
   const [loadingAllLogs, setLoadingAllLogs] = useState(false);
@@ -86,7 +89,7 @@ const LogsAndThreats = () => {
   const [sortLogCol, setSortLogCol] = useState('Timestamp');
   const [sortLogDir, setSortLogDir] = useState('desc');
 
-  // Threat In-Card Pagination State
+  // Threat In-Card Pagination State (Dashboard Overview)
   const [threatCardPage, setThreatCardPage] = useState(1);
   const [threatCardPageSize, setThreatCardPageSize] = useState(5);
 
@@ -141,23 +144,38 @@ const LogsAndThreats = () => {
     setCurrentPage(1);
   }, [searchQuery, actionCategory, dateFilter]);
 
+  useEffect(() => {
+    setFullThreatsPage(1);
+  }, [threatSearch, threatSeverityFilter]);
+
   const openFullLogsView = (initialSearch = '') => {
     if (initialSearch) {
       setSearchQuery(initialSearch);
     }
-    setShowAllThreatsModal(false);
+    setIsFullThreatsView(false);
     setIsFullLogsView(true);
     fetchAllAuditLogs();
   };
 
-  const closeFullLogsView = () => {
+  const openFullThreatsView = () => {
     setIsFullLogsView(false);
+    setIsFullThreatsView(true);
+  };
+
+  const closeFullViews = () => {
+    setIsFullLogsView(false);
+    setIsFullThreatsView(false);
   };
 
   const clearLogFilters = () => {
     setSearchQuery('');
     setActionCategory('all');
     setDateFilter('all');
+  };
+
+  const clearThreatFilters = () => {
+    setThreatSearch('');
+    setThreatSeverityFilter('all');
   };
 
   const getThreatDetail = (t) => {
@@ -188,8 +206,10 @@ const LogsAndThreats = () => {
     return 'bg-blue-500/10 text-blue-500 border-blue-500/30';
   };
 
-  // In-Card Threats Pagination Calculations
+  // Threat Details Calculations
   const allThreatDetails = trends.map(t => getThreatDetail(t)).filter(Boolean);
+
+  // In-Card Threats Pagination Calculations (Dashboard Overview)
   const totalThreatCount = allThreatDetails.length;
   const totalThreatCardPages = Math.ceil(totalThreatCount / threatCardPageSize) || 1;
   const validThreatCardPage = Math.min(Math.max(1, threatCardPage), totalThreatCardPages);
@@ -197,12 +217,25 @@ const LogsAndThreats = () => {
   const endThreatCardIdx = Math.min(startThreatCardIdx + threatCardPageSize, totalThreatCount);
   const paginatedCardThreats = allThreatDetails.slice(startThreatCardIdx, endThreatCardIdx);
 
-  // Modal All Threats Filtering
-  const filteredModalThreats = allThreatDetails.filter(t => {
-    if (!allThreatsSearch) return true;
-    const q = allThreatsSearch.toLowerCase();
-    return t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || t.owasp.toLowerCase().includes(q);
+  // Full Page Threat View Filtering & Pagination
+  const filteredFullThreats = allThreatDetails.filter(t => {
+    if (threatSearch) {
+      const q = threatSearch.toLowerCase();
+      const match = t.title.toLowerCase().includes(q) || t.category.toLowerCase().includes(q) || t.owasp.toLowerCase().includes(q);
+      if (!match) return false;
+    }
+    if (threatSeverityFilter !== 'all') {
+      if (t.severity.toLowerCase() !== threatSeverityFilter.toLowerCase()) return false;
+    }
+    return true;
   });
+
+  const totalFullThreatEntries = filteredFullThreats.length;
+  const totalFullThreatPages = Math.ceil(totalFullThreatEntries / fullThreatsPageSize) || 1;
+  const validFullThreatPage = Math.min(Math.max(1, fullThreatsPage), totalFullThreatPages);
+  const startFullThreatIdx = (validFullThreatPage - 1) * fullThreatsPageSize;
+  const endFullThreatIdx = Math.min(startFullThreatIdx + fullThreatsPageSize, totalFullThreatEntries);
+  const paginatedFullThreats = filteredFullThreats.slice(startFullThreatIdx, endFullThreatIdx);
 
   // Filtered Audit Logs Calculation
   const filteredAllLogs = allLogs.filter(log => {
@@ -324,6 +357,345 @@ const LogsAndThreats = () => {
     );
   }
 
+  // Full Page Threat Intelligence View Mode
+  if (isFullThreatsView) {
+    return (
+      <div className="w-full text-on-surface animate-fade-in">
+        {/* Full Page Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-lg gap-sm border-b border-outline-variant/60 pb-md">
+          <div>
+            <button 
+              onClick={closeFullViews}
+              className="flex items-center text-primary hover:underline font-bold text-[13px] mb-2 cursor-pointer bg-transparent border-0 p-0"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to Summary Dashboard
+            </button>
+            <h1 className="text-[26px] font-extrabold font-display tracking-tight text-on-surface flex items-center gap-2">
+              <span className="material-symbols-outlined text-error text-[28px]">warning</span>
+              Complete Global Threat Intelligence
+              <span className="bg-error/10 text-error text-[12px] font-extrabold px-2.5 py-0.5 rounded-full ml-2 border border-error/20">
+                {totalFullThreatEntries} Records
+              </span>
+            </h1>
+            <p className="text-on-surface-variant text-[13.5px] mt-1">Detailed system vulnerability advisories, severity metrics, and remediation guides.</p>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            <button
+              onClick={() => fetchStats(true)}
+              disabled={loading}
+              className="flex items-center gap-1.5 px-3.5 py-2 bg-surface-container border border-outline-variant text-on-surface hover:bg-surface-container-high rounded-lg text-[13px] font-bold transition-colors cursor-pointer"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+              Refresh Data
+            </button>
+          </div>
+        </div>
+
+        {/* Filter and Search Bar */}
+        <div className="mb-md bg-surface-container-lowest border border-outline-variant/70 rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs">
+          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto flex-1">
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+              <input
+                type="text"
+                placeholder="Search threat title, OWASP, or category..."
+                value={threatSearch}
+                onChange={(e) => setThreatSearch(e.target.value)}
+                className="w-full pl-9 pr-3 py-2 bg-surface border border-outline-variant/60 rounded-lg text-[13px] text-on-surface focus:outline-none focus:border-primary"
+              />
+            </div>
+
+            <div className="flex items-center gap-1.5 w-full sm:w-auto">
+              <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Severity:</span>
+              <select
+                value={threatSeverityFilter}
+                onChange={(e) => setThreatSeverityFilter(e.target.value)}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto"
+              >
+                <option value="all">All Severities</option>
+                <option value="critical">Critical</option>
+                <option value="high">High</option>
+                <option value="medium">Medium</option>
+                <option value="low">Low</option>
+              </select>
+            </div>
+
+            {(threatSearch || threatSeverityFilter !== 'all') && (
+              <button
+                onClick={clearThreatFilters}
+                className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1"
+              >
+                <span className="material-symbols-outlined text-[16px]">close</span>
+                Reset Filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Full Page Threats Data List / Table */}
+        <div className="bg-surface-container-lowest border border-outline-variant/70 rounded-xl overflow-hidden shadow-2xs flex flex-col">
+          {loading ? (
+            <div className="text-center py-16 text-on-surface-variant text-[14px]">Loading threat intelligence...</div>
+          ) : totalFullThreatEntries === 0 ? (
+            <div className="text-center py-16 text-on-surface-variant text-[14px]">No vulnerabilities match your search filter.</div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13.5px]">
+                  <thead className="bg-surface-container-high/60 text-on-surface-variant text-[11px] uppercase tracking-wider select-none border-b border-outline-variant/70">
+                    <tr>
+                      <th className="p-3.5 font-bold w-12 text-center">#</th>
+                      <th className="p-3.5 font-bold">Threat Title & Description</th>
+                      <th className="p-3.5 font-bold">Severity</th>
+                      <th className="p-3.5 font-bold">CVSS</th>
+                      <th className="p-3.5 font-bold">Category & OWASP</th>
+                      <th className="p-3.5 font-bold text-center">Detections</th>
+                      <th className="p-3.5 font-bold text-right pr-6">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant/60">
+                    {paginatedFullThreats.map((detail, i) => {
+                      const rowIdx = startFullThreatIdx + i + 1;
+                      return (
+                        <tr 
+                          key={i}
+                          onClick={() => setSelectedThreat(detail)}
+                          className="hover:bg-surface-container-high/60 transition-colors cursor-pointer group"
+                        >
+                          <td className="p-3.5 text-center font-extrabold text-[12px] text-error">
+                            {rowIdx}
+                          </td>
+                          <td className="p-3.5 max-w-md">
+                            <h4 className="font-bold text-on-surface text-[14px] group-hover:text-primary transition-colors leading-snug">
+                              {detail.title}
+                            </h4>
+                            <p className="text-[12px] text-on-surface-variant line-clamp-1 mt-0.5">
+                              {detail.description}
+                            </p>
+                          </td>
+                          <td className="p-3.5 whitespace-nowrap">
+                            <span className={`px-2.5 py-0.5 rounded text-[10.5px] font-extrabold uppercase tracking-wider border ${getSeverityBadgeClass(detail.severity)}`}>
+                              {detail.severity}
+                            </span>
+                          </td>
+                          <td className="p-3.5 font-mono font-bold text-[13px] text-on-surface whitespace-nowrap">
+                            {detail.cvss}
+                          </td>
+                          <td className="p-3.5 text-[12.5px]">
+                            <div className="font-medium text-on-surface">{detail.category}</div>
+                            <div className="text-[11px] text-on-surface-variant font-mono">{detail.owasp}</div>
+                          </td>
+                          <td className="p-3.5 text-center whitespace-nowrap">
+                            <span className="bg-surface-container-high border border-outline-variant/60 px-2.5 py-1 rounded-lg text-[12px] font-bold text-on-surface">
+                              {detail.count} Found
+                            </span>
+                          </td>
+                          <td className="p-3.5 text-right pr-6 whitespace-nowrap">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setSelectedThreat(detail);
+                              }}
+                              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs"
+                            >
+                              <Info className="w-3.5 h-3.5" />
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Controls */}
+              <div className="p-4 border-t border-outline-variant/60 bg-surface-container-lowest/50 flex flex-col sm:flex-row items-center justify-between gap-3 text-[13px] text-on-surface-variant">
+                <div className="flex items-center gap-2">
+                  <span>Rows per page:</span>
+                  <select
+                    value={fullThreatsPageSize}
+                    onChange={(e) => {
+                      setFullThreatsPageSize(Number(e.target.value));
+                      setFullThreatsPage(1);
+                    }}
+                    className="bg-surface border border-outline-variant/60 text-on-surface rounded-md px-2 py-1 text-[12px] font-bold focus:outline-none cursor-pointer"
+                  >
+                    <option value={10}>10</option>
+                    <option value={25}>25</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className="ml-2 font-medium">
+                    {totalFullThreatEntries === 0 ? '0' : `${startFullThreatIdx + 1} - ${endFullThreatIdx}`} of {totalFullThreatEntries} records
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => setFullThreatsPage(prev => Math.max(1, prev - 1))}
+                    disabled={validFullThreatPage === 1}
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center gap-1 px-1">
+                    {Array.from({ length: totalFullThreatPages }, (_, i) => i + 1)
+                      .filter(p => p === 1 || p === totalFullThreatPages || Math.abs(p - validFullThreatPage) <= 1)
+                      .map((page, idx, arr) => {
+                        const prev = arr[idx - 1];
+                        return (
+                          <React.Fragment key={page}>
+                            {prev && page - prev > 1 && <span className="px-1 text-on-surface-variant text-[12px]">...</span>}
+                            <button
+                              onClick={() => setFullThreatsPage(page)}
+                              className={`w-8 h-8 rounded-lg text-[12px] font-bold transition-colors cursor-pointer ${
+                                validFullThreatPage === page
+                                  ? 'bg-error text-white shadow-2xs'
+                                  : 'bg-surface hover:bg-surface-container-high border border-outline-variant/60 text-on-surface'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          </React.Fragment>
+                        );
+                      })}
+                  </div>
+
+                  <button
+                    onClick={() => setFullThreatsPage(prev => Math.min(totalFullThreatPages, prev + 1))}
+                    disabled={validFullThreatPage >= totalFullThreatPages}
+                    className="px-3 py-1.5 rounded-lg border border-outline-variant/60 bg-surface hover:bg-surface-container-high text-on-surface font-bold text-[12px] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Global Threat Detail Modal */}
+        {selectedThreat && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-fade-in">
+            <div className="bg-surface border border-outline-variant rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+              <button
+                onClick={() => setSelectedThreat(null)}
+                className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface bg-surface-container p-2 rounded-full transition-colors cursor-pointer border-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-start gap-3 border-b border-outline-variant pb-4 mb-4 pr-8">
+                <div className="p-3 bg-red-500/10 text-error rounded-xl border border-red-500/20 shrink-0">
+                  <AlertTriangle className="w-6 h-6 text-error" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-extrabold uppercase tracking-wider border ${getSeverityBadgeClass(selectedThreat.severity)}`}>
+                      {selectedThreat.severity} Severity
+                    </span>
+                    <span className="bg-primary/10 text-primary text-[11px] font-bold px-2.5 py-0.5 rounded-md border border-primary/20">
+                      CVSS {selectedThreat.cvss}
+                    </span>
+                    <span className="bg-surface-container-high text-on-surface font-bold text-[11px] px-2.5 py-0.5 rounded-md border border-outline-variant">
+                      {selectedThreat.count} Detections Recorded
+                    </span>
+                  </div>
+                  <h2 className="text-[20px] font-bold text-on-surface tracking-tight leading-snug">
+                    {selectedThreat.title}
+                  </h2>
+                </div>
+              </div>
+
+              <div className="space-y-4 text-[13.5px]">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/70">
+                  <div>
+                    <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">Category</span>
+                    <span className="font-bold text-on-surface">{selectedThreat.category}</span>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block mb-0.5">OWASP Mapping</span>
+                    <span className="font-bold text-primary">{selectedThreat.owasp}</span>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5">
+                    <Shield className="w-4 h-4 text-primary" /> Threat Overview
+                  </h3>
+                  <p className="text-on-surface-variant leading-relaxed bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60">
+                    {selectedThreat.description}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5 text-orange-400">
+                    <AlertTriangle className="w-4 h-4" /> Exploitation & Impact Risk
+                  </h3>
+                  <p className="text-on-surface-variant leading-relaxed bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60">
+                    {selectedThreat.impact}
+                  </p>
+                </div>
+
+                <div>
+                  <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5 text-green-400">
+                    <CheckCircle className="w-4 h-4" /> Recommended Remediation
+                  </h3>
+                  <div className="bg-surface-container-lowest p-3.5 rounded-xl border border-outline-variant/60 font-mono text-[12.5px] text-green-300 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+                    {selectedThreat.remediation}
+                  </div>
+                </div>
+
+                {selectedThreat.affected_targets && selectedThreat.affected_targets.length > 0 && (
+                  <div>
+                    <h3 className="font-bold text-on-surface text-[14px] mb-1.5 flex items-center gap-1.5">
+                      <ExternalLink className="w-4 h-4 text-primary" /> Affected Target Endpoints ({selectedThreat.affected_targets.length})
+                    </h3>
+                    <div className="flex flex-wrap gap-2 bg-surface-container-lowest p-3 rounded-xl border border-outline-variant/60">
+                      {selectedThreat.affected_targets.map((url, idx) => (
+                        <span key={idx} className="bg-surface border border-outline-variant text-on-surface font-mono text-[12px] px-2.5 py-1 rounded-md flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-red-400"></span>
+                          {url}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-outline-variant flex items-center justify-between flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    const query = selectedThreat.title;
+                    setSelectedThreat(null);
+                    openFullLogsView(query);
+                  }}
+                  className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 rounded-xl font-bold text-[13px] flex items-center gap-2 cursor-pointer transition-colors"
+                >
+                  <Search className="w-4 h-4" />
+                  Filter Logs for this Threat
+                </button>
+
+                <button
+                  onClick={() => setSelectedThreat(null)}
+                  className="px-5 py-2 bg-primary text-white rounded-xl font-bold text-[13px] hover:brightness-110 cursor-pointer border-0 shadow-md shadow-primary/20 transition-all"
+                >
+                  Close Details
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Full Page Audit Logs Mode
   if (isFullLogsView) {
     return (
@@ -332,7 +704,7 @@ const LogsAndThreats = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-lg gap-sm border-b border-outline-variant/60 pb-md">
           <div>
             <button 
-              onClick={closeFullLogsView}
+              onClick={closeFullViews}
               className="flex items-center text-primary hover:underline font-bold text-[13px] mb-2 cursor-pointer bg-transparent border-0 p-0"
             >
               <ArrowLeft className="w-4 h-4 mr-1" />
@@ -568,7 +940,7 @@ const LogsAndThreats = () => {
               Global Threat Intelligence
             </h2>
             <button
-              onClick={() => setShowAllThreatsModal(true)}
+              onClick={openFullThreatsView}
               className="flex items-center gap-1.5 px-3 py-1.5 bg-error/10 hover:bg-error/20 text-error rounded-lg transition-colors font-bold text-[12px] cursor-pointer"
             >
               <List className="w-4 h-4" />
@@ -750,113 +1122,7 @@ const LogsAndThreats = () => {
         </div>
       </div>
 
-      {/* All Global Threats Modal Popup */}
-      {showAllThreatsModal && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-surface border border-outline-variant rounded-2xl max-w-3xl w-full p-6 shadow-2xl relative max-h-[90vh] flex flex-col">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowAllThreatsModal(false)}
-              className="absolute top-4 right-4 text-on-surface-variant hover:text-on-surface bg-surface-container p-2 rounded-full transition-colors cursor-pointer border-0"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 border-b border-outline-variant pb-4 mb-4 pr-10">
-              <div className="p-2.5 bg-red-500/10 text-error rounded-xl border border-red-500/20 shrink-0">
-                <AlertTriangle className="w-6 h-6 text-error" />
-              </div>
-              <div>
-                <h2 className="text-[20px] font-bold text-on-surface tracking-tight flex items-center gap-2">
-                  All Global Threat Intelligence
-                  <span className="bg-error/10 text-error text-[12px] font-extrabold px-2.5 py-0.5 rounded-full border border-error/20">
-                    {allThreatDetails.length} Records
-                  </span>
-                </h2>
-                <p className="text-[13px] text-on-surface-variant mt-0.5">Explore full vulnerability advisories and remediation guides.</p>
-              </div>
-            </div>
-
-            {/* Search Bar */}
-            <div className="relative mb-4">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
-              <input
-                type="text"
-                placeholder="Search threat title or category..."
-                value={allThreatsSearch}
-                onChange={(e) => setAllThreatsSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant/70 rounded-xl text-[13px] text-on-surface focus:outline-none focus:border-primary"
-              />
-            </div>
-
-            {/* Modal List Body */}
-            <div className="overflow-y-auto flex-1 pr-1">
-              <ul className="divide-y divide-outline-variant/60">
-                {filteredModalThreats.map((detail, idx) => (
-                  <li 
-                    key={idx} 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setSelectedThreat(detail);
-                    }}
-                    className="py-3 px-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-surface-container-high/70 cursor-pointer transition-all group border border-transparent hover:border-primary/30 my-1"
-                  >
-                    <div className="flex items-start gap-3 pr-2">
-                      <span className="w-7 h-7 rounded-full bg-error/10 text-error flex items-center justify-center text-[12px] font-extrabold shrink-0 mt-0.5">
-                        {idx + 1}
-                      </span>
-                      <div>
-                        <h4 className="font-bold text-on-surface text-[13.5px] group-hover:text-primary transition-colors leading-snug">
-                          {detail.title}
-                        </h4>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider border ${getSeverityBadgeClass(detail.severity)}`}>
-                            {detail.severity}
-                          </span>
-                          <span className="text-[11px] text-on-surface-variant font-medium">
-                            {detail.category}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                      <span className="bg-surface-container-high border border-outline-variant/60 px-2.5 py-1 rounded-lg text-[11.5px] font-bold text-on-surface">
-                        {detail.count} Found
-                      </span>
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          setSelectedThreat(detail);
-                        }}
-                        className="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg text-[12px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                        View Details
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="mt-4 pt-3 border-t border-outline-variant flex justify-end">
-              <button
-                onClick={() => setShowAllThreatsModal(false)}
-                className="px-5 py-2 bg-primary text-white rounded-xl font-bold text-[13px] hover:brightness-110 cursor-pointer border-0"
-              >
-                Close Window
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Global Threat Detail Modal - High Z-Index to stack cleanly */}
+      {/* Global Threat Detail Modal */}
       {selectedThreat && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-fade-in">
           <div className="bg-surface border border-outline-variant rounded-2xl max-w-2xl w-full p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
