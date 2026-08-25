@@ -478,10 +478,10 @@ def update_password(current_user):
 @auth_bp.route('/organizations/<org_id>/users', methods=['GET'])
 @token_required
 def get_org_users(current_user, org_id):
-    if current_user.role != 'super_admin' and current_user.org_id != org_id:
+    if current_user.role not in ['super_admin', 'admin'] and current_user.org_id != org_id:
         return jsonify({'message': 'Unauthorized access to organization users.'}), 403
         
-    org_users = User.query.filter_by(org_id=org_id).all()
+    org_users = User.query.filter_by(org_id=org_id).filter(User.role != 'super_admin').all()
     
     return jsonify({
         'users': [{

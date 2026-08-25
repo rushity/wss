@@ -230,13 +230,14 @@ export const AlertSettingsPage = () => {
   const fetchTeamUsers = async () => {
     setLoadingTeam(true);
     try {
-      const endpoint = user?.role === 'super_admin' ? '/api/auth/users' : `/api/auth/organizations/${user.org_id}/users`;
+      const endpoint = user?.org_id ? `/api/auth/organizations/${user.org_id}/users` : '/api/auth/users';
       const res = await fetch(endpoint, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
         const data = await res.json();
-        setTeamUsers(data.users || []);
+        const filteredUsers = (data.users || []).filter(u => u.role !== 'super_admin');
+        setTeamUsers(filteredUsers);
       }
     } catch (err) {
       console.error('Failed to fetch org users', err);
