@@ -937,18 +937,6 @@ const LogsAndThreats = () => {
                           <span className="bg-surface-container-high border border-outline-variant/60 px-2.5 py-1 rounded-lg text-[11.5px] font-bold text-on-surface">
                             {detail.count} Found
                           </span>
-                          <button 
-                            type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setSelectedThreat(detail);
-                            }}
-                            className="px-3 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg text-[12px] font-bold flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs"
-                          >
-                            <Info className="w-3.5 h-3.5" />
-                            View Details
-                          </button>
                         </div>
                       </li>
                     );
