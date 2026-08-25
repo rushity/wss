@@ -83,7 +83,7 @@ const LogsAndThreats = () => {
   const [threatSortCol, setThreatSortCol] = useState('severity');
   const [threatSortDir, setThreatSortDir] = useState('desc');
   const [fullThreatsPage, setFullThreatsPage] = useState(1);
-  const [fullThreatsPageSize, setFullThreatsPageSize] = useState(10);
+  const [fullThreatsPageSize, setFullThreatsPageSize] = useState(5);
 
   // Full Page Audit Logs View State
   const [isFullLogsView, setIsFullLogsView] = useState(false);
@@ -93,7 +93,7 @@ const LogsAndThreats = () => {
   const [actionCategory, setActionCategory] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(100);
+  const [pageSize, setPageSize] = useState(8);
   const [sortLogCol, setSortLogCol] = useState('Timestamp');
   const [sortLogDir, setSortLogDir] = useState('desc');
 
@@ -144,8 +144,7 @@ const LogsAndThreats = () => {
 
   useEffect(() => {
     fetchStats(true);
-    const interval = setInterval(() => fetchStats(false), 15000);
-    return () => clearInterval(interval);
+    fetchAllAuditLogs();
   }, []);
 
   useEffect(() => {
@@ -157,9 +156,21 @@ const LogsAndThreats = () => {
   }, [threatSearch, threatSeverityFilter, threatCategoryFilter, threatOwaspFilter, threatSortCol, threatSortDir]);
 
   const openFullLogsView = (initialSearch = '') => {
+    let cleanQuery = '';
     if (initialSearch) {
-      setSearchQuery(initialSearch);
+      if (initialSearch.includes('CVE-')) {
+        const match = initialSearch.match(/CVE-\d{4}-\d+/i);
+        cleanQuery = match ? match[0] : initialSearch;
+      } else if (initialSearch.includes(':')) {
+        cleanQuery = initialSearch.split(':')[0].trim();
+      } else {
+        cleanQuery = initialSearch.trim();
+      }
     }
+    setSearchQuery(cleanQuery);
+    setActionCategory('all');
+    setDateFilter('all');
+    setCurrentPage(1);
     setIsFullThreatsView(false);
     setIsFullLogsView(true);
     fetchAllAuditLogs();
@@ -343,15 +354,26 @@ const LogsAndThreats = () => {
   const paginatedFullThreats = filteredFullThreats.slice(startFullThreatIdx, endFullThreatIdx);
 
   // Filtered Audit Logs Calculation
-  const filteredAllLogs = allLogs.filter(log => {
+  const logsToFilter = (allLogs && allLogs.length > 0) ? allLogs : auditLogs;
+
+  const filteredAllLogs = logsToFilter.filter(log => {
     if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const matchQuery = (
-        (log.action && log.action.toLowerCase().includes(q)) ||
-        (log.user_email && log.user_email.toLowerCase().includes(q)) ||
-        (log.target_name && log.target_name.toLowerCase().includes(q)) ||
-        (log.target_id && log.target_id.toLowerCase().includes(q))
-      );
+      const q = searchQuery.toLowerCase().trim();
+      const searchableText = [
+        log.action,
+        log.user_email,
+        log.admin_id,
+        log.target_name,
+        log.target_id,
+        log.details,
+        log.threat_name,
+        log.severity,
+        log.category,
+        log.owasp
+      ].filter(Boolean).join(' ').toLowerCase();
+
+      const words = q.split(/\s+/).filter(w => w.length >= 2);
+      const matchQuery = searchableText.includes(q) || (words.length > 0 && words.some(w => searchableText.includes(w)));
       if (!matchQuery) return false;
     }
 
