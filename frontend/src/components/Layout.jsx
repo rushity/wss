@@ -197,13 +197,6 @@ export const Layout = ({ children }) => {
 
   if (user?.role === 'super_admin') {
     navItems.push({ to: '/super-admin', label: 'Global Management', icon: 'admin_panel_settings' });
-    navItems.push({ to: '/admin', label: 'Admin Panel', icon: 'manage_accounts' });
-    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
-  } else if (user?.role === 'admin') {
-    navItems.push({ to: '/admin', label: 'Admin Panel', icon: 'manage_accounts' });
-    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
-  } else if (user?.role === 'support_engineer') {
-    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
   }
 
   return (
