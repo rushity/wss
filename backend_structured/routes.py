@@ -750,12 +750,13 @@ def manage_organizations(current_user):
             
         return jsonify({'organizations': org_list}), 200
 
-    if current_user.role != 'super_admin':
+    if current_user.role not in ['super_admin', 'admin']:
         return jsonify({'message': 'Permission denied'}), 403
         
-    data = request.get_json()
+    data = request.get_json() or {}
     org_name = data.get('name')
     tier = data.get('tier', 'free')
+    admin_email = data.get('admin_email')
     
     if not org_name:
         return jsonify({'message': 'Organization name is required'}), 400
@@ -764,6 +765,27 @@ def manage_organizations(current_user):
     db.session.add(org)
     db.session.commit()
     
+    # Optional admin email link or creation
+    if admin_email and str(admin_email).strip():
+        email_clean = str(admin_email).strip().lower()
+        existing_user = User.query.filter_by(email=email_clean).first()
+        if existing_user:
+            existing_user.org_id = org.id
+            if existing_user.role not in ['super_admin', 'admin', 'support_engineer']:
+                existing_user.role = 'org_admin'
+            db.session.commit()
+        else:
+            import secrets
+            temp_pw = secrets.token_urlsafe(8)
+            new_user = User(
+                email=email_clean,
+                role='org_admin',
+                org_id=org.id
+            )
+            new_user.set_password(temp_pw)
+            db.session.add(new_user)
+            db.session.commit()
+            
     # Needs to be after commit to get org.id
     log = AuditLog(admin_id=current_user.id, action="Provisioned new tenant", target_id=org.id)
     db.session.add(log)
@@ -774,7 +796,7 @@ def manage_organizations(current_user):
 @auth_bp.route('/organizations/<org_id>', methods=['PUT', 'DELETE'])
 @token_required
 def manage_single_organization(current_user, org_id):
-    if current_user.role not in ('super_admin', 'org_admin'):
+    if current_user.role not in ('super_admin', 'admin', 'org_admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     if current_user.role == 'org_admin' and str(current_user.org_id) != str(org_id):
@@ -785,8 +807,8 @@ def manage_single_organization(current_user, org_id):
         return jsonify({'message': 'Organization not found'}), 404
 
     if request.method == 'DELETE':
-        if current_user.role != 'super_admin':
-            return jsonify({'message': 'Permission denied: Only Super Admin can delete organizations'}), 403
+        if current_user.role not in ('super_admin', 'admin'):
+            return jsonify({'message': 'Permission denied: Only Admin or Super Admin can delete organizations'}), 403
             
         db.session.delete(org)
         log = AuditLog(admin_id=current_user.id, action="Deleted tenant", target_id=org.id)
@@ -795,13 +817,13 @@ def manage_single_organization(current_user, org_id):
         return jsonify({'message': 'Tenant deleted successfully'}), 200
         
     # PUT method
-    data = request.get_json()
+    data = request.get_json() or {}
     if 'name' in data:
         org.name = data['name']
         
     if 'tier' in data:
-        if current_user.role != 'super_admin':
-            return jsonify({'message': 'Permission denied: Only Super Admin can change tier'}), 403
+        if current_user.role not in ('super_admin', 'admin'):
+            return jsonify({'message': 'Permission denied: Only Admin or Super Admin can change tier'}), 403
         org.subscription_tier = data['tier']
         
     log = AuditLog(admin_id=current_user.id, action="Updated tenant configuration", target_id=org.id)

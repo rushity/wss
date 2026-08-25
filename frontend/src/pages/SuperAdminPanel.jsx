@@ -535,13 +535,13 @@ const SuperAdminPanel = () => {
   };
 
   const handleProvisionTenant = () => {
-    setPromptValues({ tier: 'quick', name: '' });
+    setPromptValues({ tier: 'quick', name: '', admin_email: '' });
     setPromptModal({
       isOpen: true,
       title: 'Add New Organization',
       desc: 'Create a new tenant organization.',
       inputs: [
-        { key: 'name', label: 'Organization Name', placeholder: 'Enter name...' },
+        { key: 'name', label: 'Organization Name', placeholder: 'Enter organization name...' },
         { 
           key: 'tier', 
           label: 'Subscription Tier', 
@@ -552,14 +552,15 @@ const SuperAdminPanel = () => {
             { label: 'Deep', value: 'deep' },
             { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
           ] 
-        }
+        },
+        { key: 'admin_email', label: 'Admin Email (Optional)', placeholder: 'admin@company.com' }
       ],
       onConfirm: async (values) => {
         try {
           const res = await fetch('/api/auth/organizations', {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: values.name, tier: values.tier })
+            body: JSON.stringify({ name: values.name, tier: values.tier, admin_email: values.admin_email })
           });
           if (res.ok) {
             toast.success('Organization created successfully');

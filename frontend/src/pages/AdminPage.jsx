@@ -235,6 +235,107 @@ const AdminPageContent = () => {
     }
   };
 
+  const handleProvisionTenant = () => {
+    setPromptValues({ tier: 'quick', name: '', admin_email: '' });
+    setPromptModal({
+      isOpen: true,
+      title: 'Add New Organization',
+      desc: 'Create a new tenant organization.',
+      inputs: [
+        { key: 'name', label: 'Organization Name', placeholder: 'Enter organization name...' },
+        { 
+          key: 'tier', 
+          label: 'Subscription Tier', 
+          type: 'select', 
+          options: [
+            { label: 'Quick', value: 'quick' },
+            { label: 'Advanced', value: 'advanced' },
+            { label: 'Deep', value: 'deep' },
+            { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
+          ] 
+        },
+        { key: 'admin_email', label: 'Admin Email (Optional)', placeholder: 'admin@company.com' }
+      ],
+      onConfirm: async (values) => {
+        if (!values.name || !values.name.trim()) {
+          setError('Organization name is required.');
+          closePrompt();
+          return;
+        }
+        try {
+          const res = await fetch('/api/auth/organizations', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: values.name, tier: values.tier, admin_email: values.admin_email })
+          });
+          if (res.ok) {
+            setMessage('Organization created successfully.');
+            fetchOrganizations();
+          } else {
+            const data = await res.json();
+            setError(data.message || 'Failed to create organization.');
+          }
+        } catch {
+          setError('Could not connect to API to create organization.');
+        }
+        closePrompt();
+      }
+    });
+  };
+
+  const handleEditTenant = (org) => {
+    const rawTier = (org.tier || org.subscription_tier || 'quick');
+    const isCustom = rawTier.toLowerCase().includes('custom') || rawTier.toLowerCase().includes('enterprise');
+    const initialTier = isCustom 
+      ? 'Enterprise(Custom)' 
+      : ['quick', 'advanced', 'deep'].includes(rawTier.toLowerCase()) 
+        ? rawTier.toLowerCase() 
+        : 'quick';
+
+    setPromptValues({ 
+      name: org.name, 
+      tier: initialTier
+    });
+    setPromptModal({
+      isOpen: true,
+      title: 'Edit Organization',
+      desc: `Modify settings for ${org.name}`,
+      inputs: [
+        { key: 'name', label: 'Organization Name', placeholder: 'Enter organization name...' },
+        { 
+          key: 'tier', 
+          label: 'Subscription Tier', 
+          type: 'select', 
+          options: [
+            { label: 'Quick', value: 'quick' },
+            { label: 'Advanced', value: 'advanced' },
+            { label: 'Deep', value: 'deep' },
+            { label: 'Enterprise(Custom)', value: 'Enterprise(Custom)' }
+          ] 
+        }
+      ],
+      onConfirm: async (values) => {
+        try {
+          const res = await fetch(`/api/auth/organizations/${org.id}`, {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: values.name, tier: values.tier })
+          });
+          if (res.ok) {
+            setMessage('Organization updated successfully.');
+            fetchOrganizations();
+          } else {
+            const data = await res.json();
+            setError(data.message || 'Failed to update organization.');
+          }
+        } catch {
+          setError('Could not connect to API to update organization.');
+        }
+        closePrompt();
+      }
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-2xl font-label-md text-label-md text-on-surface-variant">
@@ -384,10 +485,21 @@ const AdminPageContent = () => {
         </table>
       </div>
       <div className="mt-xl border-b border-outline-variant bg-surface-container-lowest p-lg rounded-xl shadow-sm">
-        <h2 className="font-headline-md text-headline-md text-on-surface mb-sm font-bold tracking-tight">Organizations</h2>
-        <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
-          View all tenants and use Impersonation to see their Dashboard, Analytics, and Vulnerabilities.
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-lg gap-sm">
+          <div>
+            <h2 className="font-headline-md text-headline-md text-on-surface mb-xs font-bold tracking-tight">Organizations</h2>
+            <p className="font-body-md text-body-md text-on-surface-variant">
+              Manage tenant organizations, subscription tiers, and scan quotas.
+            </p>
+          </div>
+          <button
+            onClick={handleProvisionTenant}
+            className="bg-primary text-white px-md py-sm rounded-lg font-label-md text-label-md hover:brightness-110 transition-all font-bold border-0 cursor-pointer flex items-center gap-xs shadow-md shadow-primary/20 self-start sm:self-auto whitespace-nowrap"
+          >
+            <span className="material-symbols-outlined text-[18px]">add_business</span>
+            Add Organization
+          </button>
+        </div>
 
         <div className="bg-surface-container-lowest border border-outline-variant rounded-lg shadow-sm overflow-hidden">
           <table className="w-full">
@@ -436,6 +548,14 @@ const AdminPageContent = () => {
                     {org.created_at ? new Date(org.created_at).toLocaleDateString() : 'N/A'}
                   </td>
                   <td className="px-lg py-md text-right">
+                    <button
+                      onClick={() => handleEditTenant(org)}
+                      className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1 inline-flex items-center gap-xs mr-2"
+                      title="Edit Organization"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">edit</span>
+                      <span className="font-label-sm">Edit</span>
+                    </button>
                     <button
                       onClick={() => handleAssignScans(org)}
                       className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1 inline-flex items-center gap-xs mr-2"
