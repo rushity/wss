@@ -1057,7 +1057,7 @@ export const AlertSettingsPage = () => {
 
 
       {/* Profile Tab */}
-      {(activeTab === 'profile' || !tabItems.some(t => t.id === activeTab)) && (
+      {activeTab === 'profile' && (
         <Profile />
       )}
 
