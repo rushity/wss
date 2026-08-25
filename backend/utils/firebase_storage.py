@@ -59,13 +59,15 @@ def init_firebase() -> bool:
         from firebase_admin import credentials, storage
 
         if not firebase_admin._apps:
-            # Support both file path and base64-encoded JSON (for HF Spaces)
+            # Support both file path, base64-encoded JSON, and direct JSON string
             if os.path.isfile(creds_path):
                 cred = credentials.Certificate(creds_path)
             else:
-                # Treat as base64-encoded JSON string
-                creds_json = base64.b64decode(creds_path).decode("utf-8")
-                creds_dict = json.loads(creds_json)
+                try:
+                    creds_json = base64.b64decode(creds_path).decode("utf-8")
+                    creds_dict = json.loads(creds_json)
+                except Exception:
+                    creds_dict = json.loads(creds_path)
                 cred = credentials.Certificate(creds_dict)
 
             _app = firebase_admin.initialize_app(cred, {"storageBucket": bucket_name})
@@ -111,8 +113,16 @@ def upload_bytes(
     try:
         blob = _bucket.blob(destination_blob)
         blob.upload_from_string(data, content_type=content_type)
-        blob.make_public()
-        url = blob.public_url
+        try:
+            blob.make_public()
+            url = blob.public_url
+        except Exception as pub_err:
+            logger.warning(f"[Firebase] make_public failed (Uniform Bucket-Level Access active), generating public media URL: {pub_err}")
+            import urllib.parse
+            encoded_blob = urllib.parse.quote(destination_blob, safe='')
+            bucket_name = _bucket.name if _bucket else "storage"
+            url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
+
         logger.info(f"[Firebase] Uploaded {destination_blob} ({len(data)} bytes)")
         return url
 
@@ -144,8 +154,16 @@ def upload_fileobj(
         blob = _bucket.blob(destination_blob)
         fileobj.seek(0)
         blob.upload_from_file(fileobj, content_type=content_type)
-        blob.make_public()
-        url = blob.public_url
+        try:
+            blob.make_public()
+            url = blob.public_url
+        except Exception as pub_err:
+            logger.warning(f"[Firebase] make_public failed (Uniform Bucket-Level Access active), generating public media URL: {pub_err}")
+            import urllib.parse
+            encoded_blob = urllib.parse.quote(destination_blob, safe='')
+            bucket_name = _bucket.name if _bucket else "storage"
+            url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
+
         logger.info(f"[Firebase] Uploaded {destination_blob}")
         return url
 

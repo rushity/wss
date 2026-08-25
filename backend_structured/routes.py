@@ -860,16 +860,18 @@ def upload_organization_logo(current_user):
     from utils.firebase_storage import is_available, upload_bytes
     
     filename = secure_filename(f"org_{org.id}_{int(time.time())}.{ext}")
+    logo_url = None
     
     if is_available():
         # Upload to Firebase Cloud Storage
         blob_path = f"logos/{org.id}/{filename}"
         logo_url = upload_bytes(file_bytes, content_type, blob_path)
         if not logo_url:
-            return jsonify({'message': 'Firebase upload failed'}), 500
-    else:
+            current_app.logger.warning(f"[Firebase] Upload failed for {blob_path}. Falling back to local disk storage.")
+
+    if not logo_url:
         # Fallback: save to local disk
-        upload_folder = current_app.config['UPLOAD_FOLDER']
+        upload_folder = current_app.config.get('UPLOAD_FOLDER', os.path.join(os.getcwd(), 'uploads', 'logos'))
         os.makedirs(upload_folder, exist_ok=True)
         file_path = os.path.join(upload_folder, filename)
         with open(file_path, 'wb') as f:
@@ -880,6 +882,22 @@ def upload_organization_logo(current_user):
     db.session.commit()
     
     return jsonify({'message': 'Logo uploaded successfully', 'report_logo_url': logo_url}), 200
+
+
+@auth_bp.route('/uploads/logos/<filename>', methods=['GET'])
+@auth_bp.route('/uploads/<path:filename>', methods=['GET'])
+def serve_uploaded_logo(filename):
+    upload_folder = current_app.config.get('UPLOAD_FOLDER', os.path.join(os.getcwd(), 'uploads', 'logos'))
+    # Direct check in logos directory
+    if os.path.exists(os.path.join(upload_folder, filename)):
+        return send_from_directory(upload_folder, filename)
+    
+    # Parent uploads directory check
+    base_uploads = os.path.abspath(os.path.join(upload_folder, '..'))
+    if os.path.exists(os.path.join(base_uploads, filename)):
+        return send_from_directory(base_uploads, filename)
+
+    return jsonify({'message': 'File not found'}), 404
 
 @auth_bp.route('/organizations/webhook', methods=['GET', 'PUT'])
 @token_required

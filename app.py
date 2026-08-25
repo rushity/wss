@@ -27,8 +27,8 @@ FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fronten
 @app.route('/<path:path>')
 def serve_react(path):
     """Serve React SPA. Static assets go to dist/, everything else → index.html."""
-    # Never intercept API or socket.io requests
-    if path.startswith('api/') or path.startswith('socket.io'):
+    # Never intercept API, uploads, or socket.io requests
+    if path.startswith('api/') or path.startswith('uploads/') or path.startswith('socket.io'):
         abort(404)
     if path and os.path.exists(os.path.join(FRONTEND_DIR, path)):
         res = send_from_directory(FRONTEND_DIR, path)
