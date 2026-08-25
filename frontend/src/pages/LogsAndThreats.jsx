@@ -18,8 +18,8 @@ const LogsAndThreats = () => {
   const [sortLogCol, setSortLogCol] = useState('Timestamp');
   const [sortLogDir, setSortLogDir] = useState('desc');
 
-  const fetchStats = async () => {
-    setLoading(true);
+  const fetchStats = async (isInitial = false) => {
+    if (isInitial) setLoading(true);
     try {
       const token = localStorage.getItem('wss_token');
       const res = await fetch('/api/auth/global-stats', {
@@ -35,7 +35,7 @@ const LogsAndThreats = () => {
     } catch (err) {
       console.error('Failed to fetch stats', err);
     } finally {
-      setLoading(false);
+      if (isInitial) setLoading(false);
     }
   };
 
@@ -60,8 +60,8 @@ const LogsAndThreats = () => {
   };
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 5000);
+    fetchStats(true);
+    const interval = setInterval(() => fetchStats(false), 15000);
     return () => clearInterval(interval);
   }, []);
 
