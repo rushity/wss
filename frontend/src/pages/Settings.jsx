@@ -604,21 +604,6 @@ export const AlertSettingsPage = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-2xl font-label-md text-label-md text-on-surface-variant text-left">
-        <span className="material-symbols-outlined animate-spin mr-sm">sync</span>
-        Loading Settings...
-      </div>
-    );
-  }
-
-  // Pre-fill user profile info or fallback to Mercer placeholder
-  const profileName = user ? user.email.split('@')[0] : 'Alex';
-  const profileLastName = user ? 'User' : 'Mercer';
-  const profileEmail = user ? user.email : 'alex.mercer@larxiuswss.io';
-  const profileRole = user?.role ? `Role: ${user.role}` : 'Lead Security Engineer';
-
   const isSchedulerAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst'].includes(user?.role);
   const isDemoBookingsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin'].includes(user?.role);
   const isNotificationsAllowed = ['super_admin', 'support_engineer', 'admin', 'org_admin', 'soc_analyst', 'executive_user'].includes(user?.role);
@@ -643,6 +628,21 @@ export const AlertSettingsPage = () => {
       setActiveTab('profile');
     }
   }, [user?.role, activeTab]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-2xl font-label-md text-label-md text-on-surface-variant text-left">
+        <span className="material-symbols-outlined animate-spin mr-sm">sync</span>
+        Loading Settings...
+      </div>
+    );
+  }
+
+  // Pre-fill user profile info or fallback to Mercer placeholder
+  const profileName = user ? user.email.split('@')[0] : 'Alex';
+  const profileLastName = user ? 'User' : 'Mercer';
+  const profileEmail = user ? user.email : 'alex.mercer@larxiuswss.io';
+  const profileRole = user?.role ? `Role: ${user.role}` : 'Lead Security Engineer';
 
   return (
     <div className="flex flex-col gap-gutter text-left w-full">

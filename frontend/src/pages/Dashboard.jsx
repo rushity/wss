@@ -34,10 +34,13 @@ const getCleanDomain = (url) => {
 
 export const Dashboard = () => {
   const { token, refreshAccessToken, user } = useAuth();
-  
-  if (user?.role === 'executive_user') {
-    return <Navigate to="/scans/history" replace />;
-  }
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user?.role === 'executive_user') {
+      navigate('/scans/history', { replace: true });
+    }
+  }, [user?.role, navigate]);
 
   const [summary, setSummary] = useState(null);
   const [recentScans, setRecentScans] = useState([]);
@@ -351,6 +354,10 @@ export const Dashboard = () => {
       return 0;
     });
   };
+
+  if (user?.role === 'executive_user') {
+    return null;
+  }
 
   return (
     <div className="flex flex-col gap-gutter text-left">
