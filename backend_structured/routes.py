@@ -498,7 +498,7 @@ def get_org_users(current_user, org_id):
 @auth_bp.route('/users/invite', methods=['POST'])
 @token_required
 def invite_user(current_user):
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     data = request.get_json()
@@ -556,7 +556,7 @@ def invite_user(current_user):
 @auth_bp.route('/users/<user_id>/role', methods=['PUT'])
 @token_required
 def update_user_role(current_user, user_id):
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     user = db.session.get(User, user_id)
@@ -585,7 +585,7 @@ def update_user_role(current_user, user_id):
 @auth_bp.route('/users/<user_id>/credentials', methods=['PUT'])
 @token_required
 def update_user_credentials(current_user, user_id):
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     user = db.session.get(User, user_id)
@@ -834,13 +834,13 @@ def manage_single_organization(current_user, org_id):
 @auth_bp.route('/organizations/logo', methods=['POST', 'DELETE'])
 @token_required
 def upload_organization_logo(current_user):
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     org = None
     if current_user.org_id:
         org = db.session.get(Organization, current_user.org_id)
-    if not org and current_user.role == 'super_admin':
+    if not org and current_user.role in ('super_admin', 'admin'):
         org = db.session.query(Organization).first()
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
@@ -933,13 +933,13 @@ def serve_uploaded_logo(filename):
 @auth_bp.route('/organizations/webhook', methods=['GET', 'PUT'])
 @token_required
 def manage_webhook(current_user):
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     org = None
     if current_user.org_id:
         org = db.session.get(Organization, current_user.org_id)
-    if not org and current_user.role == 'super_admin':
+    if not org and current_user.role in ('super_admin', 'admin'):
         org = db.session.query(Organization).first()
     if not org:
         return jsonify({'message': 'Organization not found'}), 404
@@ -1361,7 +1361,7 @@ def update_user(current_user, user_id):
     if not target:
         return jsonify({'message': 'User not found!'}), 404
         
-    if current_user.role not in ('org_admin', 'super_admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
         return jsonify({'message': 'Permission denied'}), 403
         
     if current_user.role == 'org_admin' and target.org_id != current_user.org_id:
@@ -1397,7 +1397,7 @@ def delete_user(current_user, user_id):
     target = db.session.get(User, user_id)
     if not target:
         return jsonify({'message': 'User not found!'}), 404
-    if current_user.role != 'super_admin' and target.org_id != current_user.org_id:
+    if current_user.role not in ('super_admin', 'admin') and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to delete this user!'}), 403
     
     log = AuditLog(admin_id=current_user.id, action=f"Deleted user {target.email}", target_id=target.org_id)

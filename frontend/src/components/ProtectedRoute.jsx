@@ -21,8 +21,27 @@ export const ProtectedRoute = ({ requiredRole }) => {
 
   if (!token) return <Navigate to="/login" replace />;
 
-  if (requiredRole && (!user || user.role !== requiredRole)) {
-    return <Navigate to="/dashboard" replace />;
+  if (requiredRole) {
+    const isMasterAuth = sessionStorage.getItem('superAdminAuth') === 'true';
+    const isImpersonating = !!localStorage.getItem('original_admin_token');
+    const role = user?.role;
+
+    let hasPermission = false;
+    if (Array.isArray(requiredRole)) {
+      hasPermission = requiredRole.includes(role) || role === 'super_admin' || isMasterAuth;
+    } else if (requiredRole === 'super_admin') {
+      hasPermission = role === 'super_admin' || isMasterAuth || isImpersonating;
+    } else if (requiredRole === 'admin') {
+      hasPermission = role === 'admin' || role === 'super_admin' || isMasterAuth || isImpersonating;
+    } else if (requiredRole === 'support_engineer') {
+      hasPermission = role === 'support_engineer' || role === 'admin' || role === 'super_admin' || isMasterAuth;
+    } else {
+      hasPermission = role === requiredRole || role === 'super_admin' || isMasterAuth;
+    }
+
+    if (!hasPermission) {
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return <Outlet />;

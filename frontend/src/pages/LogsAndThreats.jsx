@@ -138,7 +138,7 @@ const LogsAndThreats = () => {
     );
   }
 
-  if (!isMasterAuthorized && user?.role !== 'super_admin' && user?.role !== 'support_engineer') {
+  if (!isMasterAuthorized && user?.role !== 'super_admin' && user?.role !== 'admin' && user?.role !== 'support_engineer') {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6">
         <div className="w-16 h-16 rounded-full bg-red-500/10 text-error flex items-center justify-center mb-4">

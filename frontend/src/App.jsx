@@ -57,9 +57,9 @@ function App() {
                 <Route path="/settings" element={<Layout><AlertSettingsPage /></Layout>} />
                 <Route path="/help" element={<Layout><Help /></Layout>} />
                 <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Layout><AdminPage /></Layout></ProtectedRoute>} />
-                <Route path="/super-admin" element={<Layout><SuperAdminPanel /></Layout>} />
+                <Route path="/super-admin" element={<ProtectedRoute requiredRole="super_admin"><Layout><SuperAdminPanel /></Layout></ProtectedRoute>} />
                 <Route path="/organization" element={<Layout><OrganizationPage /></Layout>} />
-                <Route path="/super-admin/logs" element={<Layout><LogsAndThreats /></Layout>} />
+                <Route path="/super-admin/logs" element={<ProtectedRoute requiredRole={['super_admin', 'admin', 'support_engineer']}><Layout><LogsAndThreats /></Layout></ProtectedRoute>} />
               </Route>
 
               <Route path="/larshield-superadmin" element={<SuperAdminLogin />} />

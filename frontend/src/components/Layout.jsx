@@ -197,6 +197,13 @@ export const Layout = ({ children }) => {
 
   if (user?.role === 'super_admin') {
     navItems.push({ to: '/super-admin', label: 'Global Management', icon: 'admin_panel_settings' });
+    navItems.push({ to: '/admin', label: 'Admin Panel', icon: 'manage_accounts' });
+    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
+  } else if (user?.role === 'admin') {
+    navItems.push({ to: '/admin', label: 'Admin Panel', icon: 'manage_accounts' });
+    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
+  } else if (user?.role === 'support_engineer') {
+    navItems.push({ to: '/super-admin/logs', label: 'Logs & Threats', icon: 'policy' });
   }
 
   return (
@@ -218,7 +225,10 @@ export const Layout = ({ children }) => {
               </h1>
               <p className="text-[12px] text-[#64748b] dark:text-slate-400 uppercase tracking-[0.14em] m-0 font-medium leading-tight mt-1">
                 {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
+                 user?.role === 'admin' ? 'ADMIN' : 
                  user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
+                 user?.role === 'executive_user' ? 'EXECUTIVE USER' :
+                 user?.role === 'soc_analyst' ? 'SOC ANALYST' :
                  'ORG ADMIN'}
               </p>
             </div>
@@ -301,7 +311,10 @@ export const Layout = ({ children }) => {
               </span>
               <span className="text-[10px] text-[#64748b] dark:text-slate-400 uppercase tracking-[0.12em] font-medium leading-none mt-0.5">
                 {user?.role === 'super_admin' ? 'SUPER ADMIN' : 
+                 user?.role === 'admin' ? 'ADMIN' : 
                  user?.role === 'support_engineer' ? 'SUPPORT ENGINEER' : 
+                 user?.role === 'executive_user' ? 'EXECUTIVE USER' :
+                 user?.role === 'soc_analyst' ? 'SOC ANALYST' :
                  'ORG ADMIN'}
               </span>
             </div>
