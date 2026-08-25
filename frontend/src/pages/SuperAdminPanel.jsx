@@ -699,7 +699,7 @@ const SuperAdminPanel = () => {
     { label: 'Admin', value: 'admin' },
     { label: 'SOC Analyst', value: 'soc_analyst' },
     { label: 'Organization Admin', value: 'org_admin' },
-    { label: 'Executive', value: 'executive' },
+    { label: 'Executive User', value: 'executive_user' },
     { label: 'Super Admin', value: 'super_admin' },
     { label: 'Support Engineer', value: 'support_engineer' },
     { label: 'Read Only', value: 'read_only' }
@@ -708,7 +708,7 @@ const SuperAdminPanel = () => {
   const handleAddMember = () => {
     const orgOptions = [
       { label: 'None (Global)', value: '' },
-      ...(organizations || []).map(o => ({ label: o.name, value: o.id }))
+      ...(organizations || []).map(o => ({ label: o.name, value: String(o.id) }))
     ];
 
     setPromptValues({ email: '', role: 'admin', org_id: '' });
@@ -746,13 +746,19 @@ const SuperAdminPanel = () => {
   const handleEditMember = (u) => {
     const orgOptions = [
       { label: 'None (Global)', value: '' },
-      ...(organizations || []).map(o => ({ label: o.name, value: o.id }))
+      ...(organizations || []).map(o => ({ label: o.name, value: String(o.id) }))
     ];
+
+    let initialOrgId = (u.org_id !== undefined && u.org_id !== null) ? String(u.org_id) : '';
+    if (!initialOrgId && u.org_name && u.org_name !== 'No Org (Super Admin)' && organizations) {
+      const match = organizations.find(o => o.name === u.org_name);
+      if (match) initialOrgId = String(match.id);
+    }
 
     setPromptValues({
       email: u.email,
       role: u.role || 'admin',
-      org_id: u.org_id || ''
+      org_id: initialOrgId
     });
 
     setPromptModal({

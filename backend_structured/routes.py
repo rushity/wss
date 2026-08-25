@@ -1211,6 +1211,7 @@ def get_global_stats(current_user):
             'id': u.id,
             'email': u.email,
             'role': u.role,
+            'org_id': u.org_id,
             'org_name': org.name if org else 'No Org (Super Admin)',
             'created_at': u.created_at.isoformat() + 'Z' if u.created_at else None
         })
