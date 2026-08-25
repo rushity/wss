@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { 
   ShieldAlert, Search, Download, RefreshCw, List, ArrowLeft, Filter, 
-  Info, X, ExternalLink, Shield, AlertTriangle, CheckCircle, Copy, Check, Terminal, Layers
+  Info, X, ExternalLink, Shield, AlertTriangle, CheckCircle, Copy, Check, Terminal, Layers, Eye
 } from 'lucide-react';
 
 const THREAT_KNOWLEDGE_BASE = {
@@ -497,7 +497,7 @@ const LogsAndThreats = () => {
 
     return (
       <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-xl flex items-center justify-center p-4 pt-12 sm:pt-16 z-[9999] animate-fade-in overflow-y-auto">
-        <div className={`bg-surface border border-outline-variant/80 rounded-3xl max-w-3xl w-full shadow-2xl relative my-auto overflow-hidden flex flex-col max-h-[90vh] transition-all border-t-4 ${activeSev.border}`}>
+        <div className={`bg-surface border border-outline-variant/80 rounded-3xl max-w-3xl w-full shadow-2xl relative my-auto overflow-hidden flex flex-col max-h-[90vh] transition-all duration-300 transform animate-in fade-in zoom-in-95 border-t-4 ${activeSev.border}`}>
           
           {/* Header Banner with Premium Gradient Accent */}
           <div className={`bg-gradient-to-r ${activeSev.banner} p-6 sm:p-7 border-b border-outline-variant/70 relative`}>
@@ -892,8 +892,13 @@ const LogsAndThreats = () => {
                             {rowIdx}
                           </td>
                           <td className="p-3.5 max-w-md">
-                            <h4 className="font-bold text-on-surface text-[14px] group-hover:text-primary transition-colors leading-snug">
+                            <h4 
+                              onClick={() => setSelectedThreat(detail)}
+                              className="font-bold text-on-surface text-[14px] hover:text-primary transition-colors leading-snug cursor-pointer flex items-center gap-1.5 group/title"
+                              title="Click to inspect vulnerability diagnostic report"
+                            >
                               {detail.title}
+                              <Eye className="w-3.5 h-3.5 opacity-0 group-hover/title:opacity-100 transition-all text-primary shrink-0 transform group-hover/title:scale-110" />
                             </h4>
                             <p className="text-[12px] text-on-surface-variant line-clamp-1 mt-0.5">
                               {detail.description}
@@ -924,9 +929,9 @@ const LogsAndThreats = () => {
                                 e.stopPropagation();
                                 setSelectedThreat(detail);
                               }}
-                              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-lg text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs"
+                              className="px-3.5 py-1.5 bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-xl text-[12px] font-bold inline-flex items-center gap-1.5 transition-all cursor-pointer border border-primary/30 shadow-2xs hover:scale-105 active:scale-95 hover:shadow-md hover:shadow-primary/20"
                             >
-                              <Info className="w-3.5 h-3.5" />
+                              <Eye className="w-3.5 h-3.5" />
                               View Details
                             </button>
                           </td>
