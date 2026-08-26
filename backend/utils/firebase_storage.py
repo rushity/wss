@@ -21,14 +21,15 @@ from typing import Optional, Union, Any
 logger = logging.getLogger(__name__)
 
 # Firebase references — lazily initialized
-_app = None
+_app: Any = None
 _bucket: Any = None
-_initialized = False
+_initialized: bool = False
 
 
 def _get_credentials_path() -> Optional[str]:
     """Retrieve Firebase credentials path/string from environment."""
-    return os.getenv("FIREBASE_CREDENTIALS")
+    creds = os.getenv("FIREBASE_CREDENTIALS")
+    return creds.strip() if creds else None
 
 
 def _get_bucket_name() -> Optional[str]:
@@ -52,8 +53,8 @@ def init_firebase(force_reinit: bool = False) -> bool:
     """
     global _app, _bucket, _initialized
 
-    if _initialized and not force_reinit:
-        return _bucket is not None
+    if _initialized and not force_reinit and _bucket is not None:
+        return True
 
     creds_path = _get_credentials_path()
     bucket_name = _get_bucket_name()
@@ -70,27 +71,38 @@ def init_firebase(force_reinit: bool = False) -> bool:
         import firebase_admin
         from firebase_admin import credentials, storage
 
-        if not firebase_admin._apps:
-            # Support file path, base64-encoded JSON, and direct JSON string
-            cred = None
-            if os.path.isfile(creds_path):
-                cred = credentials.Certificate(creds_path)
-            else:
-                try:
-                    # Attempt base64 decode
-                    creds_json = base64.b64decode(creds_path).decode("utf-8")
-                    creds_dict = json.loads(creds_json)
-                except Exception:
-                    # Fallback to direct JSON string
-                    creds_dict = json.loads(creds_path)
+        # Parse credentials from file, raw JSON string, or base64 JSON
+        cred = None
+        if os.path.isfile(creds_path):
+            cred = credentials.Certificate(creds_path)
+        elif creds_path.startswith('{'):
+            cred = credentials.Certificate(json.loads(creds_path))
+        else:
+            try:
+                # Attempt base64 decode
+                creds_json = base64.b64decode(creds_path).decode("utf-8")
+                creds_dict = json.loads(creds_json)
+                cred = credentials.Certificate(creds_dict)
+            except Exception:
+                # Fallback to raw JSON load
+                creds_dict = json.loads(creds_path)
                 cred = credentials.Certificate(creds_dict)
 
+        # Initialize or retrieve Firebase Admin app instance
+        if not firebase_admin._apps:
             _app = firebase_admin.initialize_app(cred, {"storageBucket": bucket_name})
         else:
-            _app = firebase_admin.get_app()
+            try:
+                _app = firebase_admin.get_app()
+            except ValueError:
+                _app = firebase_admin.initialize_app(cred, {"storageBucket": bucket_name})
 
         # Always bind to the specific bucket name requested
-        _bucket = storage.bucket(name=bucket_name)
+        if _app:
+            _bucket = storage.bucket(name=bucket_name, app=_app)
+        else:
+            _bucket = storage.bucket(name=bucket_name)
+
         _initialized = True
         logger.info(f"[Firebase] Initialized successfully. Bucket: {bucket_name}")
         return True
@@ -125,9 +137,24 @@ def is_available() -> bool:
 
 def _build_fallback_url(destination_blob: str) -> str:
     """Generate public media download URL for Uniform Bucket-Level Access buckets."""
-    encoded_blob = urllib.parse.quote(destination_blob, safe='')
+    clean_blob = destination_blob.lstrip('/')
+    encoded_blob = urllib.parse.quote(clean_blob, safe='')
     bucket_name = _bucket.name if _bucket and hasattr(_bucket, 'name') else _get_bucket_name() or "storage"
     return f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
+
+
+def _get_public_or_fallback_url(blob: Any, destination_blob: str) -> str:
+    """Extract public URL or fallback to media download link."""
+    url = None
+    try:
+        blob.make_public()
+        url = getattr(blob, 'public_url', None)
+    except Exception as pub_err:
+        logger.debug(f"[Firebase] make_public skipped (Uniform Bucket Access active): {pub_err}")
+
+    if not url:
+        url = _build_fallback_url(destination_blob)
+    return url
 
 
 def upload_bytes(
@@ -157,17 +184,7 @@ def upload_bytes(
     try:
         blob = _bucket.blob(destination_blob)
         blob.upload_from_string(data, content_type=content_type)
-        
-        url = None
-        try:
-            blob.make_public()
-            url = getattr(blob, 'public_url', None)
-        except Exception as pub_err:
-            logger.debug(f"[Firebase] make_public skipped (Uniform Bucket Access active): {pub_err}")
-
-        if not url:
-            url = _build_fallback_url(destination_blob)
-
+        url = _get_public_or_fallback_url(blob, destination_blob)
         logger.info(f"[Firebase] Uploaded {destination_blob} ({len(data)} bytes)")
         return url
 
@@ -203,17 +220,7 @@ def upload_fileobj(
             pass
 
         blob.upload_from_file(fileobj, content_type=content_type)
-        
-        url = None
-        try:
-            blob.make_public()
-            url = getattr(blob, 'public_url', None)
-        except Exception as pub_err:
-            logger.debug(f"[Firebase] make_public skipped (Uniform Bucket Access active): {pub_err}")
-
-        if not url:
-            url = _build_fallback_url(destination_blob)
-
+        url = _get_public_or_fallback_url(blob, destination_blob)
         logger.info(f"[Firebase] Uploaded fileobj to {destination_blob}")
         return url
 
