@@ -2160,12 +2160,10 @@ def get_vulnerabilities_summary(current_user):
 
         if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scan_filter = (Scan.org_id == org_id_param,)
-        elif is_global and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+        elif current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scan_filter = (Scan.id.isnot(None),)
-        elif current_user.org_id and current_user.role not in ['super_admin', 'support_engineer']:
+        elif current_user.org_id:
             scan_filter = (Scan.org_id == current_user.org_id,)
-        elif current_user.role in ['super_admin', 'support_engineer']:
-            scan_filter = (Scan.id.isnot(None),)
         else:
             scan_filter = (Scan.user_id == current_user.id,)
 
