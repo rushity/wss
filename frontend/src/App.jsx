@@ -57,7 +57,7 @@ function App() {
                 <Route path="/scans/results" element={<Layout><ScanResults /></Layout>} />
                 <Route path="/settings" element={<Layout><AlertSettingsPage /></Layout>} />
                 <Route path="/help" element={<Layout><Help /></Layout>} />
-                <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Layout><AdminPage /></Layout></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute requiredRole={['admin', 'super_admin']}><Layout><SuperAdminPanel /></Layout></ProtectedRoute>} />
                 <Route path="/super-admin" element={<ProtectedRoute requiredRole="super_admin"><Layout><SuperAdminPanel /></Layout></ProtectedRoute>} />
                 <Route path="/support" element={<ProtectedRoute requiredRole={['support_engineer', 'admin', 'super_admin']}><Layout><SupportEngineerPanel /></Layout></ProtectedRoute>} />
                 <Route path="/support-engineer" element={<Navigate to="/support" replace />} />
