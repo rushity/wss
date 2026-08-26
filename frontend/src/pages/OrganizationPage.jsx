@@ -172,18 +172,24 @@ export const OrganizationPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-sm border-b border-outline-variant/60 pb-md">
         <div>
           <h1 className="font-extrabold text-on-surface tracking-tight text-[24px] m-0 flex items-center gap-1.5">
-            Support Engineer <span className="text-primary">Operations</span>
+            {user?.role === 'support_engineer' ? (
+              <>Support Engineer <span className="text-primary">Operations</span></>
+            ) : (
+              <>LarShield <span className="text-primary">Global Management</span></>
+            )}
           </h1>
           <p className="font-body-md text-on-surface-variant text-[13.5px] mt-1 m-0">
-            Client environment inspection, troubleshooting assistance, and system logs.
+            {user?.role === 'support_engineer' 
+              ? 'Client environment inspection, troubleshooting assistance, and system logs.' 
+              : 'Centralized oversight for all client organizations, scans, and security nodes.'}
           </p>
         </div>
         <div className="flex gap-sm flex-wrap items-center">
           <button onClick={fetchData} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
             <Activity className={`w-3.5 h-3.5 mr-1.5 text-primary ${loading ? 'animate-spin' : ''}`} /> Sync Metrics
           </button>
-          <button onClick={() => navigate('/support')} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
-            <Activity className="w-3.5 h-3.5 mr-1.5 text-primary" /> Global Management
+          <button onClick={() => navigate(user?.role === 'support_engineer' ? '/support' : '/super-admin')} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
+            <Shield className="w-3.5 h-3.5 mr-1.5 text-primary" /> Global Management
           </button>
           <button onClick={() => navigate('/super-admin/logs')} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
             <ShieldAlert className="w-3.5 h-3.5 mr-1.5 text-primary" /> Logs & Threats
