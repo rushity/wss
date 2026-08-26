@@ -11,7 +11,10 @@ from scanners.base_scanner import (
     cleanup_scan_logs, schedule_log_cleanup, emit_scan_progress
 )
 from scanners import get_pipeline, get_phases, build_scanner, apply_scan_options
-from utils.fuzzer_engine import ContextAwareFuzzer
+try:
+    from backend.utils.fuzzer_engine import ContextAwareFuzzer
+except ImportError:
+    from utils.fuzzer_engine import ContextAwareFuzzer
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from datetime import datetime, timezone

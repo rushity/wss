@@ -53,7 +53,10 @@ from scanners.base_scanner import (
     cleanup_scan_logs, schedule_log_cleanup, emit_scan_progress
 )
 from scanners import get_pipeline, get_phases, build_scanner, apply_scan_options
-from utils.fuzzer_engine import ContextAwareFuzzer
+try:
+    from backend.utils.fuzzer_engine import ContextAwareFuzzer
+except ImportError:
+    from utils.fuzzer_engine import ContextAwareFuzzer
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
@@ -891,17 +894,23 @@ def upload_organization_logo(current_user):
     if not file_bytes:
         return jsonify({'message': 'No valid logo file or URL provided'}), 400
 
-    from utils.firebase_storage import is_available, upload_bytes
+    try:
+        from backend.utils.firebase_storage import is_available, upload_bytes
+    except ImportError:
+        from utils.firebase_storage import is_available, upload_bytes
     
     filename = secure_filename(f"org_{org.id}_{int(time.time())}.{ext}")
     logo_url = None
     
-    if is_available():
-        # Upload to Firebase Cloud Storage
-        blob_path = f"logos/{org.id}/{filename}"
-        logo_url = upload_bytes(file_bytes, content_type, blob_path)
-        if not logo_url:
-            current_app.logger.warning(f"[Firebase] Upload failed for {blob_path}. Falling back to local disk storage.")
+    try:
+        if is_available():
+            # Upload to Firebase Cloud Storage
+            blob_path = f"logos/{org.id}/{filename}"
+            logo_url = upload_bytes(file_bytes, content_type, blob_path)
+            if not logo_url:
+                current_app.logger.warning(f"[Firebase] Upload failed for {blob_path}. Falling back to local disk storage.")
+    except Exception as fb_err:
+        current_app.logger.warning(f"[Firebase] Storage check/upload skipped: {fb_err}")
 
     if not logo_url:
         # Fallback: save to local disk
@@ -2350,15 +2359,20 @@ def generate_pdf_report(current_user, scan_id):
         date_str = scan_date.strftime('%d%m%Y')
         filename = f"LarShield_{clean_org_name}_Report_{date_str}.pdf"
         
-        # Store a copy in Firebase Cloud Storage for history
-        from utils.firebase_storage import is_available, upload_bytes
-        if is_available():
+        # Store a copy in Firebase Cloud Storage for history (non-blocking)
+        try:
             try:
+                from backend.utils.firebase_storage import is_available, upload_bytes
+            except ImportError:
+                from utils.firebase_storage import is_available, upload_bytes
+
+            if is_available():
                 blob_path = f"reports/{scan_id}/{filename}"
                 upload_bytes(pdf_bytes_data, 'application/pdf', blob_path)
-            except Exception as e:
-                print(f"[Firebase] PDF backup failed for {scan_id}: {e}")
-            pdf_bytes.seek(0)
+        except Exception as fb_err:
+            print(f"[Firebase] PDF backup skipped/failed for {scan_id}: {fb_err}")
+        
+        pdf_bytes.seek(0)
         
         return send_file(
             pdf_bytes,

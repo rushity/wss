@@ -5,8 +5,11 @@ from dotenv import load_dotenv
 # Ensure environment variables are loaded
 load_dotenv()
 
-# Insert the backend module into the python path so its internal absolute imports work
-sys.path.insert(0, os.path.abspath('backend_structured'))
+# Insert the backend & backend_structured modules into python path so internal absolute imports work
+root_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(root_dir, 'backend_structured'))
+sys.path.insert(0, os.path.join(root_dir, 'backend'))
+sys.path.insert(0, root_dir)
 
 # Import the application factory from our partitioned architecture
 from backend_structured import create_app

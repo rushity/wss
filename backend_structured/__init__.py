@@ -26,7 +26,10 @@ def create_app():
     cache.init_app(app)
 
     # Initialize Firebase Cloud Storage (for logos, PDFs, and file uploads)
-    from utils.firebase_storage import init_firebase
+    try:
+        from backend.utils.firebase_storage import init_firebase
+    except ImportError:
+        from utils.firebase_storage import init_firebase
     init_firebase()
 
     # Optional Celery config update
