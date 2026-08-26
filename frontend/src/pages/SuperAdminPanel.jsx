@@ -334,30 +334,60 @@ const SuperAdminPanel = () => {
   const [bookingSearch, setBookingSearch] = useState('');
   const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
 
-  const getFilteredBookings = () => {
-    return (demoBookings || []).filter(b => {
-      const emailMatch = !bookingSearch || 
-        (b.email || '').toLowerCase().includes(bookingSearch.toLowerCase()) || 
-        (b.company_size || '').toLowerCase().includes(bookingSearch.toLowerCase()) ||
-        (b.meeting_date || '').toLowerCase().includes(bookingSearch.toLowerCase());
-      
-      const statusMatch = bookingStatusFilter === 'all' || (b.status || 'pending') === bookingStatusFilter;
-      return emailMatch && statusMatch;
+  // Payments Filtering
+  const [paymentSearch, setPaymentSearch] = useState('');
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
+
+  const getFilteredBills = () => {
+    return (recentPayments || []).filter(p => {
+      const q = paymentSearch.toLowerCase().trim();
+      const matchSearch = !paymentSearch || 
+        (p.org_name || '').toLowerCase().includes(q) ||
+        (p.stripe_payment_id || p.id || '').toLowerCase().includes(q) ||
+        (p.tier_id || '').toLowerCase().includes(q);
+      const matchStatus = paymentStatusFilter === 'all' || (p.status || '').toLowerCase() === paymentStatusFilter.toLowerCase();
+      return matchSearch && matchStatus;
     });
   };
 
-  const handleOrgSort = (column) => {
-    if (column === 'Quotas' || column === 'Actions') return;
-    if (sortOrgCol === column) {
-      setSortOrgDir(sortOrgDir === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortOrgCol(column);
-      setSortOrgDir('asc');
-    }
+  const getSortedBills = () => {
+    const filtered = getFilteredBills();
+    return [...filtered].sort((a, b) => {
+      let aVal, bVal;
+      switch (sortBillCol) {
+        case 'Date': aVal = new Date(a.created_at || Date.now()).getTime(); bVal = new Date(b.created_at || Date.now()).getTime(); break;
+        case 'Organization / User': aVal = a.org_name || ''; bVal = b.org_name || ''; break;
+        case 'Tier': aVal = a.tier_id || ''; bVal = b.tier_id || ''; break;
+        case 'Amount': aVal = a.amount || 0; bVal = b.amount || 0; break;
+        case 'Status': aVal = a.status || ''; bVal = b.status || ''; break;
+        default: return 0;
+      }
+      if (aVal < bVal) return sortBillDir === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortBillDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  };
+
+  // Organizations Filtering
+  const [orgSearch, setOrgSearch] = useState('');
+  const [orgTierFilter, setOrgTierFilter] = useState('all');
+  const [orgStatusFilter, setOrgStatusFilter] = useState('all');
+
+  const getFilteredOrgs = () => {
+    return (organizations || []).filter(org => {
+      const q = orgSearch.toLowerCase().trim();
+      const matchSearch = !orgSearch || (org.name || '').toLowerCase().includes(q) || (org.id || '').toLowerCase().includes(q);
+      const rawTier = (org.tier || org.subscription_tier || '').toLowerCase();
+      const matchTier = orgTierFilter === 'all' || rawTier.includes(orgTierFilter.toLowerCase());
+      const orgStatus = (org.status || (org.is_active ? 'active' : 'inactive')).toLowerCase();
+      const matchStatus = orgStatusFilter === 'all' || orgStatus === orgStatusFilter.toLowerCase();
+      return matchSearch && matchTier && matchStatus;
+    });
   };
 
   const getSortedOrgs = () => {
-    return [...(organizations || [])].sort((a, b) => {
+    const filtered = getFilteredOrgs();
+    return [...filtered].sort((a, b) => {
       let aVal, bVal;
       switch (sortOrgCol) {
         case 'Tenant Name': aVal = a.name || ''; bVal = b.name || ''; break;
@@ -368,6 +398,34 @@ const SuperAdminPanel = () => {
       if (aVal < bVal) return sortOrgDir === 'asc' ? -1 : 1;
       if (aVal > bVal) return sortOrgDir === 'asc' ? 1 : -1;
       return 0;
+    });
+  };
+
+  // Audit Logs Filtering
+  const [auditSearch, setAuditSearch] = useState('');
+
+  const getFilteredAuditLogs = () => {
+    return (auditLogs || []).filter(log => {
+      if (!auditSearch) return true;
+      const q = auditSearch.toLowerCase().trim();
+      return (log.action || '').toLowerCase().includes(q) ||
+        (log.user_email || log.admin_id || '').toLowerCase().includes(q) ||
+        (log.target_name || log.target_id || '').toLowerCase().includes(q);
+    });
+  };
+
+  // Outbound Email Logs Filtering
+  const [emailSearch, setEmailSearch] = useState('');
+  const [emailStatusFilter, setEmailStatusFilter] = useState('all');
+
+  const getFilteredEmails = () => {
+    return (emailLogs || []).filter(e => {
+      const q = emailSearch.toLowerCase().trim();
+      const matchSearch = !emailSearch ||
+        (e.recipient || '').toLowerCase().includes(q) ||
+        (e.subject || '').toLowerCase().includes(q);
+      const matchStatus = emailStatusFilter === 'all' || (e.status || '').toLowerCase() === emailStatusFilter.toLowerCase();
+      return matchSearch && matchStatus;
     });
   };
 
@@ -438,23 +496,6 @@ const SuperAdminPanel = () => {
       setSortBillCol(column);
       setSortBillDir('asc');
     }
-  };
-
-  const getSortedBills = () => {
-    return [...(recentPayments || [])].sort((a, b) => {
-      let aVal, bVal;
-      switch (sortBillCol) {
-        case 'Date': aVal = new Date(a.created_at || Date.now()).getTime(); bVal = new Date(b.created_at || Date.now()).getTime(); break;
-        case 'Organization / User': aVal = a.org_name || ''; bVal = b.org_name || ''; break;
-        case 'Tier': aVal = a.tier_id || ''; bVal = b.tier_id || ''; break;
-        case 'Amount': aVal = a.amount || 0; bVal = b.amount || 0; break;
-        case 'Status': aVal = a.status || ''; bVal = b.status || ''; break;
-        default: return 0;
-      }
-      if (aVal < bVal) return sortBillDir === 'asc' ? -1 : 1;
-      if (aVal > bVal) return sortBillDir === 'asc' ? 1 : -1;
-      return 0;
-    });
   };
 
   const [metrics, setMetrics] = useState({
@@ -1306,9 +1347,38 @@ const SuperAdminPanel = () => {
             </div>
 
             <div className="lg:col-span-2">
-              <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mt-xl mb-md">
-                <span className="material-symbols-outlined text-primary mr-2 text-[20px]">receipt_long</span> Global Transaction History
-              </h2>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mt-xl mb-md">
+                <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] m-0">
+                  <span className="material-symbols-outlined text-primary mr-2 text-[20px]">receipt_long</span> Global Transaction History
+                </h2>
+                <div className="flex gap-2 flex-wrap items-center">
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-on-surface-variant" />
+                    <input 
+                      type="text"
+                      placeholder="Search org, tier..."
+                      value={paymentSearch}
+                      onChange={e => setPaymentSearch(e.target.value)}
+                      className="bg-surface-container border border-outline-variant/60 rounded-lg pl-8 pr-7 py-1 text-[12.5px] outline-none text-on-surface w-48"
+                    />
+                    {paymentSearch && (
+                      <button onClick={() => setPaymentSearch('')} className="absolute right-2 top-2 text-on-surface-variant hover:text-on-surface border-0 bg-transparent cursor-pointer">
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  <select
+                    value={paymentStatusFilter}
+                    onChange={e => setPaymentStatusFilter(e.target.value)}
+                    className="bg-surface-container border border-outline-variant/60 text-on-surface text-[12.5px] font-medium rounded-lg px-2.5 py-1 outline-none cursor-pointer"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="succeeded">Succeeded / Paid</option>
+                    <option value="failed">Failed</option>
+                    <option value="pending">Pending</option>
+                  </select>
+                </div>
+              </div>
               <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
                 {loading ? <div className="p-10 text-center text-on-surface-variant text-[14px]">Fetching logs...</div> : (
                   <div className="overflow-x-auto max-h-[400px] hide-scrollbar">
@@ -1404,7 +1474,62 @@ const SuperAdminPanel = () => {
 
       {activeTab === 'organizations' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
-          <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md"><Shield className="w-5 h-5 text-primary mr-2" /> Client Organizations Directory</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-md">
+            <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] m-0">
+              <Shield className="w-5 h-5 text-primary mr-2" /> Client Organizations Directory
+            </h2>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-2 text-on-surface-variant" />
+                <input 
+                  type="text"
+                  placeholder="Search tenant name..."
+                  value={orgSearch}
+                  onChange={e => { setOrgSearch(e.target.value); setOrgPage(1); }}
+                  className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg pl-9 pr-8 py-1.5 outline-none focus:border-primary w-48"
+                />
+                {orgSearch && (
+                  <button onClick={() => { setOrgSearch(''); setOrgPage(1); }} className="absolute right-2.5 top-2 text-on-surface-variant hover:text-on-surface border-0 bg-transparent cursor-pointer">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              <select
+                value={orgTierFilter}
+                onChange={e => { setOrgTierFilter(e.target.value); setOrgPage(1); }}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-1.5 outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="all">All Tiers</option>
+                <option value="quick">Quick</option>
+                <option value="advanced">Advanced</option>
+                <option value="deep">Deep</option>
+                <option value="enterprise">Enterprise</option>
+                <option value="free">Free</option>
+              </select>
+
+              <select
+                value={orgStatusFilter}
+                onChange={e => { setOrgStatusFilter(e.target.value); setOrgPage(1); }}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-1.5 outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+
+              {(orgSearch || orgTierFilter !== 'all' || orgStatusFilter !== 'all') && (
+                <button
+                  onClick={() => { setOrgSearch(''); setOrgTierFilter('all'); setOrgStatusFilter('all'); setOrgPage(1); }}
+                  className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1"
+                >
+                  <X className="w-4 h-4" />
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm overflow-x-auto hide-scrollbar">
             {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching directory...</div> : (
               <table className="w-full text-left text-sm border-collapse">
@@ -1688,7 +1813,27 @@ const SuperAdminPanel = () => {
 
       {activeTab === 'audit' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
-          <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md"><span className="material-symbols-outlined text-primary mr-2">history</span> Full System Audit Logs</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-md">
+            <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] m-0">
+              <span className="material-symbols-outlined text-primary mr-2">history</span> Full System Audit Logs
+            </h2>
+            <div className="relative w-full md:w-72">
+              <Search className="w-4 h-4 absolute left-3 top-2.5 text-on-surface-variant" />
+              <input 
+                type="text"
+                placeholder="Search event, admin email, or target..."
+                value={auditSearch}
+                onChange={e => { setAuditSearch(e.target.value); setAuditPage(1); }}
+                className="w-full bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg pl-9 pr-8 py-1.5 outline-none focus:border-primary"
+              />
+              {auditSearch && (
+                <button onClick={() => { setAuditSearch(''); setAuditPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface border-0 bg-transparent cursor-pointer p-0.5">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
             {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching logs...</div> : (
               <>
@@ -1703,22 +1848,26 @@ const SuperAdminPanel = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant">
-                      {auditLogs.length === 0 ? <tr><td colSpan="4" className="p-10 text-center text-on-surface-variant">No audit logs found.</td></tr> : auditLogs.slice((auditPage - 1) * auditPageSize, auditPage * auditPageSize).map((log) => (
-                        <tr key={log.id} className="hover:bg-surface-container transition-colors">
-                          <td className="px-md py-sm text-[13px] text-on-surface-variant">{new Date(log.created_at || log.timestamp).toLocaleString()}</td>
-                          <td className="px-md py-sm"><div className="font-bold text-on-surface text-[13px]">{log.user_email}</div></td>
-                          <td className="px-md py-sm text-[13px] text-on-surface-variant font-medium">
-                            {log.action.includes('Terminated') ? <span className="text-error font-bold">{log.action}</span> : log.action}
-                          </td>
-                          <td className="px-md py-sm font-bold text-[13px] text-on-surface">{log.target_name || log.target_id || '-'}</td>
-                        </tr>
-                      ))}
+                      {getFilteredAuditLogs().length === 0 ? (
+                        <tr><td colSpan="4" className="p-10 text-center text-on-surface-variant font-bold">No audit logs match your search.</td></tr>
+                      ) : (
+                        getFilteredAuditLogs().slice((auditPage - 1) * auditPageSize, auditPage * auditPageSize).map((log) => (
+                          <tr key={log.id} className="hover:bg-surface-container transition-colors">
+                            <td className="px-md py-sm text-[13px] text-on-surface-variant">{new Date(log.created_at || log.timestamp).toLocaleString()}</td>
+                            <td className="px-md py-sm"><div className="font-bold text-on-surface text-[13px]">{log.user_email}</div></td>
+                            <td className="px-md py-sm text-[13px] text-on-surface-variant font-medium">
+                              {log.action.includes('Terminated') ? <span className="text-error font-bold">{log.action}</span> : log.action}
+                            </td>
+                            <td className="px-md py-sm font-bold text-[13px] text-on-surface">{log.target_name || log.target_id || '-'}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
                 <TablePagination
                   currentPage={auditPage}
-                  totalEntries={auditLogs.length}
+                  totalEntries={getFilteredAuditLogs().length}
                   pageSize={auditPageSize}
                   onPageChange={setAuditPage}
                   onPageSizeChange={setAuditPageSize}
@@ -1892,10 +2041,50 @@ const SuperAdminPanel = () => {
 
       {activeTab === 'emails' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
-          <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md"><span className="material-symbols-outlined text-primary mr-2">mail</span> Outbound Email Logs</h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-md">
+            <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] m-0">
+              <span className="material-symbols-outlined text-primary mr-2">mail</span> Outbound Email Logs
+            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <div className="relative">
+                <Search className="w-4 h-4 absolute left-3 top-2.5 text-on-surface-variant" />
+                <input 
+                  type="text"
+                  placeholder="Search recipient or subject..."
+                  value={emailSearch}
+                  onChange={e => { setEmailSearch(e.target.value); setEmailPage(1); }}
+                  className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg pl-9 pr-8 py-1.5 outline-none focus:border-primary w-56"
+                />
+                {emailSearch && (
+                  <button onClick={() => { setEmailSearch(''); setEmailPage(1); }} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface border-0 bg-transparent cursor-pointer p-0.5">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <select
+                value={emailStatusFilter}
+                onChange={e => { setEmailStatusFilter(e.target.value); setEmailPage(1); }}
+                className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-1.5 outline-none focus:border-primary cursor-pointer"
+              >
+                <option value="all">All Statuses</option>
+                <option value="sent">Sent</option>
+                <option value="failed">Failed</option>
+              </select>
+              {(emailSearch || emailStatusFilter !== 'all') && (
+                <button
+                  onClick={() => { setEmailSearch(''); setEmailStatusFilter('all'); setEmailPage(1); }}
+                  className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1"
+                >
+                  <X className="w-4 h-4" />
+                  Reset
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
-            {emailLogs.length === 0 ? (
-              <div className="p-xl text-center text-on-surface-variant font-bold">No emails sent yet.</div>
+            {getFilteredEmails().length === 0 ? (
+              <div className="p-xl text-center text-on-surface-variant font-bold">No emails match your filter criteria.</div>
             ) : (
               <>
                 <div className="overflow-x-auto">
@@ -1909,7 +2098,7 @@ const SuperAdminPanel = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant">
-                      {emailLogs.slice((emailPage - 1) * emailPageSize, emailPage * emailPageSize).map(log => (
+                      {getFilteredEmails().slice((emailPage - 1) * emailPageSize, emailPage * emailPageSize).map(log => (
                         <tr key={log.id} className="hover:bg-surface-container-lowest transition-colors">
                           <td className="px-md py-sm text-on-surface-variant text-[13px]">{new Date(log.sent_at).toLocaleString()}</td>
                           <td className="px-md py-sm font-bold text-on-surface text-[13px]">{log.recipient}</td>
@@ -1926,7 +2115,7 @@ const SuperAdminPanel = () => {
                 </div>
                 <TablePagination
                   currentPage={emailPage}
-                  totalEntries={emailLogs.length}
+                  totalEntries={getFilteredEmails().length}
                   pageSize={emailPageSize}
                   onPageChange={setEmailPage}
                   onPageSizeChange={setEmailPageSize}
