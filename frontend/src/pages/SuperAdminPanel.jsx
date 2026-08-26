@@ -334,6 +334,20 @@ const SuperAdminPanel = () => {
   const [bookingSearch, setBookingSearch] = useState('');
   const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
 
+  const getFilteredBookings = () => {
+    return (demoBookings || []).filter(b => {
+      if (!b) return false;
+      const q = (bookingSearch || '').toLowerCase().trim();
+      const emailMatch = !bookingSearch || 
+        (b.email || '').toLowerCase().includes(q) || 
+        (b.company_size || '').toLowerCase().includes(q) ||
+        (b.meeting_date || '').toLowerCase().includes(q);
+      
+      const statusMatch = bookingStatusFilter === 'all' || (b.status || 'pending') === bookingStatusFilter;
+      return emailMatch && statusMatch;
+    });
+  };
+
   // Payments Filtering
   const [paymentSearch, setPaymentSearch] = useState('');
   const [paymentStatusFilter, setPaymentStatusFilter] = useState('all');
