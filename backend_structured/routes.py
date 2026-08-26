@@ -1820,12 +1820,10 @@ def get_scans_history(current_user):
 
         if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scans_query = Scan.query.filter_by(org_id=org_id_param)
-        elif is_global and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+        elif current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scans_query = Scan.query
-        elif current_user.org_id and current_user.role not in ['super_admin', 'support_engineer']:
+        elif current_user.org_id:
             scans_query = Scan.query.filter_by(org_id=current_user.org_id)
-        elif current_user.role in ['super_admin', 'support_engineer']:
-            scans_query = Scan.query
         else:
             scans_query = Scan.query.filter_by(user_id=current_user.id)
 
@@ -2290,14 +2288,14 @@ def manage_alert_settings(current_user):
 def get_scan_for_user(scan_id, current_user):
     """
     Retrieve scan object with role-based access permissions:
-    - Super Admins & Support Engineers: full system-wide access to all scans.
-    - Org Admins & Org Members: full access to all scans created in their organization.
+    - Super Admins, Admins & Support Engineers: full system-wide access to all scans.
+    - Org Members: access to all scans created in their organization.
     - Standard Users: access to scans they created.
     """
     scan = db.session.get(Scan, scan_id)
     if not scan:
         return None
-    if current_user.role in ('super_admin', 'support_engineer'):
+    if current_user.role in ('super_admin', 'admin', 'support_engineer'):
         return scan
     if current_user.org_id and scan.org_id == current_user.org_id:
         return scan
