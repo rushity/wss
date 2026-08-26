@@ -985,7 +985,7 @@ def suspend_organization(current_user, org_id):
 @auth_bp.route('/impersonate/<org_id>', methods=['POST'])
 @token_required
 def impersonate_org(current_user, org_id):
-    if current_user.role not in ['super_admin', 'admin']:
+    if current_user.role not in ['super_admin', 'admin', 'support_engineer']:
         return jsonify({'message': 'Permission denied'}), 403
         
     target_user = User.query.filter_by(org_id=org_id, role='org_admin').first()
