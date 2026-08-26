@@ -28,7 +28,8 @@ import {
   Receipt,
   Trash2,
   CheckCircle,
-  XCircle
+  XCircle,
+  BarChart3
 } from 'lucide-react';
 import { CustomModal } from '../components/CustomModal';
 
@@ -646,72 +647,63 @@ export const SupportEngineerPanel = () => {
     <div className="flex flex-col gap-lg w-full text-left font-body">
       
       {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-outline-variant pb-md">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-md border-b border-outline-variant/60 pb-md">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="font-headline-md font-bold text-on-surface tracking-tight text-[22px] m-0">
-              Support Engineer Operations
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase bg-blue-500/10 text-blue-600 border border-blue-500/30">
-              SUPPORT CONSOLE
-            </span>
-          </div>
+          <h1 className="font-extrabold text-on-surface tracking-tight text-[24px] m-0 flex items-center gap-1.5">
+            Support Engineer <span className="text-primary">Operations</span>
+          </h1>
           <p className="font-body-md text-on-surface-variant text-[13.5px] mt-1 m-0">
-            Client environment inspection, troubleshooting assistance, audit logs, and member role mappings.
+            Client environment inspection, troubleshooting assistance, and system logs.
           </p>
         </div>
         
         <div className="flex flex-wrap items-center gap-2">
           <button 
             onClick={fetchStats}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all shadow-2xs"
           >
-            <RefreshCw className={`w-4 h-4 text-primary ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 text-primary ${loading ? 'animate-spin' : ''}`} />
             Sync Metrics
           </button>
           <button 
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 rounded-lg font-bold text-[12.5px] cursor-pointer transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all shadow-2xs"
           >
-            <Activity className="w-4 h-4" />
+            <BarChart3 className="w-3.5 h-3.5 text-primary" />
             Org Dashboard
           </button>
           <button 
             onClick={() => navigate('/super-admin/logs')}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all shadow-2xs"
           >
-            <Shield className="w-4 h-4 text-primary" />
+            <Activity className="w-3.5 h-3.5 text-primary" />
             Logs & Threats
           </button>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 border-b border-outline-variant overflow-x-auto hide-scrollbar">
+      {/* Tabs Navigation (Pill Design matching screenshot) */}
+      <div className="flex items-center gap-2 border-b border-outline-variant/60 pb-3 overflow-x-auto hide-scrollbar">
         {[
-          { id: 'overview', label: 'Overview', icon: Activity },
-          { id: 'organizations', label: 'Organizations', icon: Shield },
-          { id: 'members', label: 'Members', icon: Users },
-          { id: 'audit', label: 'Audit Logs', icon: Layers },
-          { id: 'bookings', label: 'Bookings', icon: Calendar },
-          { id: 'emails', label: 'Emails', icon: Mail }
-        ].map(tab => {
-          const IconComp = tab.icon;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 font-bold text-[13.5px] border-b-2 transition-all cursor-pointer bg-transparent border-t-0 border-x-0 ${
-                activeTab === tab.id
-                  ? 'border-primary text-primary bg-primary/5 rounded-t-lg'
-                  : 'border-transparent text-on-surface-variant hover:text-on-surface hover:bg-surface-container/50'
-              }`}
-            >
-              <IconComp className="w-4 h-4" />
-              {tab.label}
-            </button>
-          );
-        })}
+          { id: 'overview', label: 'Overview' },
+          { id: 'organizations', label: 'Organizations' },
+          { id: 'members', label: 'Members' },
+          { id: 'audit', label: 'Audit Logs' },
+          { id: 'bookings', label: 'Bookings' },
+          { id: 'emails', label: 'Emails' }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`px-4 py-2 font-bold text-[13.5px] rounded-lg transition-all cursor-pointer border-0 ${
+              activeTab === tab.id
+                ? 'bg-primary text-white shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface bg-transparent hover:bg-surface-container/50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* OVERVIEW TAB */}
