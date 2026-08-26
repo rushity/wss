@@ -1,12 +1,12 @@
 """
-Firebase Cloud Storage helper for SentinelScan.
+Firebase Cloud Storage helper for LarShield / SentinelScan.
 
 Uploads organization logos and scan report PDFs to Firebase Storage
 and returns public/signed download URLs.
 
 Env vars required:
-    FIREBASE_CREDENTIALS  — path to serviceAccountKey.json OR base64-encoded JSON
-    FIREBASE_STORAGE_BUCKET — e.g. your-project.appspot.com
+    FIREBASE_CREDENTIALS  — path to serviceAccountKey.json OR base64-encoded JSON OR JSON string
+    FIREBASE_STORAGE_BUCKET — e.g. your-project.appspot.com or gs://your-project.appspot.com
 """
 
 import os
@@ -14,33 +14,45 @@ import io
 import base64
 import json
 import logging
-from typing import Optional
+import urllib.parse
+from datetime import timedelta
+from typing import Optional, Union, Any
 
 logger = logging.getLogger(__name__)
 
 # Firebase references — lazily initialized
 _app = None
-_bucket = None
+_bucket: Any = None
 _initialized = False
 
 
 def _get_credentials_path() -> Optional[str]:
+    """Retrieve Firebase credentials path/string from environment."""
     return os.getenv("FIREBASE_CREDENTIALS")
 
 
 def _get_bucket_name() -> Optional[str]:
-    return os.getenv("FIREBASE_STORAGE_BUCKET")
+    """Retrieve and sanitize Firebase storage bucket name from environment."""
+    raw_bucket = os.getenv("FIREBASE_STORAGE_BUCKET")
+    if not raw_bucket:
+        return None
+    # Sanitize prefix (gs:// or https://) and trailing slashes
+    clean_bucket = raw_bucket.strip()
+    for prefix in ("gs://", "https://", "http://"):
+        if clean_bucket.lower().startswith(prefix):
+            clean_bucket = clean_bucket[len(prefix):]
+    return clean_bucket.split('/')[0].strip()
 
 
-def init_firebase() -> bool:
+def init_firebase(force_reinit: bool = False) -> bool:
     """
     Initialize the Firebase Admin SDK with service-account credentials.
-    Safe to call multiple times — only initializes once.
+    Safe to call multiple times — only initializes once unless force_reinit=True.
     Returns True if initialization succeeded, False otherwise.
     """
     global _app, _bucket, _initialized
 
-    if _initialized:
+    if _initialized and not force_reinit:
         return _bucket is not None
 
     creds_path = _get_credentials_path()
@@ -59,24 +71,37 @@ def init_firebase() -> bool:
         from firebase_admin import credentials, storage
 
         if not firebase_admin._apps:
-            # Support both file path, base64-encoded JSON, and direct JSON string
+            # Support file path, base64-encoded JSON, and direct JSON string
+            cred = None
             if os.path.isfile(creds_path):
                 cred = credentials.Certificate(creds_path)
             else:
                 try:
+                    # Attempt base64 decode
                     creds_json = base64.b64decode(creds_path).decode("utf-8")
                     creds_dict = json.loads(creds_json)
                 except Exception:
+                    # Fallback to direct JSON string
                     creds_dict = json.loads(creds_path)
                 cred = credentials.Certificate(creds_dict)
 
             _app = firebase_admin.initialize_app(cred, {"storageBucket": bucket_name})
+        else:
+            _app = firebase_admin.get_app()
 
-        _bucket = storage.bucket()
+        # Always bind to the specific bucket name requested
+        _bucket = storage.bucket(name=bucket_name)
         _initialized = True
-        logger.info(f"[Firebase] Initialized. Bucket: {bucket_name}")
+        logger.info(f"[Firebase] Initialized successfully. Bucket: {bucket_name}")
         return True
 
+    except ImportError:
+        logger.warning(
+            "[Firebase] firebase_admin package is not installed. "
+            "File uploads will fall back to local disk."
+        )
+        _initialized = True
+        return False
     except Exception as e:
         logger.error(f"[Firebase] Initialization failed: {e}")
         _initialized = True
@@ -84,10 +109,25 @@ def init_firebase() -> bool:
 
 
 def is_available() -> bool:
-    """Check if Firebase Storage is ready to use."""
-    if not _initialized:
-        init_firebase()
+    """
+    Check if Firebase Storage is ready to use.
+    Retries initialization if environment variables become available later.
+    """
+    global _initialized
+    if not _initialized or _bucket is None:
+        # Retry initialization if credentials are now present in environment
+        if _get_credentials_path() and _get_bucket_name():
+            return init_firebase(force_reinit=True)
+        if not _initialized:
+            init_firebase()
     return _bucket is not None
+
+
+def _build_fallback_url(destination_blob: str) -> str:
+    """Generate public media download URL for Uniform Bucket-Level Access buckets."""
+    encoded_blob = urllib.parse.quote(destination_blob, safe='')
+    bucket_name = _bucket.name if _bucket and hasattr(_bucket, 'name') else _get_bucket_name() or "storage"
+    return f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
 
 
 def upload_bytes(
@@ -107,21 +147,26 @@ def upload_bytes(
         Public download URL on success, None on failure.
     """
     if not is_available():
-        logger.error("[Firebase] Storage not available. Upload skipped.")
+        logger.warning("[Firebase] Storage not available. Upload skipped.")
+        return None
+
+    if not data:
+        logger.warning(f"[Firebase] Empty data bytes provided for {destination_blob}.")
         return None
 
     try:
         blob = _bucket.blob(destination_blob)
         blob.upload_from_string(data, content_type=content_type)
+        
+        url = None
         try:
             blob.make_public()
-            url = blob.public_url
+            url = getattr(blob, 'public_url', None)
         except Exception as pub_err:
-            logger.warning(f"[Firebase] make_public failed (Uniform Bucket-Level Access active), generating public media URL: {pub_err}")
-            import urllib.parse
-            encoded_blob = urllib.parse.quote(destination_blob, safe='')
-            bucket_name = _bucket.name if _bucket else "storage"
-            url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
+            logger.debug(f"[Firebase] make_public skipped (Uniform Bucket Access active): {pub_err}")
+
+        if not url:
+            url = _build_fallback_url(destination_blob)
 
         logger.info(f"[Firebase] Uploaded {destination_blob} ({len(data)} bytes)")
         return url
@@ -132,7 +177,7 @@ def upload_bytes(
 
 
 def upload_fileobj(
-    fileobj: io.BytesIO,
+    fileobj: Union[io.BytesIO, io.BufferedIOBase, Any],
     content_type: str,
     destination_blob: str,
 ) -> Optional[str]:
@@ -140,7 +185,7 @@ def upload_fileobj(
     Upload a file-like object to Firebase Storage.
 
     Args:
-        fileobj: A BytesIO (or similar) with the file data.
+        fileobj: A BytesIO or file stream with the file data.
         content_type: MIME type.
         destination_blob: Full blob path.
 
@@ -152,24 +197,67 @@ def upload_fileobj(
 
     try:
         blob = _bucket.blob(destination_blob)
-        fileobj.seek(0)
+        try:
+            fileobj.seek(0)
+        except Exception:
+            pass
+
         blob.upload_from_file(fileobj, content_type=content_type)
+        
+        url = None
         try:
             blob.make_public()
-            url = blob.public_url
+            url = getattr(blob, 'public_url', None)
         except Exception as pub_err:
-            logger.warning(f"[Firebase] make_public failed (Uniform Bucket-Level Access active), generating public media URL: {pub_err}")
-            import urllib.parse
-            encoded_blob = urllib.parse.quote(destination_blob, safe='')
-            bucket_name = _bucket.name if _bucket else "storage"
-            url = f"https://firebasestorage.googleapis.com/v0/b/{bucket_name}/o/{encoded_blob}?alt=media"
+            logger.debug(f"[Firebase] make_public skipped (Uniform Bucket Access active): {pub_err}")
 
-        logger.info(f"[Firebase] Uploaded {destination_blob}")
+        if not url:
+            url = _build_fallback_url(destination_blob)
+
+        logger.info(f"[Firebase] Uploaded fileobj to {destination_blob}")
         return url
 
     except Exception as e:
         logger.error(f"[Firebase] Upload failed for {destination_blob}: {e}")
         return None
+
+
+def download_bytes(destination_blob: str) -> Optional[bytes]:
+    """
+    Download raw bytes from Firebase Storage.
+
+    Args:
+        destination_blob: Full blob path.
+
+    Returns:
+        File contents as bytes on success, None on failure.
+    """
+    if not is_available():
+        return None
+
+    try:
+        blob = _bucket.blob(destination_blob)
+        if not blob.exists():
+            logger.warning(f"[Firebase] Blob not found: {destination_blob}")
+            return None
+        data = blob.download_as_bytes()
+        logger.info(f"[Firebase] Downloaded {destination_blob} ({len(data)} bytes)")
+        return data
+    except Exception as e:
+        logger.error(f"[Firebase] Download failed for {destination_blob}: {e}")
+        return None
+
+
+def blob_exists(destination_blob: str) -> bool:
+    """Check if a file exists in Firebase Storage."""
+    if not is_available():
+        return False
+    try:
+        blob = _bucket.blob(destination_blob)
+        return bool(blob.exists())
+    except Exception as e:
+        logger.error(f"[Firebase] Exists check failed for {destination_blob}: {e}")
+        return False
 
 
 def delete_blob(destination_blob: str) -> bool:
@@ -179,9 +267,12 @@ def delete_blob(destination_blob: str) -> bool:
 
     try:
         blob = _bucket.blob(destination_blob)
-        blob.delete()
-        logger.info(f"[Firebase] Deleted {destination_blob}")
-        return True
+        if blob.exists():
+            blob.delete()
+            logger.info(f"[Firebase] Deleted {destination_blob}")
+            return True
+        logger.warning(f"[Firebase] Delete skipped, blob does not exist: {destination_blob}")
+        return False
 
     except Exception as e:
         logger.error(f"[Firebase] Delete failed for {destination_blob}: {e}")
@@ -194,6 +285,33 @@ def get_blob_url(blob_name: str) -> Optional[str]:
         return None
     try:
         blob = _bucket.blob(blob_name)
-        return blob.public_url
+        if hasattr(blob, 'public_url') and blob.public_url:
+            return blob.public_url
+        return _build_fallback_url(blob_name)
     except Exception:
+        return _build_fallback_url(blob_name)
+
+
+def get_signed_url(destination_blob: str, expiration_minutes: int = 60) -> Optional[str]:
+    """
+    Generate a temporary signed download URL for private files.
+
+    Args:
+        destination_blob: Full blob path.
+        expiration_minutes: Expiration time in minutes (default: 60).
+
+    Returns:
+        Signed URL string on success, None on failure.
+    """
+    if not is_available():
+        return None
+    try:
+        blob = _bucket.blob(destination_blob)
+        signed_url = blob.generate_signed_url(
+            expiration=timedelta(minutes=expiration_minutes),
+            method='GET'
+        )
+        return signed_url
+    except Exception as e:
+        logger.error(f"[Firebase] Generating signed URL failed for {destination_blob}: {e}")
         return None
