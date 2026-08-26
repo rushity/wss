@@ -1018,23 +1018,85 @@ def impersonate_org(current_user, org_id):
         }
     }), 200
 
-@auth_bp.route('/users', methods=['GET'])
-@admin_required
-def list_users(current_user):
-    users = User.query.all()
-    return jsonify({
-        'users': [{
-            'id': u.id,
-            'email': u.email,
-            'role': u.role,
-            'first_name': u.first_name,
-            'last_name': u.last_name,
-            'created_at': u.created_at.isoformat() + 'Z' if u.created_at else None,
-            'failed_login_attempts': u.failed_login_attempts or 0,
-            'locked_until': u.locked_until.isoformat() + 'Z' if u.locked_until else None,
-            'status': 'Active' if getattr(u, 'is_active', True) else 'Suspended'
-        } for u in users]
-    }), 200
+@auth_bp.route('/users', methods=['GET', 'POST'])
+@token_required
+def manage_users(current_user):
+    if current_user.role not in ('super_admin', 'admin'):
+        return jsonify({'message': 'Permission denied'}), 403
+
+    if request.method == 'GET':
+        if current_user.role == 'admin':
+            users = User.query.filter(User.role != 'super_admin').all()
+        else:
+            users = User.query.all()
+
+        return jsonify({
+            'users': [{
+                'id': u.id,
+                'email': u.email,
+                'role': u.role,
+                'org_id': u.org_id,
+                'first_name': u.first_name,
+                'last_name': u.last_name,
+                'created_at': u.created_at.isoformat() + 'Z' if u.created_at else None,
+                'failed_login_attempts': u.failed_login_attempts or 0,
+                'locked_until': u.locked_until.isoformat() + 'Z' if u.locked_until else None,
+                'status': 'Active' if getattr(u, 'is_active', True) else 'Suspended'
+            } for u in users]
+        }), 200
+
+    # POST method - Create/Add new member
+    data = request.get_json() or {}
+    email = data.get('email')
+    role = data.get('role', 'admin')
+    org_id = data.get('org_id')
+    password = data.get('password')
+
+    if not email or not str(email).strip():
+        return jsonify({'message': 'User email is required'}), 400
+
+    email_clean = str(email).strip().lower()
+    existing = User.query.filter_by(email=email_clean).first()
+    if existing:
+        return jsonify({'message': f'User with email "{email_clean}" already exists'}), 400
+
+    import secrets, uuid
+    temp_pw = password if password else secrets.token_urlsafe(10)
+
+    target_org_id = None
+    if org_id and str(org_id).strip() and str(org_id).lower() not in ('none', 'null', ''):
+        org = db.session.get(Organization, org_id)
+        if org:
+            target_org_id = org.id
+
+    try:
+        new_user = User(
+            id=str(uuid.uuid4()),
+            email=email_clean,
+            role=role,
+            org_id=target_org_id
+        )
+        new_user.set_password(temp_pw)
+        db.session.add(new_user)
+
+        log = AuditLog(admin_id=current_user.id, action=f"Created new member {email_clean} ({role})", target_id=target_org_id or current_user.id)
+        db.session.add(log)
+        db.session.commit()
+
+        return jsonify({
+            'message': 'Member added successfully',
+            'temp_password': temp_pw,
+            'user': {
+                'id': new_user.id,
+                'email': new_user.email,
+                'role': new_user.role,
+                'org_id': new_user.org_id
+            }
+        }), 201
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error adding member: {e}")
+        return jsonify({'message': f'Failed to add member: {str(e)}'}), 500
 
 
 @auth_bp.route('/email-logs', methods=['GET'])

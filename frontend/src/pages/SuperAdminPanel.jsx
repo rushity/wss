@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { CustomModal } from '../components/CustomModal';
-import { Building2, Users, CreditCard, Shield, Trash2, Plus, Server, Activity, Database, HardDrive, RefreshCw, BarChart2, Edit, Download, Eye } from 'lucide-react';
+import { Building2, Users, CreditCard, Shield, Trash2, Plus, Server, Activity, Database, HardDrive, RefreshCw, BarChart2, Edit, Download, Eye, Search, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const DEFAULT_BILLING_TIERS = [
@@ -307,6 +307,11 @@ const SuperAdminPanel = () => {
   const [sortUserCol, setSortUserCol] = useState('Email');
   const [sortUserDir, setSortUserDir] = useState('asc');
 
+  // Filter states for Global Members
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+  const [userOrgFilter, setUserOrgFilter] = useState('all');
+
   const [sortBillCol, setSortBillCol] = useState('Date');
   const [sortBillDir, setSortBillDir] = useState('desc');
 
@@ -361,8 +366,35 @@ const SuperAdminPanel = () => {
     }
   };
 
+  const getFilteredUsers = () => {
+    return (users || []).filter(u => {
+      if (userSearch) {
+        const q = userSearch.toLowerCase().trim();
+        const emailMatch = (u.email || '').toLowerCase().includes(q);
+        const roleMatch = (u.role || '').toLowerCase().includes(q);
+        const orgMatch = (u.org_name || '').toLowerCase().includes(q);
+        if (!emailMatch && !roleMatch && !orgMatch) return false;
+      }
+
+      if (userRoleFilter !== 'all') {
+        if ((u.role || '').toLowerCase() !== userRoleFilter.toLowerCase()) return false;
+      }
+
+      if (userOrgFilter !== 'all') {
+        if (userOrgFilter === 'no_org') {
+          if (u.org_id || (u.org_name && u.org_name !== 'No Org (Super Admin)')) return false;
+        } else {
+          if (String(u.org_id) !== String(userOrgFilter) && u.org_name !== userOrgFilter) return false;
+        }
+      }
+
+      return true;
+    });
+  };
+
   const getSortedUsers = () => {
-    return [...(users || [])].sort((a, b) => {
+    const filtered = getFilteredUsers();
+    return [...filtered].sort((a, b) => {
       let aVal, bVal;
       switch (sortUserCol) {
         case 'Email': aVal = a.email || ''; bVal = b.email || ''; break;
@@ -374,6 +406,13 @@ const SuperAdminPanel = () => {
       if (aVal > bVal) return sortUserDir === 'asc' ? 1 : -1;
       return 0;
     });
+  };
+
+  const clearUserFilters = () => {
+    setUserSearch('');
+    setUserRoleFilter('all');
+    setUserOrgFilter('all');
+    setUserPage(1);
   };
 
   const handleBillSort = (column) => {
@@ -810,17 +849,21 @@ const SuperAdminPanel = () => {
         { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
       onConfirm: async (values) => {
+        if (!values.email || !values.email.trim()) {
+          toast.error('Please enter a valid user email');
+          return;
+        }
         try {
-          const res = await fetch('/api/auth/users', {
+          const res = await authFetch('/api/auth/users', {
             method: 'POST',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: values.email, role: values.role, org_id: values.org_id || null })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: values.email.trim(), role: values.role, org_id: values.org_id || null })
           });
+          const data = await res.json().catch(() => ({}));
           if (res.ok) {
             toast.success('Member added successfully');
             fetchStats();
           } else {
-            const data = await res.json();
             toast.error(data.message || 'Failed to add member');
           }
         } catch (err) {
@@ -860,9 +903,9 @@ const SuperAdminPanel = () => {
       ],
       onConfirm: async (vals) => {
         try {
-          const res = await fetch(`/api/auth/users/${u.id}/role`, {
+          const res = await authFetch(`/api/auth/users/${u.id}/role`, {
             method: 'PUT',
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}`, 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ role: vals.role, org_id: vals.org_id || null })
           });
           if (res.ok) {
@@ -1382,14 +1425,115 @@ const SuperAdminPanel = () => {
 
       {activeTab === 'members' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
-          <div className="flex justify-between items-center mb-md">
-            <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px]"><Users className="w-5 h-5 text-primary mr-2" /> Global Members</h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xs">
+            <div>
+              <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px]">
+                <Users className="w-5 h-5 text-primary mr-2" /> Global Members
+              </h2>
+              <p className="text-[13px] text-on-surface-variant mt-0.5">
+                Centralized user management, role assignments, and client org mapping.
+              </p>
+            </div>
             {!isSupportEngineer && (
-              <button onClick={handleAddMember} className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:brightness-110 transition-all font-bold text-[13.5px] border-0 cursor-pointer"><Plus className="w-4 h-4 mr-2" /> Add Member</button>
+              <button onClick={handleAddMember} className="flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:brightness-110 transition-all font-bold text-[13.5px] border-0 cursor-pointer shadow-md shadow-primary/20 shrink-0">
+                <Plus className="w-4 h-4 mr-2" /> Add Member
+              </button>
             )}
           </div>
+
+          {/* Filter & Search Bar */}
+          <div className="bg-surface-container-lowest border border-outline-variant/70 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-3 shadow-2xs">
+            <div className="flex flex-wrap items-center gap-3 w-full flex-1">
+              {/* Search Input */}
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant" />
+                <input
+                  type="text"
+                  placeholder="Search email, org, role..."
+                  value={userSearch}
+                  onChange={(e) => {
+                    setUserSearch(e.target.value);
+                    setUserPage(1);
+                  }}
+                  className="w-full pl-9 pr-8 py-2 bg-surface border border-outline-variant/60 rounded-lg text-[13px] text-on-surface focus:outline-none focus:border-primary"
+                />
+                {userSearch && (
+                  <button
+                    onClick={() => { setUserSearch(''); setUserPage(1); }}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface bg-transparent border-0 cursor-pointer p-0.5"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Filter by Role */}
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Role:</span>
+                <select
+                  value={userRoleFilter}
+                  onChange={(e) => {
+                    setUserRoleFilter(e.target.value);
+                    setUserPage(1);
+                  }}
+                  className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto"
+                >
+                  <option value="all">All Roles</option>
+                  <option value="admin">Admin</option>
+                  <option value="soc_analyst">SOC Analyst</option>
+                  <option value="org_admin">Organization Admin</option>
+                  <option value="executive_user">Executive User</option>
+                  <option value="super_admin">Super Admin</option>
+                  <option value="support_engineer">Support Engineer</option>
+                  <option value="read_only">Read Only</option>
+                </select>
+              </div>
+
+              {/* Filter by Organization */}
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Organization:</span>
+                <select
+                  value={userOrgFilter}
+                  onChange={(e) => {
+                    setUserOrgFilter(e.target.value);
+                    setUserPage(1);
+                  }}
+                  className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-2 focus:outline-none focus:border-primary cursor-pointer w-full sm:w-auto max-w-[200px] truncate"
+                >
+                  <option value="all">All Organizations</option>
+                  <option value="no_org">No Org (Super Admin / Global)</option>
+                  {(organizations || []).map(org => (
+                    <option key={org.id} value={org.id}>{org.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Reset Button */}
+              {(userSearch || userRoleFilter !== 'all' || userOrgFilter !== 'all') && (
+                <button
+                  onClick={clearUserFilters}
+                  className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1 ml-auto"
+                >
+                  <X className="w-4 h-4" />
+                  Reset Filters
+                </button>
+              )}
+            </div>
+          </div>
+
           <div className="bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden shadow-sm overflow-x-auto hide-scrollbar">
-            {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching users...</div> : (
+            {loading ? <div className="p-10 text-center text-on-surface-variant">Fetching users...</div> : getSortedUsers().length === 0 ? (
+              <div className="p-12 text-center text-on-surface-variant">
+                <Users className="w-8 h-8 text-on-surface-variant/40 mx-auto mb-2" />
+                <p className="font-bold text-[14px] text-on-surface">No members match your filter criteria.</p>
+                <p className="text-[12.5px] text-on-surface-variant mt-1">Try clearing your search terms or filter criteria.</p>
+                {(userSearch || userRoleFilter !== 'all' || userOrgFilter !== 'all') && (
+                  <button onClick={clearUserFilters} className="mt-3 px-3.5 py-1.5 bg-primary/10 text-primary font-bold text-[12px] rounded-lg border border-primary/20 hover:bg-primary/20 cursor-pointer">
+                    Clear All Filters
+                  </button>
+                )}
+              </div>
+            ) : (
               <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant select-none">
                   <tr>
@@ -1429,12 +1573,18 @@ const SuperAdminPanel = () => {
                                 type: 'error',
                                 onConfirm: async () => {
                                   try {
-                                    await fetch(`/api/auth/users/${u.id}`, {
-                                      method: 'DELETE',
-                                      headers: { 'Authorization': `Bearer ${localStorage.getItem('wss_token')}` }
+                                    const res = await authFetch(`/api/auth/users/${u.id}`, {
+                                      method: 'DELETE'
                                     });
-                                    fetchStats();
-                                  } catch (err) { }
+                                    if (res.ok) {
+                                      toast.success('Member deleted successfully');
+                                      fetchStats();
+                                    } else {
+                                      toast.error('Failed to delete member');
+                                    }
+                                  } catch (err) {
+                                    toast.error('Network error deleting member');
+                                  }
                                   closeConfirm();
                                 }
                               });
