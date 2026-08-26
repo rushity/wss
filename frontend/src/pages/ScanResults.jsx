@@ -194,8 +194,26 @@ export const ScanResults = () => {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `LarShield_Report_${scan.id.substring(0, 8)}.pdf`;
+        let filename = '';
+        const disposition = res.headers.get('Content-Disposition');
+        if (disposition && disposition.includes('filename=')) {
+          const match = disposition.match(/filename="?([^";]+)"?/);
+          if (match && match[1]) {
+            filename = match[1];
+          }
+        }
+
+        if (!filename) {
+          const orgName = scan.org_name || scan.organization_name || 'Global';
+          const cleanOrg = orgName.replace(/[^\w]/g, '') || 'Organization';
+          const dateObj = new Date(scan.completed_at || scan.started_at || Date.now());
+          const day = String(dateObj.getDate()).padStart(2, '0');
+          const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+          const year = dateObj.getFullYear();
+          filename = `LarShield_${cleanOrg}_Report_${day}${month}${year}.pdf`;
+        }
+
+        a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();

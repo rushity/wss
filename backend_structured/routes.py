@@ -2284,13 +2284,30 @@ def generate_pdf_report(current_user, scan_id):
         pdf_bytes = io.BytesIO(pdf_bytes_data)
         pdf_bytes.seek(0)
         
-        parsed = urlparse(scan.target_url)
-        domain = parsed.netloc or parsed.path
-        if ':' in domain:
-            domain = domain.split(':')[0]
-            
-        date_str = scan.completed_at.strftime('%Y%m%d_%H%M') if scan.completed_at else 'Unknown'
-        filename = f"{domain}_Scan_Report_{date_str}.pdf"
+        # Fetch organization name for scan
+        org_name = ""
+        if scan.org_id:
+            org = db.session.get(Organization, scan.org_id)
+            if org and org.name:
+                org_name = org.name
+        if not org_name and scan.user_id:
+            user = db.session.get(User, scan.user_id)
+            if user and user.org_id:
+                org = db.session.get(Organization, user.org_id)
+                if org and org.name:
+                    org_name = org.name
+
+        if not org_name:
+            org_name = "Global"
+
+        import re
+        clean_org_name = re.sub(r'[^\w]', '', org_name)
+        if not clean_org_name:
+            clean_org_name = "Organization"
+
+        scan_date = scan.completed_at or scan.created_at or datetime.utcnow()
+        date_str = scan_date.strftime('%d%m%Y')
+        filename = f"LarShield_{clean_org_name}_Report_{date_str}.pdf"
         
         # Store a copy in Firebase Cloud Storage for history
         from utils.firebase_storage import is_available, upload_bytes
@@ -2335,13 +2352,29 @@ def generate_public_pdf_report(scan_id):
         pdf_bytes = io.BytesIO(pdf_bytes_data)
         pdf_bytes.seek(0)
         
-        parsed = urlparse(scan.target_url)
-        domain = parsed.netloc or parsed.path
-        if ':' in domain:
-            domain = domain.split(':')[0]
-            
-        date_str = scan.completed_at.strftime('%Y%m%d_%H%M') if scan.completed_at else 'Unknown'
-        filename = f"{domain}_Scan_Report_{date_str}.pdf"
+        org_name = ""
+        if scan.org_id:
+            org = db.session.get(Organization, scan.org_id)
+            if org and org.name:
+                org_name = org.name
+        if not org_name and scan.user_id:
+            user = db.session.get(User, scan.user_id)
+            if user and user.org_id:
+                org = db.session.get(Organization, user.org_id)
+                if org and org.name:
+                    org_name = org.name
+
+        if not org_name:
+            org_name = "Global"
+
+        import re
+        clean_org_name = re.sub(r'[^\w]', '', org_name)
+        if not clean_org_name:
+            clean_org_name = "Organization"
+
+        scan_date = scan.completed_at or scan.created_at or datetime.utcnow()
+        date_str = scan_date.strftime('%d%m%Y')
+        filename = f"LarShield_{clean_org_name}_Report_{date_str}.pdf"
         
         return send_file(
             pdf_bytes,
