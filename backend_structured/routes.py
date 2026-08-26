@@ -1010,6 +1010,7 @@ def impersonate_org(current_user, org_id):
     db.session.commit()
         
     tokens = _generate_tokens(target_user.id)
+    target_org = db.session.get(Organization, target_user.org_id) if target_user.org_id else None
     return jsonify({
         'message': f'Impersonating {target_user.email}',
         'access_token': tokens['access_token'],
@@ -1017,7 +1018,8 @@ def impersonate_org(current_user, org_id):
             'id': target_user.id,
             'email': target_user.email,
             'role': target_user.role,
-            'org_id': target_user.org_id
+            'org_id': target_user.org_id,
+            'org_name': target_org.name if target_org else 'Organization'
         }
     }), 200
 

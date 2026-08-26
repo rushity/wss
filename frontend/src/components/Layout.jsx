@@ -545,13 +545,13 @@ export const Layout = ({ children }) => {
             <div className="flex items-center gap-sm">
               <span className="material-symbols-outlined text-[20px]">vpn_key</span>
               <span className="font-bold text-[14px]">Impersonation Mode Active</span>
-              <span className="hidden md:inline text-[13px] opacity-90 border-l border-white/30 pl-sm ml-sm">
-                You are currently viewing data for <strong>{organizations.find(o => o.id === user?.org_id)?.name || 'this organization'}</strong>.
+              <span className="text-[13px] opacity-90 border-l border-white/30 pl-sm ml-sm">
+                You are currently viewing data for <strong>{user?.org_name || organizations.find(o => String(o.id) === String(user?.org_id))?.name || 'this organization'}</strong>.
               </span>
             </div>
             <button 
               onClick={handleReturnToAdmin} 
-              className="bg-white text-primary hover:bg-surface-container transition-colors px-3 py-1.5 rounded-md font-bold text-[12px] border-0 cursor-pointer shadow-sm flex items-center gap-xs"
+              className="bg-white text-primary hover:bg-surface-container transition-colors px-3 py-1.5 rounded-md font-bold text-[12px] border-0 cursor-pointer shadow-sm flex items-center gap-xs shrink-0"
             >
               <span className="material-symbols-outlined text-[16px]">exit_to_app</span>
               Return
