@@ -18,6 +18,7 @@ const AdminPage = React.lazy(() => import('./pages/AdminPage').then(module => ({
 const Pricing = React.lazy(() => import('./pages/Pricing'));
 const SuperAdminLogin = React.lazy(() => import('./pages/SuperAdminLogin').then(module => ({ default: module.SuperAdminLogin })));
 const SuperAdminPanel = React.lazy(() => import('./pages/SuperAdminPanel'));
+const SupportEngineerPanel = React.lazy(() => import('./pages/SupportEngineerPanel'));
 
 const OrganizationPage = React.lazy(() => import('./pages/OrganizationPage').then(module => ({ default: module.OrganizationPage })));
 const LogsAndThreats = React.lazy(() => import('./pages/LogsAndThreats'));
@@ -58,6 +59,8 @@ function App() {
                 <Route path="/help" element={<Layout><Help /></Layout>} />
                 <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><Layout><AdminPage /></Layout></ProtectedRoute>} />
                 <Route path="/super-admin" element={<ProtectedRoute requiredRole="super_admin"><Layout><SuperAdminPanel /></Layout></ProtectedRoute>} />
+                <Route path="/support" element={<ProtectedRoute requiredRole={['support_engineer', 'admin', 'super_admin']}><Layout><SupportEngineerPanel /></Layout></ProtectedRoute>} />
+                <Route path="/support-engineer" element={<Navigate to="/support" replace />} />
                 <Route path="/organization" element={<Layout><OrganizationPage /></Layout>} />
                 <Route path="/super-admin/logs" element={<ProtectedRoute requiredRole={['super_admin', 'admin', 'support_engineer']}><Layout><LogsAndThreats /></Layout></ProtectedRoute>} />
               </Route>
