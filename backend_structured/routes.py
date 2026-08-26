@@ -1291,12 +1291,15 @@ def get_global_stats(current_user):
             'timestamp': format_iso_timestamp(a.created_at)
         })
         
-    # Get all users for Members tab
+    # Get all users for Members tab based on privacy rules
     users_data = []
-    if current_user.role == 'admin':
+    if current_user.role == 'super_admin':
+        all_users = User.query.all()
+    elif current_user.role == 'admin':
         all_users = User.query.filter(User.role != 'super_admin').all()
     else:
-        all_users = User.query.all()
+        all_users = User.query.filter(~User.role.in_(['super_admin', 'admin'])).all()
+
     for u in all_users:
         org = db.session.get(Organization, u.org_id) if u.org_id else None
         if org:
@@ -1459,6 +1462,11 @@ def unlock_user(current_user, user_id):
     if not target:
         return jsonify({'message': 'User not found!'}), 404
 
+    if current_user.role == 'admin' and target.role == 'super_admin':
+        return jsonify({'message': 'Permission denied. Admins cannot modify Super Admin accounts.'}), 403
+    if current_user.role not in ('super_admin', 'admin') and target.role in ('super_admin', 'admin'):
+        return jsonify({'message': 'Permission denied.'}), 403
+
     _reset_lockout(target)
     return jsonify({'message': 'User unlocked!'}), 200
 
@@ -1474,8 +1482,16 @@ def update_user(current_user, user_id):
         
     if current_user.role == 'org_admin' and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to modify this user!'}), 403
-        
+
     data = request.get_json() or {}
+
+    if current_user.role == 'admin':
+        if target.role == 'super_admin' or data.get('role') == 'super_admin':
+            return jsonify({'message': 'Permission denied. Admins cannot view, modify, or assign Super Admin accounts.'}), 403
+    elif current_user.role not in ('super_admin', 'admin'):
+        if target.role in ('super_admin', 'admin') or data.get('role') in ('super_admin', 'admin'):
+            return jsonify({'message': 'Permission denied.'}), 403
+        
     if 'first_name' in data:
         target.first_name = data['first_name']
     if 'last_name' in data:
@@ -1511,6 +1527,10 @@ def delete_user(current_user, user_id):
         return jsonify({'message': 'User not found!'}), 404
     if current_user.role == 'support_engineer':
         return jsonify({'message': 'Permission denied. Support Engineers cannot delete members.'}), 403
+    if current_user.role == 'admin' and target.role == 'super_admin':
+        return jsonify({'message': 'Permission denied. Admins cannot delete Super Admin accounts.'}), 403
+    if current_user.role not in ('super_admin', 'admin') and target.role in ('super_admin', 'admin'):
+        return jsonify({'message': 'Permission denied.'}), 403
     if current_user.role not in ('super_admin', 'admin') and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to delete this user!'}), 403
     

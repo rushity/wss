@@ -823,15 +823,25 @@ const SuperAdminPanel = () => {
   };
 
   // Member CRUD
-  const MEMBER_ROLE_OPTIONS = [
-    { label: 'Admin', value: 'admin' },
-    { label: 'SOC Analyst', value: 'soc_analyst' },
-    { label: 'Organization Admin', value: 'org_admin' },
-    { label: 'Executive User', value: 'executive_user' },
-    { label: 'Super Admin', value: 'super_admin' },
-    { label: 'Support Engineer', value: 'support_engineer' },
-    { label: 'Read Only', value: 'read_only' }
-  ];
+  const MEMBER_ROLE_OPTIONS = (user?.role === 'admin'
+    ? [
+        { label: 'Admin', value: 'admin' },
+        { label: 'SOC Analyst', value: 'soc_analyst' },
+        { label: 'Organization Admin', value: 'org_admin' },
+        { label: 'Executive User', value: 'executive_user' },
+        { label: 'Support Engineer', value: 'support_engineer' },
+        { label: 'Read Only', value: 'read_only' }
+      ]
+    : [
+        { label: 'Admin', value: 'admin' },
+        { label: 'SOC Analyst', value: 'soc_analyst' },
+        { label: 'Organization Admin', value: 'org_admin' },
+        { label: 'Executive User', value: 'executive_user' },
+        { label: 'Super Admin', value: 'super_admin' },
+        { label: 'Support Engineer', value: 'support_engineer' },
+        { label: 'Read Only', value: 'read_only' }
+      ]
+  );
 
   const handleAddMember = () => {
     const orgOptions = [
@@ -1522,7 +1532,7 @@ const SuperAdminPanel = () => {
                   <option value="soc_analyst">SOC Analyst</option>
                   <option value="org_admin">Organization Admin</option>
                   <option value="executive_user">Executive User</option>
-                  <option value="super_admin">Super Admin</option>
+                  {user?.role !== 'admin' && <option value="super_admin">Super Admin</option>}
                   <option value="support_engineer">Support Engineer</option>
                   <option value="read_only">Read Only</option>
                 </select>
