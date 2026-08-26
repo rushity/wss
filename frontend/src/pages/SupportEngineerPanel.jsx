@@ -219,6 +219,23 @@ export const SupportEngineerPanel = () => {
   const [userRoleFilter, setUserRoleFilter] = useState('all');
   const [userOrgFilter, setUserOrgFilter] = useState('all');
 
+  // Filter states for Bookings
+  const [bookingSearch, setBookingSearch] = useState('');
+  const [bookingStatusFilter, setBookingStatusFilter] = useState('all');
+
+  const getFilteredBookings = () => {
+    return (demoBookings || []).filter(b => {
+      const displayEmail = b.email || b.user_email || '';
+      const emailMatch = !bookingSearch || 
+        displayEmail.toLowerCase().includes(bookingSearch.toLowerCase()) || 
+        (b.company_size || '').toLowerCase().includes(bookingSearch.toLowerCase()) ||
+        (b.meeting_date || '').toLowerCase().includes(bookingSearch.toLowerCase());
+      
+      const statusMatch = bookingStatusFilter === 'all' || (b.status || 'pending') === bookingStatusFilter;
+      return emailMatch && statusMatch;
+    });
+  };
+
   // Pagination states
   const [orgPage, setOrgPage] = useState(1);
   const [orgPageSize, setOrgPageSize] = useState(25);
@@ -1182,12 +1199,67 @@ export const SupportEngineerPanel = () => {
       {/* BOOKINGS TAB */}
       {activeTab === 'bookings' && (
         <div className="flex flex-col gap-md mb-xl animate-fade-in">
-          <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px] mb-md">
-            <Calendar className="w-5 h-5 text-primary mr-2" /> Demo Bookings & Leads
-          </h2>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-md mb-xs">
+            <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px]">
+              <Calendar className="w-5 h-5 text-primary mr-2" /> Demo Bookings & Leads
+            </h2>
+            <div className="text-[12.5px] font-bold text-on-surface-variant">
+              Total Leads: <span className="text-primary font-extrabold">{getFilteredBookings().length}</span>
+            </div>
+          </div>
+
           <div className="bg-surface border border-outline-variant rounded-2xl overflow-hidden shadow-sm">
-            {demoBookings.length === 0 ? (
-              <div className="p-xl text-center text-on-surface-variant font-bold">No demo bookings found.</div>
+            {/* Filter Controls Bar */}
+            <div className="p-md bg-surface-container-high/40 border-b border-outline-variant/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-md">
+              <div className="flex items-center gap-sm flex-wrap w-full md:w-auto">
+                <div className="relative flex-1 md:w-64">
+                  <Search className="w-4 h-4 absolute left-3 top-2.5 text-on-surface-variant" />
+                  <input 
+                    type="text"
+                    placeholder="Search email, company size, date..."
+                    value={bookingSearch}
+                    onChange={(e) => { setBookingSearch(e.target.value); setBookingPage(1); }}
+                    className="w-full bg-surface border border-outline-variant/60 rounded-lg pl-9 pr-8 py-1.5 text-[13px] outline-none focus:border-primary text-on-surface font-medium"
+                  />
+                  {bookingSearch && (
+                    <button
+                      onClick={() => { setBookingSearch(''); setBookingPage(1); }}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface bg-transparent border-0 cursor-pointer p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider shrink-0">Status:</span>
+                  <select
+                    value={bookingStatusFilter}
+                    onChange={(e) => { setBookingStatusFilter(e.target.value); setBookingPage(1); }}
+                    className="bg-surface border border-outline-variant/60 text-on-surface text-[13px] font-medium rounded-lg px-3 py-1.5 focus:outline-none focus:border-primary cursor-pointer"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="rescheduled">Rescheduled</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                {(bookingSearch || bookingStatusFilter !== 'all') && (
+                  <button
+                    onClick={() => { setBookingSearch(''); setBookingStatusFilter('all'); setBookingPage(1); }}
+                    className="text-error hover:underline text-[12.5px] font-bold flex items-center gap-1 cursor-pointer bg-transparent border-0 px-1 ml-auto md:ml-0"
+                  >
+                    <X className="w-4 h-4" />
+                    Reset Filters
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {getFilteredBookings().length === 0 ? (
+              <div className="p-xl text-center text-on-surface-variant font-bold">No demo bookings match your filter criteria.</div>
             ) : (
               <>
                 <div className="overflow-x-auto">
@@ -1202,7 +1274,7 @@ export const SupportEngineerPanel = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant">
-                      {demoBookings.slice((bookingPage - 1) * bookingPageSize, bookingPage * bookingPageSize).map(b => {
+                      {getFilteredBookings().slice((bookingPage - 1) * bookingPageSize, bookingPage * bookingPageSize).map(b => {
                         const statusStyle =
                           b.status === 'completed'
                             ? 'bg-green-500/10 text-green-600 border-green-500/30'
@@ -1278,7 +1350,7 @@ export const SupportEngineerPanel = () => {
                 </div>
                 <TablePagination
                   currentPage={bookingPage}
-                  totalEntries={demoBookings.length}
+                  totalEntries={getFilteredBookings().length}
                   pageSize={bookingPageSize}
                   onPageChange={setBookingPage}
                   onPageSizeChange={setBookingPageSize}
