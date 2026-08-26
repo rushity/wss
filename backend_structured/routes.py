@@ -1455,7 +1455,7 @@ def update_user(current_user, user_id):
     if current_user.role == 'org_admin' and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to modify this user!'}), 403
         
-    data = request.get_json()
+    data = request.get_json() or {}
     if 'first_name' in data:
         target.first_name = data['first_name']
     if 'last_name' in data:
@@ -1463,17 +1463,19 @@ def update_user(current_user, user_id):
     if 'email' in data:
         new_email = data['email']
         if new_email and new_email != target.email:
-            if User.query.filter_by(email=new_email).first():
+            email_clean = str(new_email).strip().lower()
+            if User.query.filter(func.lower(User.email) == email_clean).first():
                 return jsonify({'message': 'Email already in use'}), 400
-            target.email = new_email
-    if 'password' in data and data['password']:
-        target.set_password(data['password'])
-    if 'role' in data:
-        new_role = data['role']
-        if new_role != target.role:
-            target.role = new_role
+            target.email = email_clean
+    if 'password' in data and data['password'] and str(data['password']).strip():
+        target.set_password(str(data['password']).strip())
+    if 'role' in data and data['role']:
+        target.role = data['role']
+    if 'org_id' in data:
+        new_org_id = data['org_id']
+        target.org_id = new_org_id if new_org_id not in ('', 'none', 'null', None) else None
             
-    log = AuditLog(admin_id=current_user.id, action=f"Updated user {target.email}", target_id=target.org_id)
+    log = AuditLog(admin_id=current_user.id, action=f"Updated user credentials & role for {target.email}", target_id=target.org_id)
     db.session.add(log)
     db.session.commit()
     

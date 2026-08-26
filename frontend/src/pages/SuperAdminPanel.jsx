@@ -838,13 +838,14 @@ const SuperAdminPanel = () => {
       ...(organizations || []).map(o => ({ label: o.name, value: String(o.id) }))
     ];
 
-    setPromptValues({ email: '', role: 'admin', org_id: '' });
+    setPromptValues({ email: '', password: '', role: 'admin', org_id: '' });
     setPromptModal({
       isOpen: true,
       title: 'Add Member',
       desc: 'Invite or add a new global platform member.',
       inputs: [
         { key: 'email', label: 'User Email', placeholder: 'user@example.com' },
+        { key: 'password', label: 'Password (Optional - Auto-generated if left blank)', placeholder: 'Set initial password...', type: 'password' },
         { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
         { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
@@ -857,7 +858,12 @@ const SuperAdminPanel = () => {
           const res = await authFetch('/api/auth/users', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: values.email.trim(), role: values.role, org_id: values.org_id || null })
+            body: JSON.stringify({
+              email: values.email.trim(),
+              role: values.role,
+              org_id: values.org_id || null,
+              password: values.password && values.password.trim() ? values.password.trim() : null
+            })
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok) {
@@ -889,30 +895,36 @@ const SuperAdminPanel = () => {
     setPromptValues({
       email: u.email,
       role: u.role || 'admin',
-      org_id: initialOrgId
+      org_id: initialOrgId,
+      password: ''
     });
 
     setPromptModal({
       isOpen: true,
-      title: 'Edit Member',
-      desc: `Update details for ${u.email}`,
+      title: 'Edit Member & Password',
+      desc: `Update details & credentials for ${u.email}`,
       inputs: [
         { key: 'email', label: 'User Email', disabled: true },
+        { key: 'password', label: 'New Password (Leave blank to keep current password)', placeholder: 'Type new password to update...', type: 'password' },
         { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
         { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
       onConfirm: async (vals) => {
         try {
-          const res = await authFetch(`/api/auth/users/${u.id}/role`, {
+          const res = await authFetch(`/api/auth/users/${u.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ role: vals.role, org_id: vals.org_id || null })
+            body: JSON.stringify({
+              role: vals.role,
+              org_id: vals.org_id || null,
+              password: vals.password && vals.password.trim() ? vals.password.trim() : null
+            })
           });
+          const data = await res.json().catch(() => ({}));
           if (res.ok) {
-            toast.success('Member details updated successfully');
+            toast.success('Member details & password updated successfully');
             fetchStats();
           } else {
-            const data = await res.json();
             toast.error(data.message || 'Failed to update member');
           }
         } catch (err) {
@@ -1883,7 +1895,7 @@ const SuperAdminPanel = () => {
                 </select>
               ) : (
                 <input
-                  type="text"
+                  type={input.type || "text"}
                   value={promptValues[input.key] || ''}
                   onChange={(e) => handlePromptChange(input.key, e.target.value)}
                   placeholder={input.placeholder}
