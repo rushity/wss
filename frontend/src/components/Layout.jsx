@@ -196,9 +196,9 @@ export const Layout = ({ children }) => {
   }
 
   if (user?.role === 'super_admin') {
-    navItems.push({ to: '/super-admin', label: 'Global Management', icon: 'admin_panel_settings' });
+    navItems.push({ to: '/super-admin', label: 'Global Management', icon: 'support_agent' });
   } else if (user?.role === 'support_engineer') {
-    navItems.push({ to: '/support', label: 'Global Management', icon: 'admin_panel_settings' });
+    navItems.push({ to: '/support', label: 'Global Management', icon: 'support_agent' });
   }
 
   return (
