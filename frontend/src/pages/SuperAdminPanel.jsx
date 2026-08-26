@@ -504,6 +504,7 @@ const SuperAdminPanel = () => {
   const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', desc: '', onConfirm: null, type: 'primary' });
   const [promptModal, setPromptModal] = useState({ isOpen: false, title: '', desc: '', inputs: [], onConfirm: null });
   const [promptValues, setPromptValues] = useState({});
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState({});
   const [viewInvoice, setViewInvoice] = useState(null);
   const [rescheduleModal, setRescheduleModal] = useState({
     isOpen: false,
@@ -517,7 +518,7 @@ const SuperAdminPanel = () => {
   });
 
   const closeConfirm = () => setConfirmModal({ isOpen: false, title: '', desc: '', onConfirm: null, type: 'primary' });
-  const closePrompt = () => { setPromptModal({ isOpen: false, title: '', desc: '', inputs: [], onConfirm: null }); setPromptValues({}); };
+  const closePrompt = () => { setPromptModal({ isOpen: false, title: '', desc: '', inputs: [], onConfirm: null }); setPromptValues({}); setShowPasswordPrompt({}); };
 
   const handlePromptChange = (key, value) => setPromptValues(prev => ({ ...prev, [key]: value }));
 
@@ -845,13 +846,18 @@ const SuperAdminPanel = () => {
       desc: 'Invite or add a new global platform member.',
       inputs: [
         { key: 'email', label: 'User Email', placeholder: 'user@example.com' },
-        { key: 'password', label: 'Password (Optional - Auto-generated if left blank)', placeholder: 'Set initial password...', type: 'password' },
+        { key: 'password', label: 'Password (Optional - Auto-generated if left blank)', placeholder: 'Set initial password...', type: 'password', showRules: true },
         { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
         { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
       onConfirm: async (values) => {
         if (!values.email || !values.email.trim()) {
           toast.error('Please enter a valid user email');
+          return;
+        }
+        const pwd = values.password ? values.password.trim() : '';
+        if (pwd && (pwd.length < 8 || !/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[^A-Za-z0-9]/.test(pwd))) {
+          toast.error('Password must meet all 4 security requirements (8+ chars, 1 uppercase, 1 lowercase, 1 special character).');
           return;
         }
         try {
@@ -862,7 +868,7 @@ const SuperAdminPanel = () => {
               email: values.email.trim(),
               role: values.role,
               org_id: values.org_id || null,
-              password: values.password && values.password.trim() ? values.password.trim() : null
+              password: pwd || null
             })
           });
           const data = await res.json().catch(() => ({}));
@@ -905,11 +911,16 @@ const SuperAdminPanel = () => {
       desc: `Update details & credentials for ${u.email}`,
       inputs: [
         { key: 'email', label: 'User Email', disabled: true },
-        { key: 'password', label: 'New Password (Leave blank to keep current password)', placeholder: 'Type new password to update...', type: 'password' },
+        { key: 'password', label: 'New Password (Leave blank to keep current password)', placeholder: 'Type new password to update...', type: 'password', showRules: true },
         { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
         { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
       ],
       onConfirm: async (vals) => {
+        const pwd = vals.password ? vals.password.trim() : '';
+        if (pwd && (pwd.length < 8 || !/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[^A-Za-z0-9]/.test(pwd))) {
+          toast.error('Password must meet all 4 security requirements (8+ chars, 1 uppercase, 1 lowercase, 1 special character).');
+          return;
+        }
         try {
           const res = await authFetch(`/api/auth/users/${u.id}`, {
             method: 'PUT',
@@ -917,7 +928,7 @@ const SuperAdminPanel = () => {
             body: JSON.stringify({
               role: vals.role,
               org_id: vals.org_id || null,
-              password: vals.password && vals.password.trim() ? vals.password.trim() : null
+              password: pwd || null
             })
           });
           const data = await res.json().catch(() => ({}));
@@ -1893,6 +1904,57 @@ const SuperAdminPanel = () => {
                     return <option key={val} value={val}>{lbl}</option>;
                   })}
                 </select>
+              ) : input.type === 'password' ? (
+                <div>
+                  <div className="relative">
+                    <input
+                      type={showPasswordPrompt[input.key] ? "text" : "password"}
+                      value={promptValues[input.key] || ''}
+                      onChange={(e) => handlePromptChange(input.key, e.target.value)}
+                      placeholder={input.placeholder}
+                      disabled={input.disabled}
+                      className="w-full bg-surface-container border border-outline-variant rounded-lg pl-3 pr-10 py-2 focus:border-primary outline-none text-on-surface text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasswordPrompt(prev => ({ ...prev, [input.key]: !prev[input.key] }))}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary bg-transparent border-0 cursor-pointer p-1 flex items-center justify-center"
+                      title={showPasswordPrompt[input.key] ? "Hide password" : "Show password"}
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        {showPasswordPrompt[input.key] ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                  {input.showRules && (promptValues[input.key] || '').length > 0 && (
+                    <div className="flex flex-col gap-1.5 p-3 bg-surface-container-high/60 border border-outline-variant/60 rounded-xl text-xs mt-2 animate-fade-in">
+                      <div className={`flex items-center gap-2 font-medium transition-colors ${(promptValues[input.key] || '').length >= 8 ? 'text-green-600 dark:text-green-500 font-bold' : 'text-on-surface-variant'}`}>
+                        <span className="material-symbols-outlined text-[16px]">
+                          {(promptValues[input.key] || '').length >= 8 ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span>At least 8 characters</span>
+                      </div>
+                      <div className={`flex items-center gap-2 font-medium transition-colors ${/[A-Z]/.test(promptValues[input.key] || '') ? 'text-green-600 dark:text-green-500 font-bold' : 'text-on-surface-variant'}`}>
+                        <span className="material-symbols-outlined text-[16px]">
+                          {/[A-Z]/.test(promptValues[input.key] || '') ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span>One uppercase letter</span>
+                      </div>
+                      <div className={`flex items-center gap-2 font-medium transition-colors ${/[a-z]/.test(promptValues[input.key] || '') ? 'text-green-600 dark:text-green-500 font-bold' : 'text-on-surface-variant'}`}>
+                        <span className="material-symbols-outlined text-[16px]">
+                          {/[a-z]/.test(promptValues[input.key] || '') ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span>One lowercase letter</span>
+                      </div>
+                      <div className={`flex items-center gap-2 font-medium transition-colors ${/[^A-Za-z0-9]/.test(promptValues[input.key] || '') ? 'text-green-600 dark:text-green-500 font-bold' : 'text-on-surface-variant'}`}>
+                        <span className="material-symbols-outlined text-[16px]">
+                          {/[^A-Za-z0-9]/.test(promptValues[input.key] || '') ? 'check_circle' : 'radio_button_unchecked'}
+                        </span>
+                        <span>One special character</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <input
                   type={input.type || "text"}
