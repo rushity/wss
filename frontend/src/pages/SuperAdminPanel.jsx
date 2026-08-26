@@ -382,7 +382,7 @@ const SuperAdminPanel = () => {
 
       if (userOrgFilter !== 'all') {
         if (userOrgFilter === 'no_org') {
-          if (u.org_id || (u.org_name && u.org_name !== 'No Org (Super Admin)')) return false;
+          if (u.org_id || (u.org_name && !u.org_name.startsWith('No Org'))) return false;
         } else {
           if (String(u.org_id) !== String(userOrgFilter) && u.org_name !== userOrgFilter) return false;
         }

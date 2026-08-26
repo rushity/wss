@@ -1299,12 +1299,27 @@ def get_global_stats(current_user):
         all_users = User.query.all()
     for u in all_users:
         org = db.session.get(Organization, u.org_id) if u.org_id else None
+        if org:
+            org_name = org.name
+        elif u.role == 'super_admin':
+            org_name = 'No Org (Super Admin)'
+        elif u.role == 'admin':
+            org_name = 'No Org (Admin)'
+        elif u.role == 'support_engineer':
+            org_name = 'No Org (Support Engineer)'
+        elif u.role == 'soc_analyst':
+            org_name = 'No Org (SOC Analyst)'
+        elif u.role == 'executive_user':
+            org_name = 'No Org (Executive)'
+        else:
+            org_name = 'No Org'
+
         users_data.append({
             'id': u.id,
             'email': u.email,
             'role': u.role,
             'org_id': u.org_id,
-            'org_name': org.name if org else 'No Org (Super Admin)',
+            'org_name': org_name,
             'created_at': u.created_at.isoformat() + 'Z' if u.created_at else None
         })
 
