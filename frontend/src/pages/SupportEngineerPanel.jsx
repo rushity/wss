@@ -666,7 +666,7 @@ export const SupportEngineerPanel = () => {
             Sync Metrics
           </button>
           <button 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/organization')}
             className="flex items-center gap-1.5 px-3.5 py-1.5 bg-surface-container border border-outline-variant hover:bg-surface-container-high text-on-surface rounded-lg font-bold text-[12.5px] cursor-pointer transition-all shadow-2xs"
           >
             <BarChart3 className="w-3.5 h-3.5 text-primary" />
