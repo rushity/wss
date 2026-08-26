@@ -169,50 +169,46 @@ export const OrganizationPage = () => {
 
   return (
     <div className="w-full text-on-surface animate-fade-in pb-xl">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-xl gap-sm border-b border-outline-variant/60 pb-md">
         <div>
-          <h1 className="text-[28px] font-extrabold font-display tracking-tight brand-gradient flex items-center gap-2">
-            <Globe className="w-8 h-8 text-primary" />
-            LarShield Global Management
+          <h1 className="font-extrabold text-on-surface tracking-tight text-[24px] m-0 flex items-center gap-1.5">
+            Support Engineer <span className="text-primary">Operations</span>
           </h1>
-          <p className="text-on-surface-variant text-[14px] mt-1">Centralized oversight for all client organizations, scans, and security nodes.</p>
+          <p className="font-body-md text-on-surface-variant text-[13.5px] mt-1 m-0">
+            Client environment inspection, troubleshooting assistance, and system logs.
+          </p>
         </div>
-        <div className="flex gap-sm flex-wrap">
-          <button onClick={fetchData} className="flex items-center px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[13.5px] cursor-pointer">
-            <Activity className={`w-4 h-4 mr-2 text-primary ${loading ? 'animate-spin' : ''}`} /> Sync Metrics
+        <div className="flex gap-sm flex-wrap items-center">
+          <button onClick={fetchData} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
+            <Activity className={`w-3.5 h-3.5 mr-1.5 text-primary ${loading ? 'animate-spin' : ''}`} /> Sync Metrics
           </button>
-          <button onClick={() => navigate('/super-admin')} className="flex items-center px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[13.5px] cursor-pointer">
-            <Lock className="w-4 h-4 mr-2 text-primary" /> Manage Pricing
+          <button onClick={() => navigate('/support')} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
+            <Activity className="w-3.5 h-3.5 mr-1.5 text-primary" /> Global Management
           </button>
-          <button onClick={() => navigate('/organization')} className="flex items-center px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[13.5px] cursor-pointer">
-            <Activity className="w-4 h-4 mr-2 text-primary" /> Org Dashboard
+          <button onClick={() => navigate('/super-admin/logs')} className="flex items-center px-3.5 py-1.5 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12.5px] cursor-pointer shadow-2xs">
+            <ShieldAlert className="w-3.5 h-3.5 mr-1.5 text-primary" /> Logs & Threats
           </button>
-          <button onClick={() => navigate('/super-admin/logs')} className="flex items-center px-md py-sm bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[13.5px] cursor-pointer">
-            <ShieldAlert className="w-4 h-4 mr-2 text-primary" /> Logs & Threats
-          </button>
-          <button onClick={() => navigate(-1)} className="flex items-center px-md py-sm bg-primary text-white rounded-lg hover:brightness-110 transition-all font-bold text-[13.5px] border-0 cursor-pointer shadow-md shadow-primary/20">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back
+          <button onClick={() => navigate(-1)} className="flex items-center px-4 py-1.5 bg-primary text-white rounded-lg hover:brightness-110 transition-all font-bold text-[13px] border-0 cursor-pointer shadow-sm">
+            <ArrowLeft className="w-3.5 h-3.5 mr-1" /> Back
           </button>
         </div>
       </div>
 
-
-
       {/* Top Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
         {[
-          { title: 'Security Score', value: `${score}/100`, icon: Shield, color: score > 80 ? 'text-green-500' : score > 50 ? 'text-orange-500' : 'text-error', bg: score > 80 ? 'bg-green-500/10' : score > 50 ? 'bg-orange-500/10' : 'bg-error/10', border: score > 80 ? 'border-green-500/20' : score > 50 ? 'border-orange-500/20' : 'border-error/20' },
-          { title: 'Active Assets', value: activeAssets.toString(), icon: Globe, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
-          { title: 'Total Scans', value: filteredScans.length.toString(), icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-          { title: 'Open Risks', value: totalVulnerabilities.toString(), icon: ShieldAlert, color: totalVulnerabilities > 0 ? 'text-orange-500' : 'text-green-500', bg: totalVulnerabilities > 0 ? 'bg-orange-500/10' : 'bg-green-500/10', border: totalVulnerabilities > 0 ? 'border-orange-500/20' : 'border-green-500/20' }
+          { title: 'SECURITY SCORE', value: `${score}/100`, icon: Shield, color: score > 80 ? 'text-green-500' : score > 50 ? 'text-orange-500' : 'text-error', bg: score > 80 ? 'bg-green-500/10 border-green-500/20' : score > 50 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-error/10 border-error/20' },
+          { title: 'ACTIVE ASSETS', value: activeAssets.toString(), icon: Globe, color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
+          { title: 'TOTAL SCANS', value: filteredScans.length.toString(), icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20' },
+          { title: 'OPEN RISKS', value: totalVulnerabilities.toString(), icon: ShieldAlert, color: totalVulnerabilities > 0 ? 'text-orange-500' : 'text-green-500', bg: totalVulnerabilities > 0 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-green-500/10 border-green-500/20' }
         ].map((metric, i) => (
-          <div key={i} className="bg-surface-container-lowest border border-outline-variant p-md rounded-2xl shadow-sm hover:shadow-md transition-all group">
-            <div className="flex justify-between items-start">
+          <div key={i} className="bg-surface-container-lowest border border-outline-variant p-lg rounded-2xl shadow-2xs hover:shadow-md transition-all group">
+            <div className="flex justify-between items-center">
               <div>
-                <p className="text-on-surface-variant font-bold text-[12px] uppercase tracking-wider mb-1">{metric.title}</p>
-                <h3 className="text-[32px] font-extrabold tracking-tight text-on-surface">{metric.value}</h3>
+                <p className="text-on-surface-variant font-bold text-[12px] uppercase tracking-wider mb-1.5">{metric.title}</p>
+                <h3 className="text-[30px] font-extrabold tracking-tight text-on-surface leading-none">{metric.value}</h3>
               </div>
-              <div className={`${metric.bg} ${metric.border} p-2.5 rounded-xl border group-hover:scale-110 transition-transform`}>
+              <div className={`${metric.bg} p-3 rounded-xl border group-hover:scale-110 transition-transform flex items-center justify-center`}>
                 <metric.icon className={`${metric.color} w-6 h-6`} />
               </div>
             </div>
