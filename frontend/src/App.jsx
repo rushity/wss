@@ -6,25 +6,23 @@ import { Layout } from './components/Layout';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from 'react-hot-toast';
 
-const LandingPage = React.lazy(() => import('./pages/LandingPage').then(module => ({ default: module.LandingPage })));
-const Login = React.lazy(() => import('./pages/Login').then(module => ({ default: module.Login })));
-const Register = React.lazy(() => import('./pages/Register').then(module => ({ default: module.Register })));
-const Dashboard = React.lazy(() => import('./pages/Dashboard').then(module => ({ default: module.Dashboard })));
-const NewScan = React.lazy(() => import('./pages/NewScan').then(module => ({ default: module.NewScan })));
-const ScanResults = React.lazy(() => import('./pages/ScanResults').then(module => ({ default: module.ScanResults })));
-const AlertSettingsPage = React.lazy(() => import('./pages/Settings').then(module => ({ default: module.AlertSettingsPage })));
-const ReportsHistory = React.lazy(() => import('./pages/ReportsHistory').then(module => ({ default: module.ReportsHistory })));
-const AdminPage = React.lazy(() => import('./pages/AdminPage').then(module => ({ default: module.AdminPage })));
-const Pricing = React.lazy(() => import('./pages/Pricing'));
-const SuperAdminLogin = React.lazy(() => import('./pages/SuperAdminLogin').then(module => ({ default: module.SuperAdminLogin })));
-const SuperAdminPanel = React.lazy(() => import('./pages/SuperAdminPanel'));
-const SupportEngineerPanel = React.lazy(() => import('./pages/SupportEngineerPanel'));
-
-const OrganizationPage = React.lazy(() => import('./pages/OrganizationPage').then(module => ({ default: module.OrganizationPage })));
-const LogsAndThreats = React.lazy(() => import('./pages/LogsAndThreats'));
-const Profile = React.lazy(() => import('./pages/Profile'));
-const Help = React.lazy(() => import('./pages/Help').then(module => ({ default: module.Help })));
-const LegalPage = React.lazy(() => import('./pages/LegalPage').then(module => ({ default: module.LegalPage })));
+import { LandingPage } from './pages/LandingPage';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
+import { NewScan } from './pages/NewScan';
+import { ScanResults } from './pages/ScanResults';
+import { AlertSettingsPage } from './pages/Settings';
+import { ReportsHistory } from './pages/ReportsHistory';
+import Pricing from './pages/Pricing';
+import { SuperAdminLogin } from './pages/SuperAdminLogin';
+import SuperAdminPanel from './pages/SuperAdminPanel';
+import SupportEngineerPanel from './pages/SupportEngineerPanel';
+import { OrganizationPage } from './pages/OrganizationPage';
+import LogsAndThreats from './pages/LogsAndThreats';
+import Profile from './pages/Profile';
+import { Help } from './pages/Help';
+import { LegalPage } from './pages/LegalPage';
 
 function App() {
   return (
