@@ -167,7 +167,7 @@ export const Dashboard = () => {
       const activeToken = getToken();
       const [summaryRes, historyRes] = await Promise.all([
         fetch('/api/vulnerabilities/summary', { headers: { 'Authorization': `Bearer ${activeToken}` } }),
-        fetch('/api/scans/history',            { headers: { 'Authorization': `Bearer ${activeToken}` } })
+        fetch('/api/scans/history?limit=100',   { headers: { 'Authorization': `Bearer ${activeToken}` } })
       ]);
 
       if (!summaryRes.ok || !historyRes.ok) return;

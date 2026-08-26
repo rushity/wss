@@ -44,6 +44,8 @@ htmlcov/
 
 # === Database (local SQLite) ===
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
 
 # === Uploads (moved to Firebase Storage) ===

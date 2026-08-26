@@ -18,6 +18,16 @@ import urllib.parse
 from datetime import timedelta
 from typing import Optional, Union, Any
 
+try:
+    import firebase_admin
+    from firebase_admin import credentials, storage
+    HAS_FIREBASE = True
+except ImportError:
+    firebase_admin = None  # type: ignore
+    credentials = None     # type: ignore
+    storage = None         # type: ignore
+    HAS_FIREBASE = False
+
 logger = logging.getLogger(__name__)
 
 # Firebase references — lazily initialized
@@ -56,6 +66,14 @@ def init_firebase(force_reinit: bool = False) -> bool:
     if _initialized and not force_reinit and _bucket is not None:
         return True
 
+    if not HAS_FIREBASE or firebase_admin is None or credentials is None or storage is None:
+        logger.warning(
+            "[Firebase] firebase_admin package is not installed. "
+            "File uploads will fall back to local disk."
+        )
+        _initialized = True
+        return False
+
     creds_path = _get_credentials_path()
     bucket_name = _get_bucket_name()
 
@@ -68,9 +86,6 @@ def init_firebase(force_reinit: bool = False) -> bool:
         return False
 
     try:
-        import firebase_admin
-        from firebase_admin import credentials, storage
-
         # Parse credentials from file, raw JSON string, or base64 JSON
         cred = None
         if os.path.isfile(creds_path):
@@ -107,13 +122,6 @@ def init_firebase(force_reinit: bool = False) -> bool:
         logger.info(f"[Firebase] Initialized successfully. Bucket: {bucket_name}")
         return True
 
-    except ImportError:
-        logger.warning(
-            "[Firebase] firebase_admin package is not installed. "
-            "File uploads will fall back to local disk."
-        )
-        _initialized = True
-        return False
     except Exception as e:
         logger.error(f"[Firebase] Initialization failed: {e}")
         _initialized = True

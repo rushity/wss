@@ -53,7 +53,7 @@ export const ReportsHistory = () => {
 
   const fetchScanHistory = async () => {
     try {
-      const res = await fetch('/api/scans/history', {
+      const res = await fetch('/api/scans/history?limit=100', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {

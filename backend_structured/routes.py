@@ -1823,7 +1823,7 @@ def fetch_scan_logs(current_user, scan_id):
 def get_scans_history(current_user):
     try:
 
-        limit_val = request.args.get('limit', 500, type=int)
+        limit_val = min(request.args.get('limit', 100, type=int), 200)
         org_id_param = request.args.get('org_id')
         is_global = request.args.get('global') == 'true'
 
@@ -1904,20 +1904,28 @@ def get_scan_details(current_user, scan_id):
         if not scan:
             return jsonify({"message": "Scan session not found!"}), 404
 
-        crit = Vulnerability.query.filter_by(
-            scan_id=scan.id, severity="Critical"
-        ).filter(Vulnerability.is_false_positive.isnot(True)).count()
-        high = Vulnerability.query.filter_by(
-            scan_id=scan.id, severity="High"
-        ).filter(Vulnerability.is_false_positive.isnot(True)).count()
-        med = Vulnerability.query.filter_by(
-            scan_id=scan.id, severity="Medium"
-        ).filter(Vulnerability.is_false_positive.isnot(True)).count()
-        low = Vulnerability.query.filter_by(
-            scan_id=scan.id, severity="Low"
-        ).filter(Vulnerability.is_false_positive.isnot(True)).count()
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+        vuln_counts = (
+            db.session.query(
+                Vulnerability.severity,
+                func.count(Vulnerability.id)
+            )
+            .filter(
+                Vulnerability.scan_id == scan.id,
+                Vulnerability.is_false_positive.isnot(True)
+            )
+            .group_by(Vulnerability.severity)
+            .all()
+        )
+        for severity, count in vuln_counts:
+            if severity and severity.lower() in counts:
+                counts[severity.lower()] = count
 
-        counts = {"critical": crit, "high": high, "medium": med, "low": low}
+        crit = counts["critical"]
+        high = counts["high"]
+        med = counts["medium"]
+        low = counts["low"]
+
         effective_score = scan.security_score
         if scan.status == "completed":
             effective_score = calculate_security_score_from_counts(counts)
@@ -1931,10 +1939,8 @@ def get_scan_details(current_user, scan_id):
                         "scan_type": scan.scan_type,
                         "status": scan.status,
                         "security_score": effective_score,
-                        "started_at": scan.started_at.isoformat() + "Z",
-                        "completed_at": (
-                            scan.completed_at.isoformat() + "Z"
-                        ) if scan.completed_at else None,
+                        "started_at": format_iso_timestamp(scan.started_at),
+                        "completed_at": format_iso_timestamp(scan.completed_at),
                         "vulnerabilities_count": {
                             "critical": crit,
                             "high": high,
@@ -1991,7 +1997,7 @@ def get_scan_vulnerabilities(current_user, scan_id):
                     "cvss_score": v.cvss_score,
                     "description": v.description,
                     "remediation": v.remediation,
-                    "detected_at": v.detected_at.isoformat() + "Z",
+                    "detected_at": format_iso_timestamp(v.detected_at),
                     "evidence": v.evidence or "",
                     "payload": v.payload or "",
                     "request_details": v.request_details or "",

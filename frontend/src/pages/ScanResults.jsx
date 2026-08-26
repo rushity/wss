@@ -99,7 +99,7 @@ export const ScanResults = () => {
 
   const loadScanHistory = async () => {
     try {
-      const res = await fetch('/api/scans/history', {
+      const res = await fetch('/api/scans/history?limit=100', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (res.ok) {
@@ -138,12 +138,14 @@ export const ScanResults = () => {
   const fetchScanData = async (id, page = 1) => {
     setLoading(true);
     try {
-      const scanRes = await fetch(`/api/scans/${id}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const vulnsRes = await fetch(`/api/scans/${id}/vulnerabilities?page=${page}&limit=50`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const [scanRes, vulnsRes] = await Promise.all([
+        fetch(`/api/scans/${id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`/api/scans/${id}/vulnerabilities?page=${page}&limit=50`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ]);
 
       if (scanRes.ok && vulnsRes.ok) {
         const scanData = await scanRes.json();
@@ -175,9 +177,12 @@ export const ScanResults = () => {
         
         // Reset selected vuln when changing scans
         setSelectedVuln(null);
+      } else {
+        setError("Failed to fetch scan details.");
       }
     } catch (err) {
       console.error("Error fetching scan details", err);
+      setError("Failed to connect to scanner service.");
     } finally {
       setLoading(false);
     }
