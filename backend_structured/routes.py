@@ -1126,7 +1126,6 @@ def get_email_logs(current_user):
 @auth_bp.route('/global-stats', methods=['GET'])
 @token_required
 @require_role(['super_admin', 'admin', 'support_engineer'])
-@cache.cached(timeout=300, query_string=True)
 def get_global_stats(current_user):
     # Calculate stats
     total_orgs = Organization.query.count()

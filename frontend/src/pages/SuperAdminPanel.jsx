@@ -1559,7 +1559,17 @@ const SuperAdminPanel = () => {
                   {getSortedUsers().slice((userPage - 1) * userPageSize, userPage * userPageSize).map((u) => (
                     <tr key={u.id} className="hover:bg-surface-container transition-colors group">
                       <td className="px-md py-sm font-bold text-on-surface text-[14px]">{u.email}</td>
-                      <td className="px-md py-sm"><span className="px-2 py-0.5 rounded border text-[11px] font-bold tracking-wide bg-surface-container-high border-outline-variant text-on-surface-variant">{u.role}</span></td>
+                      <td className="px-md py-sm">
+                        <span className={`px-2.5 py-1 rounded-md border text-[11px] font-extrabold tracking-wide uppercase ${
+                          u.role === 'super_admin' ? 'bg-purple-500/10 text-purple-500 border-purple-500/30' :
+                          u.role === 'support_engineer' ? 'bg-blue-500/10 text-blue-500 border-blue-500/30' :
+                          u.role === 'soc_analyst' ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' :
+                          u.role === 'org_admin' || u.role === 'admin' ? 'bg-primary/10 text-primary border-primary/30' :
+                          'bg-surface-container-high border-outline-variant text-on-surface-variant'
+                        }`}>
+                          {u.role ? u.role.replace(/_/g, ' ') : 'User'}
+                        </span>
+                      </td>
                       <td className="px-md py-sm text-[13px] font-semibold text-on-surface-variant">{u.org_name}</td>
                       <td className="px-md py-sm text-right flex justify-end gap-2">
                         {!isSupportEngineer ? (
