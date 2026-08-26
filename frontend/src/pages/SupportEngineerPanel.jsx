@@ -653,7 +653,7 @@ export const SupportEngineerPanel = () => {
                 onClick={openActiveScansModal}
                 className="w-full bg-surface-container border border-outline-variant text-primary py-2.5 rounded-xl text-[13px] font-bold hover:bg-primary/10 hover:border-primary/30 cursor-pointer transition-colors flex items-center justify-center gap-2 shadow-2xs"
               >
-                <span className="material-symbols-outlined text-[18px]">screen_search</span>
+                <Eye className="w-4 h-4 text-primary" />
                 Inspect Active Scans
               </button>
             </div>

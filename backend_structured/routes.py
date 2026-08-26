@@ -1539,7 +1539,7 @@ scans_bp = Blueprint("scans", __name__)
 def get_active_scans(current_user):
     # If not admin/super admin, only show their own org's scans
     query = Scan.query.filter(Scan.status.in_(['queued', 'scanning']))
-    if current_user.role not in ('super_admin', 'support_engineer'):
+    if current_user.role not in ('super_admin', 'admin', 'support_engineer'):
         query = query.filter_by(org_id=current_user.org_id)
         
     scans = query.order_by(Scan.started_at.desc()).all()
@@ -1561,14 +1561,14 @@ def terminate_scan(current_user, scan_id):
     if not scan:
         return jsonify({'message': 'Scan not found'}), 404
         
-    if current_user.role not in ('super_admin', 'support_engineer') and scan.org_id != current_user.org_id:
+    if current_user.role not in ('super_admin', 'admin', 'support_engineer') and scan.org_id != current_user.org_id:
         return jsonify({'message': 'Permission denied'}), 403
         
     scan.status = 'terminated'
     db.session.commit()
     
     # Log the action
-    if current_user.role in ('super_admin', 'support_engineer'):
+    if current_user.role in ('super_admin', 'admin', 'support_engineer'):
         log = AuditLog(admin_id=current_user.id, action=f"Terminated scan {scan_id}", target_id=scan.org_id)
         db.session.add(log)
         db.session.commit()
