@@ -860,10 +860,10 @@ export const SupportEngineerPanel = () => {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xs">
             <div>
               <h2 className="font-headline-sm font-bold text-on-surface flex items-center text-[18px]">
-                <Users className="w-5 h-5 text-primary mr-2" /> Global Members
+                <Users className="w-5 h-5 text-primary mr-2" /> Global Members (Read-Only)
               </h2>
               <p className="text-[13px] text-on-surface-variant mt-0.5">
-                Inspect user accounts, assign roles, and modify client organization mapping.
+                Inspect user accounts, assigned roles, and organization mappings across all platform tenants.
               </p>
             </div>
           </div>
@@ -950,13 +950,13 @@ export const SupportEngineerPanel = () => {
               <table className="w-full text-left text-sm border-collapse">
                 <thead className="bg-surface-container text-on-surface-variant border-b border-outline-variant select-none">
                   <tr>
-                    {['Email', 'Role', 'Organization', 'Actions'].map((h, i) => (
+                    {['Email', 'Role', 'Organization'].map((h) => (
                       <th 
                         key={h} 
                         onClick={() => handleUserSort(h)}
-                        className={`px-md py-sm font-bold text-[12px] uppercase tracking-wider ${i === 3 ? 'text-right' : ''} ${h !== 'Actions' ? 'cursor-pointer hover:bg-surface-container-highest transition-colors group' : ''}`}
+                        className="px-md py-sm font-bold text-[12px] uppercase tracking-wider cursor-pointer hover:bg-surface-container-highest transition-colors group"
                       >
-                        <div className={`flex items-center gap-xs ${i === 3 ? 'justify-end' : ''}`}>
+                        <div className="flex items-center gap-xs">
                           {h}
                         </div>
                       </th>
@@ -979,15 +979,6 @@ export const SupportEngineerPanel = () => {
                         </span>
                       </td>
                       <td className="px-md py-sm text-[13px] font-semibold text-on-surface-variant">{u.org_name}</td>
-                      <td className="px-md py-sm text-right flex justify-end gap-2">
-                        <button
-                          onClick={() => handleEditMember(u)}
-                          className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1"
-                          title="Edit Member Role & Organization"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                      </td>
                     </tr>
                   ))}
                 </tbody>

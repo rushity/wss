@@ -1452,8 +1452,8 @@ def update_user(current_user, user_id):
     if not target:
         return jsonify({'message': 'User not found!'}), 404
         
-    if current_user.role not in ('org_admin', 'super_admin', 'admin', 'support_engineer'):
-        return jsonify({'message': 'Permission denied'}), 403
+    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
+        return jsonify({'message': 'Permission denied. Support Engineers have read-only access to members.'}), 403
         
     if current_user.role == 'org_admin' and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to modify this user!'}), 403
