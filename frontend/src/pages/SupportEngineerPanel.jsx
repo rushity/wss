@@ -146,11 +146,19 @@ export const SupportEngineerPanel = () => {
   const [activeTab, setActiveTab] = useState(() => {
     try {
       const params = new URLSearchParams(window.location.search);
-      return params.get('tab') || 'overview';
+      const tabFromUrl = params.get('tab');
+      const storedTab = localStorage.getItem('supportEngineerActiveTab');
+      return tabFromUrl || storedTab || 'overview';
     } catch (e) {
       return 'overview';
     }
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('supportEngineerActiveTab', activeTab);
+    } catch (e) {}
+  }, [activeTab]);
 
   // Billing Sorting State
   const [sortBillCol, setSortBillCol] = useState('Date');
