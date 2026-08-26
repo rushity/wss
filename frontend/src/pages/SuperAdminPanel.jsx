@@ -1275,8 +1275,8 @@ const SuperAdminPanel = () => {
                 </div>
                 <div className="flex justify-between items-center text-[12.5px]"><span className="text-on-surface-variant font-semibold">Queue Size</span><span className="font-bold text-on-surface">{metrics.queue_size || 0} scans</span></div>
               </div>
-              <button onClick={openActiveScansModal} className="w-full mt-2 bg-surface-container border border-outline-variant text-error py-2 rounded-lg text-[13px] font-bold hover:bg-error/10 hover:border-error/30 cursor-pointer transition-colors flex items-center justify-center gap-xs">
-                <span className="material-symbols-outlined text-[16px]">stop_circle</span> Inspect Active Scans {!isSupportEngineer && '(Kill Switch)'}
+              <button onClick={openActiveScansModal} className="w-full mt-2 bg-surface-container border border-outline-variant text-primary py-2 rounded-lg text-[13px] font-bold hover:bg-primary/10 hover:border-primary/30 cursor-pointer transition-colors flex items-center justify-center gap-xs">
+                <Eye className="w-4 h-4 text-primary mr-1" /> Inspect Active Scans
               </button>
             </div>
 
