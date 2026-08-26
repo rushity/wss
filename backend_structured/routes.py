@@ -2380,12 +2380,14 @@ def generate_pdf_report(current_user, scan_id):
         
         pdf_bytes.seek(0)
         
-        return send_file(
+        resp = send_file(
             pdf_bytes,
             mimetype='application/pdf',
             as_attachment=True,
             download_name=filename
         )
+        resp.headers['Access-Control-Expose-Headers'] = 'Content-Disposition'
+        return resp
     except Exception as e:
         import traceback
         traceback.print_exc()

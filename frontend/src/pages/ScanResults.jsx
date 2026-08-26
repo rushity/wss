@@ -199,6 +199,7 @@ export const ScanResults = () => {
         const blob = await res.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
+        a.href = url;
         let filename = '';
         const disposition = res.headers.get('Content-Disposition');
         if (disposition && disposition.includes('filename=')) {
@@ -222,7 +223,7 @@ export const ScanResults = () => {
         document.body.appendChild(a);
         a.click();
         a.remove();
-        window.URL.revokeObjectURL(url);
+        setTimeout(() => window.URL.revokeObjectURL(url), 100);
       } else {
         setError("Failed to compile PDF Report. Server error.");
       }
