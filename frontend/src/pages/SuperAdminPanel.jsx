@@ -898,6 +898,8 @@ const SuperAdminPanel = () => {
       if (match) initialOrgId = String(match.id);
     }
 
+    const isSupport = user?.role === 'support_engineer';
+
     setPromptValues({
       email: u.email,
       role: u.role || 'admin',
@@ -905,19 +907,33 @@ const SuperAdminPanel = () => {
       password: ''
     });
 
+    const modalInputs = [
+      { key: 'email', label: 'User Email', disabled: true }
+    ];
+
+    if (!isSupport) {
+      modalInputs.push({
+        key: 'password',
+        label: 'New Password (Leave blank to keep current password)',
+        placeholder: 'Type new password to update...',
+        type: 'password',
+        showRules: true
+      });
+    }
+
+    modalInputs.push(
+      { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
+      { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
+    );
+
     setPromptModal({
       isOpen: true,
-      title: 'Edit Member & Password',
-      desc: `Update details & credentials for ${u.email}`,
-      inputs: [
-        { key: 'email', label: 'User Email', disabled: true },
-        { key: 'password', label: 'New Password (Leave blank to keep current password)', placeholder: 'Type new password to update...', type: 'password', showRules: true },
-        { key: 'role', label: 'Role', type: 'select', options: MEMBER_ROLE_OPTIONS },
-        { key: 'org_id', label: 'Organization', type: 'select', options: orgOptions }
-      ],
+      title: isSupport ? 'Edit Member Role & Organization' : 'Edit Member & Password',
+      desc: isSupport ? `Update role & organization mapping for ${u.email}` : `Update details & credentials for ${u.email}`,
+      inputs: modalInputs,
       onConfirm: async (vals) => {
         const pwd = vals.password ? vals.password.trim() : '';
-        if (pwd && (pwd.length < 8 || !/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[^A-Za-z0-9]/.test(pwd))) {
+        if (pwd && !isSupport && (pwd.length < 8 || !/[A-Z]/.test(pwd) || !/[a-z]/.test(pwd) || !/[^A-Za-z0-9]/.test(pwd))) {
           toast.error('Password must meet all 4 security requirements (8+ chars, 1 uppercase, 1 lowercase, 1 special character).');
           return;
         }
@@ -928,12 +944,12 @@ const SuperAdminPanel = () => {
             body: JSON.stringify({
               role: vals.role,
               org_id: vals.org_id || null,
-              password: pwd || null
+              password: (!isSupport && pwd) ? pwd : null
             })
           });
           const data = await res.json().catch(() => ({}));
           if (res.ok) {
-            toast.success('Member details & password updated successfully');
+            toast.success('Member details updated successfully');
             fetchStats();
           } else {
             toast.error(data.message || 'Failed to update member');
@@ -1595,36 +1611,38 @@ const SuperAdminPanel = () => {
                       </td>
                       <td className="px-md py-sm text-[13px] font-semibold text-on-surface-variant">{u.org_name}</td>
                       <td className="px-md py-sm text-right flex justify-end gap-2">
-                        {!isSupportEngineer ? (
-                          <>
-                            <button onClick={() => handleEditMember(u)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1"><Edit className="w-4 h-4" /></button>
-                            <button onClick={() => {
-                              setConfirmModal({
-                                isOpen: true,
-                                title: 'Delete Member',
-                                desc: `Are you sure you want to delete ${u.email}?`,
-                                type: 'error',
-                                onConfirm: async () => {
-                                  try {
-                                    const res = await authFetch(`/api/auth/users/${u.id}`, {
-                                      method: 'DELETE'
-                                    });
-                                    if (res.ok) {
-                                      toast.success('Member deleted successfully');
-                                      fetchStats();
-                                    } else {
-                                      toast.error('Failed to delete member');
-                                    }
-                                  } catch (err) {
-                                    toast.error('Network error deleting member');
+                        <button
+                          onClick={() => handleEditMember(u)}
+                          className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1"
+                          title={isSupportEngineer ? "Edit Member Role & Organization" : "Edit Member Details & Password"}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        {!isSupportEngineer && (
+                          <button onClick={() => {
+                            setConfirmModal({
+                              isOpen: true,
+                              title: 'Delete Member',
+                              desc: `Are you sure you want to delete ${u.email}?`,
+                              type: 'error',
+                              onConfirm: async () => {
+                                try {
+                                  const res = await authFetch(`/api/auth/users/${u.id}`, {
+                                    method: 'DELETE'
+                                  });
+                                  if (res.ok) {
+                                    toast.success('Member deleted successfully');
+                                    fetchStats();
+                                  } else {
+                                    toast.error('Failed to delete member');
                                   }
-                                  closeConfirm();
+                                } catch (err) {
+                                  toast.error('Network error deleting member');
                                 }
-                              });
-                            }} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1"><Trash2 className="w-4 h-4" /></button>
-                          </>
-                        ) : (
-                          <span className="text-on-surface-variant text-xs italic">Read Only</span>
+                                closeConfirm();
+                              }
+                            });
+                          }} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1" title="Delete Member"><Trash2 className="w-4 h-4" /></button>
                         )}
                       </td>
                     </tr>

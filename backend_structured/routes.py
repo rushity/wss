@@ -1049,6 +1049,9 @@ def manage_users(current_user):
         }), 200
 
     # POST method - Create/Add new member
+    if current_user.role == 'support_engineer':
+        return jsonify({'message': 'Permission denied. Support Engineers cannot create new members.'}), 403
+
     data = request.get_json() or {}
     email = data.get('email')
     role = data.get('role', 'admin')
@@ -1449,7 +1452,7 @@ def update_user(current_user, user_id):
     if not target:
         return jsonify({'message': 'User not found!'}), 404
         
-    if current_user.role not in ('org_admin', 'super_admin', 'admin'):
+    if current_user.role not in ('org_admin', 'super_admin', 'admin', 'support_engineer'):
         return jsonify({'message': 'Permission denied'}), 403
         
     if current_user.role == 'org_admin' and target.org_id != current_user.org_id:
@@ -1468,6 +1471,8 @@ def update_user(current_user, user_id):
                 return jsonify({'message': 'Email already in use'}), 400
             target.email = email_clean
     if 'password' in data and data['password'] and str(data['password']).strip():
+        if current_user.role == 'support_engineer':
+            return jsonify({'message': 'Permission denied. Support Engineers cannot modify user passwords.'}), 403
         target.set_password(str(data['password']).strip())
     if 'role' in data and data['role']:
         target.role = data['role']
@@ -1475,7 +1480,7 @@ def update_user(current_user, user_id):
         new_org_id = data['org_id']
         target.org_id = new_org_id if new_org_id not in ('', 'none', 'null', None) else None
             
-    log = AuditLog(admin_id=current_user.id, action=f"Updated user credentials & role for {target.email}", target_id=target.org_id)
+    log = AuditLog(admin_id=current_user.id, action=f"Updated user details/role for {target.email}", target_id=target.org_id)
     db.session.add(log)
     db.session.commit()
     
@@ -1487,6 +1492,8 @@ def delete_user(current_user, user_id):
     target = db.session.get(User, user_id)
     if not target:
         return jsonify({'message': 'User not found!'}), 404
+    if current_user.role == 'support_engineer':
+        return jsonify({'message': 'Permission denied. Support Engineers cannot delete members.'}), 403
     if current_user.role not in ('super_admin', 'admin') and target.org_id != current_user.org_id:
         return jsonify({'message': 'Unauthorized to delete this user!'}), 403
     
