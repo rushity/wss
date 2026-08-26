@@ -254,25 +254,27 @@ def require_role(roles):
 @limiter.limit("5 per hour")
 def register():
     data = request.get_json() or {}
-    email = data.get('email')
+    raw_email = data.get('email')
     password = data.get('password')
 
-    if not email or not password:
+    if not raw_email or not password:
         return jsonify({'message': 'Email and password are required!'}), 400
+
+    email_clean = str(raw_email).strip().lower()
 
     if len(password) < 8:
         return jsonify({'message': 'Password must be at least 8 characters!'}), 400
 
-    if User.query.filter_by(email=email).first():
+    if User.query.filter(func.lower(User.email) == email_clean).first():
         return jsonify({'message': 'User with this email already exists!'}), 400
 
     try:
-        org_name = email.split('@')[0].capitalize() + " Organization"
+        org_name = email_clean.split('@')[0].capitalize() + " Organization"
         new_org = Organization(name=org_name)
         db.session.add(new_org)
         db.session.flush()
 
-        new_user = User(email=email, org_id=new_org.id)
+        new_user = User(email=email_clean, org_id=new_org.id)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.flush()
@@ -308,13 +310,14 @@ def register():
 @limiter.limit("10 per minute")
 def login():
     data = request.get_json() or {}
-    email = data.get('email')
+    raw_email = data.get('email')
     password = data.get('password')
 
-    if not email or not password:
+    if not raw_email or not password:
         return jsonify({'message': 'Email and password are required!'}), 400
 
-    user = User.query.filter_by(email=email).first()
+    email_clean = str(raw_email).strip().lower()
+    user = User.query.filter(func.lower(User.email) == email_clean).first()
 
     # BUG-5 / SEC-1 FIX: Check lockout BEFORE verifying password.
     # Previously the order was reversed - a locked account would still call
