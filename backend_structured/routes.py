@@ -1779,13 +1779,17 @@ def fetch_scan_logs(current_user, scan_id):
 def get_scans_history(current_user):
     try:
 
-        limit_val = request.args.get('limit', 50, type=int)
+        limit_val = request.args.get('limit', 500, type=int)
         org_id_param = request.args.get('org_id')
+        is_global = request.args.get('global') == 'true'
+
         if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scans_query = Scan.query.filter_by(org_id=org_id_param)
-        elif current_user.org_id:
+        elif is_global and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+            scans_query = Scan.query
+        elif current_user.org_id and current_user.role not in ['super_admin', 'support_engineer']:
             scans_query = Scan.query.filter_by(org_id=current_user.org_id)
-        elif current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
+        elif current_user.role in ['super_admin', 'support_engineer']:
             scans_query = Scan.query
         else:
             scans_query = Scan.query.filter_by(user_id=current_user.id)
@@ -2119,11 +2123,15 @@ vuln_bp = Blueprint('vulnerabilities', __name__)
 def get_vulnerabilities_summary(current_user):
     try:
         org_id_param = request.args.get('org_id')
+        is_global = request.args.get('global') == 'true'
+
         if org_id_param and current_user.role in ['super_admin', 'admin', 'support_engineer']:
             scan_filter = (Scan.org_id == org_id_param,)
-        elif current_user.org_id:
+        elif is_global and current_user.role in ['super_admin', 'admin', 'support_engineer']:
+            scan_filter = (Scan.id.isnot(None),)
+        elif current_user.org_id and current_user.role not in ['super_admin', 'support_engineer']:
             scan_filter = (Scan.org_id == current_user.org_id,)
-        elif current_user.role in ['super_admin', 'support_engineer'] or request.args.get('global') == 'true':
+        elif current_user.role in ['super_admin', 'support_engineer']:
             scan_filter = (Scan.id.isnot(None),)
         else:
             scan_filter = (Scan.user_id == current_user.id,)
