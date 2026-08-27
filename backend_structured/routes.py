@@ -1713,6 +1713,8 @@ def create_scan(current_user):
                 is_unlimited = True
             elif quota.used_count < quota.allocated_count:
                 has_quota = True
+        elif user_level >= requested_level:
+            has_quota = True
 
     if not has_quota:
         return jsonify({"message": f"Quota exceeded: You do not have enough quota for a {scan_type} Scan. Please upgrade your plan."}), 403

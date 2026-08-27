@@ -316,8 +316,9 @@ export const NewScan = () => {
               const isEnabled = config ? config.is_enabled : true;
 
               const isSelected = scanType === method.id;
-              const isTierLocked = userTierLevel < getTierLevel(requiredTier);
-              const isQuotaExceeded = !hasQuota(method.id);
+              const isQuotaAvailable = hasQuota(method.id);
+              const isTierLocked = !isQuotaAvailable && (userTierLevel < getTierLevel(requiredTier));
+              const isQuotaExceeded = !isQuotaAvailable;
               const isLocked = isTierLocked || isQuotaExceeded;
 
               if (!isEnabled) {
