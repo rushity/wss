@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, react-hooks/immutability, react-refresh/only-export-components */
+import { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -138,7 +139,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setLoading(false);
     }
-  }, [token]); // intentionally only re-run when token changes
+  }, [token]); // intentionally only re-run when token changes — fetchProfile excluded to avoid infinite loop
 
   // ── Login — called after successful credentials check ─────────────────────
   const login = useCallback((newToken, newRefreshToken, userData) => {

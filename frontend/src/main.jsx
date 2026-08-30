@@ -6,7 +6,7 @@ import App from './App.jsx'
 // Safe Global Date Format Overrides
 const originalToLocaleDateString = Date.prototype.toLocaleDateString;
 
-Date.prototype.toLocaleDateString = function(...args) {
+Date.prototype.toLocaleDateString = function() {
   if (isNaN(this.getTime())) return 'N/A';
   try {
     const day = this.getDate();
@@ -18,7 +18,7 @@ Date.prototype.toLocaleDateString = function(...args) {
   }
 };
 
-Date.prototype.toLocaleString = function(...args) {
+Date.prototype.toLocaleString = function() {
   if (isNaN(this.getTime())) return 'N/A';
   try {
     const day = this.getDate();
@@ -38,7 +38,7 @@ Date.prototype.toLocaleString = function(...args) {
   }
 };
 
-Date.prototype.toLocaleTimeString = function(...args) {
+Date.prototype.toLocaleTimeString = function() {
   if (isNaN(this.getTime())) return 'N/A';
   try {
     let hours = this.getHours();

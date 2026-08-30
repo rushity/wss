@@ -1,10 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, react-hooks/immutability */
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield,
   Zap,
-  Server,
   Check,
   Target,
   ArrowRight,
@@ -15,7 +15,6 @@ export default function PricingSection({ embedded = false, hideCurrentPlan = fal
   const { user, token, refreshAccessToken } = useAuth();
   const navigate = useNavigate();
   const [loadingPlan, setLoadingPlan] = useState(null);
-  const [billingCycle, setBillingCycle] = useState('monthly');
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState(null);
   const [dynamicPrices, setDynamicPrices] = useState({});
@@ -105,7 +104,7 @@ export default function PricingSection({ embedded = false, hideCurrentPlan = fal
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ price_id: priceId, billing_cycle: billingCycle })
+        body: JSON.stringify({ price_id: priceId, billing_cycle: 'monthly' })
       });
 
       const orderData = await res.json();

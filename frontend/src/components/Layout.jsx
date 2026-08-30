@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+/* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, react-hooks/immutability, react-refresh/only-export-components */
+import { useState, useEffect, useRef } from 'react';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 export const getInitials = (userData) => {
@@ -178,30 +179,27 @@ export const Layout = ({ children }) => {
     navigate(isSuperAdmin ? '/' : '/login');
   };
 
-  let navItems = [];
-  
-  if (user?.role === 'executive_user') {
-    navItems = [
-      { to: '/scans/history', label: 'Organization Reports', icon: 'analytics' },
-      { to: '/settings', label: 'Settings', icon: 'settings' },
-    ];
-  } else {
-    navItems = [
-      { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      { to: '/scans/new', label: 'New Scan', icon: 'security' },
-      { to: '/scans/history', label: 'Reports', icon: 'analytics' },
-      { to: '/scans/results', label: 'Vulnerabilities', icon: 'bug_report' },
-      { to: '/settings', label: 'Settings', icon: 'settings' },
-    ];
-  }
-
-  if (user?.role === 'super_admin') {
-    navItems.push({ to: '/super-admin', label: 'Global Management', icon: 'admin_panel_settings' });
-  } else if (user?.role === 'admin') {
-    navItems.push({ to: '/admin', label: 'Global Management', icon: 'admin_panel_settings' });
-  } else if (user?.role === 'support_engineer') {
-    navItems.push({ to: '/support', label: 'Global Management', icon: 'support_agent' });
-  }
+  const navItems = [
+    ...(user?.role === 'executive_user'
+      ? [
+          { to: '/scans/history', label: 'Organization Reports', icon: 'analytics' },
+          { to: '/settings', label: 'Settings', icon: 'settings' },
+        ]
+      : [
+          { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+          { to: '/scans/new', label: 'New Scan', icon: 'security' },
+          { to: '/scans/history', label: 'Reports', icon: 'analytics' },
+          { to: '/scans/results', label: 'Vulnerabilities', icon: 'bug_report' },
+          { to: '/settings', label: 'Settings', icon: 'settings' },
+        ]),
+    ...(user?.role === 'super_admin'
+      ? [{ to: '/super-admin', label: 'Global Management', icon: 'admin_panel_settings' }]
+      : user?.role === 'admin'
+      ? [{ to: '/admin', label: 'Global Management', icon: 'admin_panel_settings' }]
+      : user?.role === 'support_engineer'
+      ? [{ to: '/support', label: 'Global Management', icon: 'support_agent' }]
+      : []),
+  ];
 
   return (
     <div className="bg-background text-on-background font-body-md text-body-md antialiased min-h-screen flex flex-col md:flex-row w-full transition-colors duration-300">

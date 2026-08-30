@@ -1,4 +1,3 @@
-import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
@@ -38,7 +37,6 @@ export const ProtectedRoute = ({ requiredRole, children }) => {
     } else {
       hasPermission = role === requiredRole || role === 'super_admin' || isMasterAuth;
     }
-
     if (!hasPermission) {
       return <Navigate to="/dashboard" replace />;
     }

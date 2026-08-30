@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Clipboard, Check } from 'lucide-react';
 
 export const CodeBlock = ({ code }) => {

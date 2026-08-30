@@ -138,6 +138,16 @@ class User(db.Model):
     locked_until = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
+    # Policy Consent & Security Fields
+    terms_accepted_at = db.Column(db.DateTime, nullable=True)
+    privacy_policy_agreed_at = db.Column(db.DateTime, nullable=True)
+    policy_version_agreed = db.Column(db.String(20), default='v1.0')
+    mfa_enabled = db.Column(db.Boolean, default=False)
+    mfa_secret = db.Column(db.String(100), nullable=True)
+    reset_token = db.Column(db.String(255), nullable=True)
+    reset_token_expires = db.Column(db.DateTime, nullable=True)
+    email_verified = db.Column(db.Boolean, default=False)
+    
     scans = db.relationship('Scan', backref='user', lazy=True, cascade="all, delete-orphan")
     alert_settings = db.relationship('AlertSettings', backref='user', uselist=False, lazy=True, cascade="all, delete-orphan")
     
@@ -215,6 +225,13 @@ class Scan(db.Model):
     scan_options = db.Column(db.JSON, nullable=True) # crawl_depth, exclude_paths, enable_red_team
     ssl_info = db.Column(db.JSON, nullable=True) # Cached SSL certificate info
     
+    duration_seconds = db.Column(db.Integer, nullable=True)
+    error_message = db.Column(db.Text, nullable=True)
+    critical_count = db.Column(db.Integer, default=0)
+    high_count = db.Column(db.Integer, default=0)
+    medium_count = db.Column(db.Integer, default=0)
+    low_count = db.Column(db.Integer, default=0)
+    
     vulnerabilities = db.relationship('Vulnerability', backref='scan', lazy=True, cascade="all, delete-orphan")
 
     def __init__(self, org_id, user_id, target_url, scan_type='Full', status='queued', security_score=None, started_at=None, completed_at=None, auth_headers=None, scan_options=None, id=None):
@@ -252,6 +269,10 @@ class Vulnerability(db.Model):
     owasp_category = db.Column(db.String(100), nullable=True)
     exploit_poc = db.Column(db.JSON, nullable=True)
     remediation_code = db.Column(db.Text, nullable=True)
+    
+    status = db.Column(db.String(50), nullable=False, default='open') # open, in_progress, resolved, ignored
+    remediated_at = db.Column(db.DateTime, nullable=True)
+    remediated_by = db.Column(db.String(36), nullable=True)
 
     def __init__(self, scan_id, title, severity, category, description, remediation, cvss_score, detected_at=None, id=None, evidence="", payload="", request_details="", response_details="", cwe_ids=None, owasp_category=None, exploit_poc=None, remediation_code=None):
         if id: self.id = id
@@ -376,6 +397,19 @@ class OrganizationScanQuota(db.Model):
     used_count = db.Column(db.Integer, nullable=False, default=0)
     
     __table_args__ = (db.UniqueConstraint('org_id', 'scan_type', name='uix_org_scan_type'),)
+
+
+class Report(db.Model):
+    __tablename__ = 'reports'
+    def __init__(self, **kwargs): super().__init__(**kwargs)
+    
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    scan_id = db.Column(db.String(36), db.ForeignKey('scans.id', ondelete='CASCADE'), nullable=False)
+    org_id = db.Column(db.String(36), db.ForeignKey('organizations.id', ondelete='CASCADE'), nullable=False)
+    report_type = db.Column(db.String(50), nullable=False) # pdf, executive_summary, compliance
+    file_path = db.Column(db.String(500), nullable=True)
+    generated_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 
 
 

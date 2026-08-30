@@ -1,5 +1,3 @@
-import React from 'react';
-
 export const ThreatGauge = ({ score }) => {
   // Score styling color bounds
   let color = 'var(--low)';

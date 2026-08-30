@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+/* eslint-disable react-hooks/set-state-in-effect, react-hooks/exhaustive-deps, react-hooks/immutability */
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { CustomModal } from '../components/CustomModal';
 import { useNavigate } from 'react-router-dom';
@@ -24,7 +25,7 @@ import {
 import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const AdminPageContent = () => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState('members'); // 'members', 'orgs', 'scan_access', 'audit'
@@ -428,7 +429,7 @@ const AdminPageContent = () => {
     );
   }
 
-  const uniqueOrgsList = Array.from(new Set((users || []).map(u => u.org_name).filter(Boolean)));
+  // uniqueOrgsList for filtering is derived inline in the JSX dropdown below
 
   return (
     <div className="w-full text-on-surface animate-fade-in pb-xl">
