@@ -8,8 +8,8 @@ python --version
 echo "[startup] Testing app import..."
 python -c "
 import sys, os
-sys.path.insert(0, os.path.abspath('backend_structured'))
-from backend_structured import create_app
+sys.path.insert(0, os.path.abspath('backend'))
+from backend import create_app
 app = create_app()
 print('[startup] App imported OK, routes:', len(list(app.url_map.iter_rules())))
 " 2>&1

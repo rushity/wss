@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect, react-hooks/immutability */
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../components/AuthContext';
+import { useAuth } from './AuthContext';
 import { useNavigate } from 'react-router-dom';
 import {
   Shield,

@@ -289,7 +289,7 @@ def generate_scan_pdf(scan, vulnerabilities):
     logo_path = None
     possible_logo_paths = [
         os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'logo.png')),
-        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'backend_structured', 'static', 'logo.png')),
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'backend', 'static', 'logo.png')),
         os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'logo.png')),
         os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'logo.jpg')),
         os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'frontend', 'public', 'larshieldlogowhite.png')),

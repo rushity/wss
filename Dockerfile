@@ -30,7 +30,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy backend source
 COPY backend/ backend/
-COPY backend_structured/ backend_structured/
 COPY app.py .
 COPY .env.example .
 

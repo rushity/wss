@@ -5,14 +5,13 @@ from dotenv import load_dotenv
 # Ensure environment variables are loaded
 load_dotenv()
 
-# Insert the backend & backend_structured modules into python path so internal absolute imports work
+# Insert the backend module into python path so internal absolute imports work
 root_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(root_dir, 'backend_structured'))
 sys.path.insert(0, os.path.join(root_dir, 'backend'))
 sys.path.insert(0, root_dir)
 
 # Import the application factory from our partitioned architecture
-from backend_structured import create_app
+from backend import create_app
 
 # Initialize the Flask application
 app = create_app()
@@ -61,6 +60,6 @@ def serve_react(path):
 
 
 if __name__ == '__main__':
-    from backend_structured.extensions import socketio
+    from backend.extensions import socketio
     port = int(os.getenv('PORT', 7860))
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True, allow_unsafe_werkzeug=True)
