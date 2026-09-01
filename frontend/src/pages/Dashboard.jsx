@@ -626,42 +626,90 @@ export const Dashboard = () => {
             <h3 className="font-headline-md text-headline-md text-on-surface tracking-tight">Security Score</h3>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-xs">Overall system resilience</p>
           </div>
-          <div className="flex-grow flex flex-col items-center justify-center py-xl">
-            <div className="relative w-48 h-48 flex items-center justify-center">
-              <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" fill="none" r="45" stroke="#e5eeff" strokeWidth="8"></circle>
-              </svg>
-              <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
-                <circle
-                  className="transition-all duration-1000 ease-out"
-                  cx="50" cy="50" fill="none" r="45"
-                  stroke={!hasCompletedScans ? '#94a3b8' : score < 50 ? '#ba1a1a' : score < 80 ? '#bc4800' : '#004ac6'}
-                  strokeDasharray="283"
-                  strokeDashoffset={dashOffset}
-                  strokeLinecap="round"
-                  strokeWidth="8"
-                />
-              </svg>
-              <div className="text-center flex flex-col items-center z-10">
-                <span className={`font-display-lg text-display-lg tracking-tighter ${hasCompletedScans ? 'text-primary' : 'text-slate-400'}`}>
-                  {scoreDisplay}
-                </span>
-                <span className={`font-label-sm text-label-sm uppercase tracking-widest px-xs py-[2px] rounded-sm mt-xs ${scoreColorClass}`}>
-                  {scoreLabel}
-                </span>
-                <span className="font-label-sm text-label-sm text-on-surface-variant/70 mt-base">
-                  {scoreSubtext}
-                </span>
+
+          {!hasCompletedScans ? (
+            <div className="flex-grow flex flex-col items-center justify-center py-md text-center">
+              <div className="relative w-44 h-44 flex items-center justify-center my-xs">
+                {/* Track Circle */}
+                <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" fill="none" r="42" stroke="currentColor" strokeWidth="6" className="text-slate-200 dark:text-slate-700/60" />
+                </svg>
+                {/* Sleek Dashed Radar Ring */}
+                <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50" cy="50" fill="none" r="42"
+                    stroke="#94a3b8"
+                    strokeDasharray="6 4"
+                    strokeWidth="6"
+                    className="opacity-40"
+                  />
+                </svg>
+
+                {/* Inner Content */}
+                <div className="text-center flex flex-col items-center justify-center z-10 px-xs">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-1 text-slate-400 dark:text-slate-500 shadow-inner">
+                    <span className="material-symbols-outlined text-[18px]">shield</span>
+                  </div>
+                  <span className="font-extrabold text-2xl tracking-tight text-slate-400 dark:text-slate-500 leading-none mb-1.5">
+                    N/A
+                  </span>
+                  <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                    NOT TESTED YET
+                  </span>
+                </div>
+              </div>
+
+              {/* Subtext and Action */}
+              <div className="mt-1 flex flex-col items-center gap-2">
+                <p className="text-body-sm text-on-surface-variant font-medium">
+                  No security audit performed on this workspace yet.
+                </p>
+                <button
+                  onClick={() => navigate('/dashboard/new-scan')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-all shadow-xs cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-[15px]">radar</span>
+                  Run Initial Scan
+                </button>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex-grow flex flex-col items-center justify-center py-xl">
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" fill="none" r="45" stroke="#e5eeff" strokeWidth="8"></circle>
+                </svg>
+                <svg className="w-full h-full absolute transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    className="transition-all duration-1000 ease-out"
+                    cx="50" cy="50" fill="none" r="45"
+                    stroke={score < 50 ? '#ba1a1a' : score < 80 ? '#bc4800' : '#004ac6'}
+                    strokeDasharray="283"
+                    strokeDashoffset={dashOffset}
+                    strokeLinecap="round"
+                    strokeWidth="8"
+                  />
+                </svg>
+                <div className="text-center flex flex-col items-center z-10">
+                  <span className="font-display-lg text-display-lg text-primary tracking-tighter">{score}</span>
+                  <span className={`font-label-sm text-label-sm uppercase tracking-widest px-xs py-[2px] rounded-sm mt-xs ${scoreColorClass}`}>
+                    {scoreLabel}
+                  </span>
+                  <span className="font-label-sm text-label-sm text-on-surface-variant/70 mt-base">
+                    {score >= 80 ? 'System Protected' : 'Remediation Required'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-body-sm font-body-sm border-t border-outline-variant pt-sm mt-sm">
             <span className="text-on-surface-variant">Live security posture</span>
             <span className={`font-medium flex items-center ${
-              !hasCompletedScans ? 'text-slate-500' : score >= 80 ? 'text-green-600' : score >= 50 ? 'text-orange-600' : 'text-error'
+              !hasCompletedScans ? 'text-amber-600 dark:text-amber-400' : score >= 80 ? 'text-green-600' : score >= 50 ? 'text-orange-600' : 'text-error'
             }`}>
               <span className="material-symbols-outlined text-[16px] mr-[2px]">
-                {!hasCompletedScans ? 'sensors_off' : score >= 80 ? 'trending_up' : score >= 50 ? 'trending_flat' : 'trending_down'}
+                {!hasCompletedScans ? 'hourglass_empty' : score >= 80 ? 'trending_up' : score >= 50 ? 'trending_flat' : 'trending_down'}
               </span>
               {!hasCompletedScans ? 'Pending Initial Scan' : score >= 80 ? 'Stable' : score >= 50 ? 'Needs Attention' : 'Critical Risk'}
             </span>
