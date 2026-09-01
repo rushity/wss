@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { OrganizationSelector } from '../components/OrganizationSelector';
@@ -29,7 +29,7 @@ export const ReportsHistory = () => {
   const [sortDirection, setSortDirection] = useState('desc');
 
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 15;
+  const [itemsPerPage, setItemsPerPage] = useState(15);
 
   useEffect(() => {
     setCurrentPage(1);

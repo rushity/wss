@@ -1,4 +1,5 @@
-﻿import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 export const LEGAL_POLICIES = {
   terms: {
