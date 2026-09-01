@@ -747,8 +747,8 @@ const AdminPageContent = () => {
                     <td className="px-4 py-3 text-[12.5px] font-medium text-on-surface-variant">
                       {org.created ? org.created : (org.created_at ? new Date(org.created_at).toLocaleDateString() : 'N/A')}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                      <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
                         <button
                           onClick={() => handleEditTenant(org)}
                           className="px-2.5 py-1 bg-surface-container border border-outline-variant text-on-surface rounded-lg hover:bg-surface-container-high transition-colors font-bold text-[12px] cursor-pointer flex items-center gap-1"

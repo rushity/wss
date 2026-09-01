@@ -1574,7 +1574,7 @@ const SuperAdminPanel = () => {
                       <td className="px-md py-sm"><span className="px-2 py-0.5 rounded border text-[11px] font-bold tracking-wide bg-surface-container-high border-outline-variant text-on-surface-variant">{org.tier || org.subscription_tier}</span></td>
                       <td className="px-md py-sm"><div className="flex items-center gap-xs text-[12.5px] font-bold"><span className={`w-2 h-2 rounded-full ${org.status === 'active' || org.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span><span className={org.status === 'active' || org.is_active ? 'text-green-600 dark:text-green-500' : 'text-error'}>{org.status ? org.status.charAt(0).toUpperCase() + org.status.slice(1) : (org.is_active ? 'Active' : 'Inactive')}</span></div></td>
                       <td className="px-md py-sm">
-                        <div className="flex flex-nowrap gap-2 items-center">
+                        <div className="flex flex-wrap gap-1.5 items-center">
                           {org.quotas?.map((q, idx) => {
                             const remaining = q.allocated_count === -1 ? '∞' : Math.max(0, q.allocated_count - (q.used_count || 0));
                             const style = q.scan_type === 'Deep' ? 'bg-orange-500/10 text-orange-600 border-orange-500/30' :
@@ -1589,26 +1589,28 @@ const SuperAdminPanel = () => {
                           })}
                         </div>
                       </td>
-                      <td className="px-md py-sm text-right">
-                        <button onClick={() => handleImpersonate(org.id, org.name)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1" title="View Customer Environment / Assist Troubleshooting">
-                          <span className="material-symbols-outlined text-[18px]">vpn_key</span>
-                        </button>
-                        {!isSupportEngineer && (
-                          <>
-                            <button onClick={() => handleAssignScans(org)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1 ml-xs" title="Assign Custom Scans">
-                              <span className="material-symbols-outlined text-[18px]">add_box</span>
-                            </button>
-                            <button onClick={() => handleEditTenant(org)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1 ml-xs" title="Edit Tenant">
-                              <span className="material-symbols-outlined text-[18px]">edit</span>
-                            </button>
-                            <button onClick={() => handleSuspend(org.id, org.status)} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1 ml-xs" title="Suspend Tenant">
-                              <span className="material-symbols-outlined text-[18px]">{org.status === 'suspended' ? 'play_arrow' : 'pause_circle'}</span>
-                            </button>
-                            <button onClick={() => handleDeleteTenant(org.id, org.name)} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1 ml-xs" title="Delete Tenant">
-                              <span className="material-symbols-outlined text-[18px]">delete</span>
-                            </button>
-                          </>
-                        )}
+                      <td className="px-md py-sm text-right whitespace-nowrap">
+                        <div className="inline-flex items-center justify-end gap-1 whitespace-nowrap">
+                          <button onClick={() => handleImpersonate(org.id, org.name)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1" title="View Customer Environment / Assist Troubleshooting">
+                            <span className="material-symbols-outlined text-[18px]">vpn_key</span>
+                          </button>
+                          {!isSupportEngineer && (
+                            <>
+                              <button onClick={() => handleAssignScans(org)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1" title="Assign Custom Scans">
+                                <span className="material-symbols-outlined text-[18px]">add_box</span>
+                              </button>
+                              <button onClick={() => handleEditTenant(org)} className="text-on-surface-variant hover:text-primary transition-colors bg-transparent border-0 cursor-pointer p-1" title="Edit Tenant">
+                                <span className="material-symbols-outlined text-[18px]">edit</span>
+                              </button>
+                              <button onClick={() => handleSuspend(org.id, org.status)} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1" title="Suspend Tenant">
+                                <span className="material-symbols-outlined text-[18px]">{org.status === 'suspended' ? 'play_arrow' : 'pause_circle'}</span>
+                              </button>
+                              <button onClick={() => handleDeleteTenant(org.id, org.name)} className="text-on-surface-variant hover:text-error transition-colors bg-transparent border-0 cursor-pointer p-1" title="Delete Tenant">
+                                <span className="material-symbols-outlined text-[18px]">delete</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
