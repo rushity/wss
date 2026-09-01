@@ -734,7 +734,8 @@ const AdminPageContent = () => {
                           const remaining = q.allocated_count === -1 ? '∞' : Math.max(0, q.allocated_count - (q.used_count || 0));
                           const style = q.scan_type === 'Deep' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
                             q.scan_type === 'Advanced' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :
-                              'bg-blue-500/10 text-blue-400 border-blue-500/30';
+                            q.scan_type === 'Quick' ? 'bg-blue-500/10 text-blue-400 border-blue-500/30' :
+                            'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
                           return (
                             <div key={idx} className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded border flex items-center gap-1 shadow-2xs ${style}`}>
                               <span className="uppercase tracking-wider">{q.scan_type}:</span>
