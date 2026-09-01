@@ -51,6 +51,7 @@ function App() {
                 <Route path="/dashboard" element={<Layout><Dashboard /></Layout>} />
                 <Route path="/profile" element={<Layout><Profile /></Layout>} />
                 <Route path="/scans/new" element={<Layout><NewScan /></Layout>} />
+                <Route path="/dashboard/new-scan" element={<Navigate to="/scans/new" replace />} />
                 <Route path="/scans/history" element={<Layout><ReportsHistory /></Layout>} />
                 <Route path="/scans/results" element={<Layout><ScanResults /></Layout>} />
                 <Route path="/settings" element={<Layout><AlertSettingsPage /></Layout>} />

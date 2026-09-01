@@ -665,7 +665,7 @@ export const Dashboard = () => {
                   No security audit performed on this workspace yet.
                 </p>
                 <button
-                  onClick={() => navigate('/dashboard/new-scan')}
+                  onClick={() => navigate('/scans/new')}
                   className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-all shadow-xs cursor-pointer"
                 >
                   <span className="material-symbols-outlined text-[15px]">radar</span>
