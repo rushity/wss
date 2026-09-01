@@ -778,7 +778,7 @@ export const AlertSettingsPage = () => {
                 </div>
               ) : scanQuotas.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-md">
-                  {scanQuotas.map((q, idx) => {
+                  {scanQuotas.filter(q => ['Quick', 'Advanced', 'Deep'].includes(q.scan_type)).map((q, idx) => {
                     const icon = q.scan_type.toLowerCase().includes('quick') ? 'bolt' :
                       q.scan_type.toLowerCase().includes('advanced') ? 'security' :
                         q.scan_type.toLowerCase().includes('deep') ? 'radar' : 'pie_chart';

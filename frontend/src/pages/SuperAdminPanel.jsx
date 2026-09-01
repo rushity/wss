@@ -1575,7 +1575,7 @@ const SuperAdminPanel = () => {
                       <td className="px-md py-sm"><div className="flex items-center gap-xs text-[12.5px] font-bold"><span className={`w-2 h-2 rounded-full ${org.status === 'active' || org.is_active ? 'bg-green-500' : 'bg-red-500'}`}></span><span className={org.status === 'active' || org.is_active ? 'text-green-600 dark:text-green-500' : 'text-error'}>{org.status ? org.status.charAt(0).toUpperCase() + org.status.slice(1) : (org.is_active ? 'Active' : 'Inactive')}</span></div></td>
                       <td className="px-md py-sm">
                         <div className="flex flex-wrap gap-1.5 items-center">
-                          {org.quotas?.map((q, idx) => {
+                          {org.quotas?.filter(q => ['Quick', 'Advanced', 'Deep'].includes(q.scan_type)).map((q, idx) => {
                             const remaining = q.allocated_count === -1 ? '∞' : Math.max(0, q.allocated_count - (q.used_count || 0));
                             const style = q.scan_type === 'Deep' ? 'bg-orange-500/10 text-orange-600 border-orange-500/30' :
                               q.scan_type === 'Advanced' ? 'bg-purple-500/10 text-purple-600 border-purple-500/30' :

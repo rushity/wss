@@ -730,7 +730,7 @@ const AdminPageContent = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1.5 items-center">
-                        {org.quotas?.map((q, idx) => {
+                        {org.quotas?.filter(q => ['Quick', 'Advanced', 'Deep'].includes(q.scan_type)).map((q, idx) => {
                           const remaining = q.allocated_count === -1 ? '∞' : Math.max(0, q.allocated_count - (q.used_count || 0));
                           const style = q.scan_type === 'Deep' ? 'bg-orange-500/10 text-orange-400 border-orange-500/30' :
                             q.scan_type === 'Advanced' ? 'bg-purple-500/10 text-purple-400 border-purple-500/30' :

@@ -664,15 +664,7 @@ def manage_org_quotas(current_user, org_id):
                     'used_count': 0
                 })
                 
-        # Also include any other quotas that might exist
-        for q in quotas:
-            if q.scan_type not in default_types:
-                result.append({
-                    'scan_type': q.scan_type,
-                    'allocated_count': q.allocated_count,
-                    'used_count': q.used_count
-                })
-                
+        # Return only standard scan types (Quick, Advanced, Deep)
         return jsonify({'quotas': result}), 200
 
     if request.method == 'POST':
@@ -736,14 +728,7 @@ def manage_organizations(current_user):
                         'used_count': 0
                     })
             
-            # also include any non-default ones
-            for stype, q in q_dict.items():
-                if stype not in default_types:
-                    org_quotas.append({
-                        'scan_type': stype,
-                        'allocated_count': q.allocated_count,
-                        'used_count': q.used_count
-                    })
+
 
             org_list.append({
                 'id': o.id,
@@ -1194,13 +1179,7 @@ def get_global_stats(current_user):
                     'allocated_count': 0,
                     'used_count': 0
                 })
-        for stype, q in q_dict.items():
-            if stype not in default_types:
-                org_quotas.append({
-                    'scan_type': stype,
-                    'allocated_count': q.allocated_count,
-                    'used_count': q.used_count
-                })
+
 
         orgs_data.append({
             'id': org.id,
