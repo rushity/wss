@@ -4,6 +4,8 @@ import toast from 'react-hot-toast';
 import Profile from './Profile';
 
 export const AlertSettingsPage = () => {
+  const { token, user, reloadUser } = useAuth();
+
   const [activeTab, setActiveTab] = useState(() => {
     return localStorage.getItem('settingsActiveTab') || 'profile';
   }); // profile, notifications, apiKeys, team, billing, scheduler
@@ -206,8 +208,6 @@ export const AlertSettingsPage = () => {
       return 0;
     });
   };
-
-  const { token, user, reloadUser } = useAuth();
 
   useEffect(() => {
     fetchSettings();
