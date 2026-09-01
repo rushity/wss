@@ -213,6 +213,197 @@ export const AlertSettingsPage = () => {
     fetchSettings();
   }, [token]);
 
+  const fetchSettings = async () => {
+    try {
+      const res = await fetch('/api/vulnerabilities/settings', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmailNotifications(data.settings.email_notifications);
+        setWebhookUrl(data.settings.webhook_url || '');
+        setSeverityThreshold(data.settings.severity_threshold);
+      }
+    } catch (err) {
+      console.error("Error loading alert settings", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchNotificationHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const res = await fetch('/api/auth/notifications', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotificationHistory(data.notifications || []);
+      }
+    } catch (err) {
+      console.error("Error loading notification history", err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const fetchTeamUsers = async () => {
+    setLoadingTeam(true);
+    try {
+      const endpoint = user?.org_id ? `/api/auth/organizations/${user.org_id}/users` : '/api/auth/users';
+      const res = await fetch(endpoint, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const filteredUsers = (data.users || []).filter(u => u.role !== 'super_admin');
+        setTeamUsers(filteredUsers);
+      }
+    } catch (err) {
+      console.error('Failed to fetch org users', err);
+    } finally {
+      setLoadingTeam(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'team' && (user?.role === 'org_admin' || user?.role === 'super_admin')) {
+      fetchTeamUsers();
+    }
+  }, [activeTab, user]);
+
+  const handleInviteUser = async (e) => {
+    e.preventDefault();
+    if (!newUserEmail) return;
+    setInvitingUser(true);
+    try {
+      const res = await fetch('/api/auth/users/invite', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: newUserEmail,
+          role: newUserRole,
+          first_name: newUserFirstName,
+          last_name: newUserLastName,
+          password: newUserPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`User added successfully!`);
+        setNewUserFirstName('');
+        setNewUserLastName('');
+        setNewUserEmail('');
+        setNewUserPassword('');
+        setShowAddMember(false);
+        setShowNewUserPassword(false);
+        fetchTeamUsers();
+      } else {
+        toast.error(data.message || 'Failed to invite user');
+      }
+    } catch (err) {
+      toast.error("Error inviting user");
+    } finally {
+      setInvitingUser(false);
+    }
+  };
+
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
+    if (!editingUser) return;
+    setUpdatingUser(true);
+    try {
+      const res = await fetch(`/api/auth/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          first_name: editingUser.first_name,
+          last_name: editingUser.last_name,
+          email: editingUser.email,
+          password: editingUser.new_password,
+          role: editingUser.role
+        })
+      });
+      if (res.ok) {
+        toast.success(`User updated successfully!`);
+        setEditingUser(null);
+        fetchTeamUsers();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || 'Failed to update user');
+      }
+    } catch (err) {
+      toast.error("Error updating user");
+    } finally {
+      setUpdatingUser(false);
+    }
+  };
+
+  const executeDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeletingUser(true);
+    try {
+      const res = await fetch(`/api/auth/users/${userToDelete.id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast.success("User removed successfully!");
+        setUserToDelete(null);
+        fetchTeamUsers();
+      } else {
+        const data = await res.json();
+        toast.error(data.message || "Failed to remove user");
+      }
+    } catch (err) {
+      toast.error("Error removing user");
+    } finally {
+      setDeletingUser(false);
+    }
+  };
+
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordStatus({ loading: true, error: null, success: false });
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordStatus({ loading: false, error: "New passwords do not match", success: false });
+      return;
+    }
+    if (passwordData.newPassword.length < 6) {
+      setPasswordStatus({ loading: false, error: "New password must be at least 6 characters", success: false });
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/password', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ currentPassword: passwordData.currentPassword, newPassword: passwordData.newPassword })
+      });
+      let data = {};
+      try { data = await res.json(); } catch (e) { }
+      if (res.ok) {
+        setPasswordStatus({ loading: false, error: null, success: true });
+        setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        toast.success("Password updated successfully!");
+        setTimeout(() => setPasswordStatus(prev => ({ ...prev, success: false })), 3000);
+      } else {
+        const errorMsg = data.message || "Failed to update password";
+        setPasswordStatus({ loading: false, error: errorMsg, success: false });
+        toast.error(errorMsg);
+      }
+    } catch (err) {
+      setPasswordStatus({ loading: false, error: "Network error occurred", success: false });
+      toast.error("Network error occurred");
+    }
+  };
+
   // Auto-refresh user data (e.g., subscription upgrades) when Billing tab is active
   useEffect(() => {
     let intervalId;
