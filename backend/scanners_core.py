@@ -1778,13 +1778,15 @@ def generate_scan_pdf(scan, vulnerabilities):
             elements.append(Paragraph(f"<b>Remediation (Finding #{idx}):</b>", styles['Normal']))
             rem_text_raw = vuln.remediation or "No specific remediation step provided. Follow standard secure coding practices."
             
-            raw_sentences = [s.strip() for s in re.split(r'\.\s+|\n', rem_text_raw) if s.strip()]
+            # Split ONLY on newlines — do NOT split on '. ' to avoid breaking numbered steps like '1. Generate DNSSEC keys'
+            raw_sentences = [s.strip() for s in rem_text_raw.split('\n') if s.strip()]
             if not raw_sentences:
                 raw_sentences = [rem_text_raw]
                 
             numbered_rem_html = []
             step_counter = 1
             for sent in raw_sentences:
+                # Strip leading number markers like '1.' '2.' '-' '*' '•'
                 clean_sent = re.sub(r'^[0-9]+\.\s*|^[-*•]\s*', '', sent).strip()
                 if clean_sent:
                     if not clean_sent.endswith('.'):
