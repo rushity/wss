@@ -101,10 +101,16 @@ except ImportError:
 
 
 
-from .extensions import db, celery, socketio, limiter, cache
-from .models import *
-from .middleware import *
-from .scanners_core import *
+try:
+    from .extensions import db, celery, socketio, limiter, cache
+    from .models import *
+    from .middleware import *
+    from .scanners_core import *
+except ImportError:
+    from extensions import db, celery, socketio, limiter, cache
+    from models import *
+    from middleware import *
+    from scanners_core import *
 
 
 # --- From auth.py ---

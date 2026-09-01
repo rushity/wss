@@ -94,7 +94,10 @@ import ipaddress
 
 
 
-from .extensions import db, celery, socketio, limiter
+try:
+    from .extensions import db, celery, socketio, limiter
+except ImportError:
+    from extensions import db, celery, socketio, limiter
 
 
 # --- From models.py ---

@@ -97,8 +97,12 @@ except ImportError:
         send_critical_alert
     )
 
-from .extensions import db, celery, socketio, limiter
-from .models import *
+try:
+    from .extensions import db, celery, socketio, limiter
+    from .models import *
+except ImportError:
+    from extensions import db, celery, socketio, limiter
+    from models import *
 
 
 # --- From scanner.py ---

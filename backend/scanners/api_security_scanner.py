@@ -384,7 +384,7 @@ class ApiSecurityScanner(BaseScanner):
             if status == 429:
                 rate_limited = True
                 break
-            time.sleep(0.05)
+            # No sleep needed — requests run as fast as socket allows
 
         if rate_limited:
             # Try bypass headers
