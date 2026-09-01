@@ -238,12 +238,12 @@ def _run_scan_job(scan_id: str) -> None:
 
         # Per-module timeout per scan intensity (Deep gets 600s = 10 min per module)
         MODULE_TIMEOUTS = {
-            "quick":    60,
-            "standard": 120,
+            "quick":    120,   # raised: 60 was too tight for slow probes
+            "standard": 180,
             "advanced": 180,
             "deep":     600,
         }
-        _module_timeout = MODULE_TIMEOUTS.get((scan_type or "standard").lower(), 120)
+        _module_timeout = MODULE_TIMEOUTS.get((scan_type or "standard").lower(), 180)
 
         add_log(scan_id, "INFO", f"LarShield v2.0 - {scan_type.upper()} SCAN INITIATED")
         add_log(scan_id, "INFO", f"Target: {target}")
@@ -328,18 +328,18 @@ def _run_scan_job(scan_id: str) -> None:
 
         # Per-scan-type concurrency caps per phase
         MAX_WORKERS_PER_PHASE = {
-            "quick":    6,
-            "standard": 8,
-            "advanced": 8,
+            "quick":    12,   # raised: more concurrency to finish faster
+            "standard": 10,
+            "advanced": 10,
             "deep":     8,
             "ssl":      4,
             "port":     2,
         }
-        _max_workers = MAX_WORKERS_PER_PHASE.get((scan_type or "advanced").lower(), 8)
+        _max_workers = MAX_WORKERS_PER_PHASE.get((scan_type or "advanced").lower(), 10)
 
         # Wall-clock hard limits per scan type (seconds)
         HARD_LIMITS = {
-            "quick":    300,     # 5 min
+            "quick":    900,     # 15 min (raised from 5 min — quick scan has 13 modules)
             "advanced": 3600,    # 1 hour
             "standard": 3600,
             "deep":     21600,   # 6 hours

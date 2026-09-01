@@ -127,8 +127,7 @@ class MfaBypassScanner(BaseScanner):
                 got_blocked = True
                 self.log("SUCCESS", f"[MFABypass] Account lockout triggered on attempt {i+1}.")
                 break
-            # Small delay to avoid hammering
-            time.sleep(0.3)
+            # No artificial sleep — network round-trips already throttle the rate
 
         if not got_blocked:
             self.add_vuln(
@@ -354,4 +353,4 @@ class MfaBypassScanner(BaseScanner):
                         owasp_category="A07:2021 – Identification and Authentication Failures",
                     )
                     return
-                time.sleep(0.2)
+                # No sleep needed — network latency provides natural throttling

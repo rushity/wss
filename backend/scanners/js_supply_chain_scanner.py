@@ -355,7 +355,7 @@ class JsSupplyChainScanner(BaseScanner):
                             scope = dep.split("/")[0]
                             if scope not in ["@types", "@babel", "@angular", "@vue", "@sveltejs"]:
                                 npm_info = _check_npm_registry(dep)
-                                time.sleep(0.3)  # be polite to npm registry
+                                # No sleep — npm registry network latency is sufficient throttling
                                 if npm_info["exists"] is False:
                                     # Package doesn't exist on public npm — potential confusion attack vector
                                     key2 = f"depcnf:{dep}"

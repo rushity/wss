@@ -237,7 +237,7 @@ class DnsRebindingScanner(BaseScanner):
                 results.append(frozenset(ips))
             except Exception as e:
                 self.log("ERROR", f"[DNSRebind] resolution check error: {e}")
-            time.sleep(2)
+            # No sleep — DNS checks are fast and blocking the pipeline hurts performance
 
         if len(results) < 3:
             return

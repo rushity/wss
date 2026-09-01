@@ -229,7 +229,7 @@ class SubdomainScanner(BaseScanner):
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=150,  # 2.5 min overall timeout
+                timeout=60,  # 1 min max (was 2.5 min — too slow for pipeline)
                 encoding="utf-8",
                 errors="replace",
             )
@@ -246,7 +246,7 @@ class SubdomainScanner(BaseScanner):
                 self.log("INFO", "[Subfinder] No subdomains discovered.")
 
         except subprocess.TimeoutExpired:
-            self.log("WARNING", "[Subfinder] Scan timed out after 2.5 minutes.")
+            self.log("WARNING", "[Subfinder] Scan timed out after 60s.")
         except Exception as e:
             self.log("ERROR", f"[Subfinder] Execution failed: {e}")
 
@@ -279,7 +279,7 @@ class SubdomainScanner(BaseScanner):
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=240,  # 4 min max for passive enumeration
+                timeout=60,  # 1 min max (was 4 min — too slow for pipeline)
                 encoding="utf-8",
                 errors="replace",
             )
@@ -301,7 +301,7 @@ class SubdomainScanner(BaseScanner):
                 self.log("INFO", "[Amass] No new subdomains discovered via passive enumeration.")
 
         except subprocess.TimeoutExpired:
-            self.log("WARNING", "[Amass] Scan timed out after 4 minutes.")
+            self.log("WARNING", "[Amass] Scan timed out after 60s.")
         except Exception as e:
             self.log("ERROR", f"[Amass] Execution failed: {e}")
 
@@ -337,9 +337,8 @@ class SubdomainScanner(BaseScanner):
 
             except requests.RequestException as e:
                 if _attempt < _max_crtsh_attempts - 1:
-                    self.log("WARNING", f"[Subdomains] crt.sh attempt {_attempt+1} failed ({e}), retrying in 3s...")
-                    import time as _time
-                    _time.sleep(3)
+                    self.log("WARNING", f"[Subdomains] crt.sh attempt {_attempt+1} failed ({e}), retrying...")
+                    # no sleep — don't block the scan pipeline
                 else:
                     self.log("WARNING", f"[Subdomains] Failed to query crt.sh after {_max_crtsh_attempts} attempts: {e}")
             except Exception as e:
