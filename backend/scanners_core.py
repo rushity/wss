@@ -839,6 +839,20 @@ def launch_scan(app, scan_id: str) -> bool:
             worker_thread.start()
             _queue_worker_started = True
 
+    # ── Seed logs immediately so the /logs endpoint never returns the static fallback ──
+    # This ensures the frontend sees real log entries from the very first poll,
+    # even if the queue worker hasn't started executing the scan yet.
+    try:
+        with app.app_context():
+            s = Scan.query.get(scan_id)
+            if s:
+                add_log(scan_id, "INFO", f"LarShield WSS — {s.scan_type.upper()} SCAN QUEUED")
+                add_log(scan_id, "INFO", f"Target: {s.target_url}")
+                add_log(scan_id, "INFO", f"Scan ID: {scan_id}")
+                add_log(scan_id, "INFO", "Waiting for execution slot in the sequential scan queue...")
+    except Exception as _seed_err:
+        print(f"[Scanner] Log seed warning (non-fatal): {_seed_err}", flush=True)
+
     _scan_queue.put(scan_id)
     print(f"[Scanner] Scan {scan_id} placed in execution queue (Current queue size: {_scan_queue.qsize()})", flush=True)
     return True

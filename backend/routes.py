@@ -1786,11 +1786,10 @@ def fetch_scan_logs(current_user, scan_id):
             return jsonify({"status": "error", "message": "Scan not found or access denied"}), 404
 
         logs = get_scan_logs(scan_id)
+        # If no logs yet (scan just queued), return a minimal status line
         if not logs:
-            if scan.status == 'queued':
-                logs = [f"[INFO] Target: {scan.target_url} — Scan queued. Waiting for active scan to finish..."]
-            elif scan.status == 'scanning':
-                logs = [f"[INFO] Target: {scan.target_url} — Audit thread active. Spawning vulnerability scanners..."]
+            if scan.status in ('queued', 'scanning'):
+                logs = [f"[INFO] Scan {scan_id[:8]}... is {scan.status}. Logs will appear shortly..."]
 
         return jsonify({
             "status": scan.status,
