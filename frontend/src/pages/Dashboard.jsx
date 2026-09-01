@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../components/AuthContext';
 import { LabelList, ComposedChart, RadialBarChart, RadialBar, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, BarChart, Bar } from 'recharts';
@@ -268,13 +268,23 @@ export const Dashboard = () => {
   const counts = summary?.vulnerabilities_count || { critical: 0, high: 0, medium: 0, low: 0, total: 0 };
   
   // Real-time dynamic security score calculation
-  const score = summary?.average_security_score ?? 100;
-  const dashOffset = 283 - (283 * score) / 100;
+  const rawScore = summary?.average_security_score;
+  const hasCompletedScans = (summary?.scans_count > 0 || recentScans.some(s => s.status === 'completed')) && rawScore !== null && rawScore !== undefined;
 
-  let scoreLabel = 'Excellent';
-  let scoreColorClass = 'text-primary';
-  if (score < 50) { scoreLabel = 'Critical'; scoreColorClass = 'text-error'; }
-  else if (score < 80) { scoreLabel = 'Warning'; scoreColorClass = 'text-tertiary'; }
+  const score = hasCompletedScans ? Math.round(rawScore) : null;
+  const dashOffset = hasCompletedScans ? (283 - (283 * score) / 100) : 283;
+
+  let scoreDisplay = hasCompletedScans ? score : 'N/A';
+  let scoreLabel = hasCompletedScans ? 'Excellent' : 'Not Tested Yet';
+  let scoreColorClass = hasCompletedScans ? 'text-primary bg-primary/10' : 'text-slate-400 bg-slate-500/10 border border-slate-500/20';
+  let scoreSubtext = hasCompletedScans 
+    ? (score >= 80 ? 'System Protected' : 'Remediation Required')
+    : 'No Scans Performed Yet';
+
+  if (hasCompletedScans) {
+    if (score < 50) { scoreLabel = 'Critical'; scoreColorClass = 'text-error bg-error/10'; }
+    else if (score < 80) { scoreLabel = 'Warning'; scoreColorClass = 'text-tertiary bg-tertiary/10'; }
+  }
 
   const getRatingGrade = (s) => {
     if (s === null || s === undefined) return '--';
@@ -625,7 +635,7 @@ export const Dashboard = () => {
                 <circle
                   className="transition-all duration-1000 ease-out"
                   cx="50" cy="50" fill="none" r="45"
-                  stroke={score < 50 ? '#ba1a1a' : score < 80 ? '#bc4800' : '#004ac6'}
+                  stroke={!hasCompletedScans ? '#94a3b8' : score < 50 ? '#ba1a1a' : score < 80 ? '#bc4800' : '#004ac6'}
                   strokeDasharray="283"
                   strokeDashoffset={dashOffset}
                   strokeLinecap="round"
@@ -633,12 +643,14 @@ export const Dashboard = () => {
                 />
               </svg>
               <div className="text-center flex flex-col items-center z-10">
-                <span className="font-display-lg text-display-lg text-primary tracking-tighter">{score}</span>
-                <span className={`font-label-sm text-label-sm uppercase tracking-widest bg-primary/10 px-xs py-[2px] rounded-sm mt-xs ${scoreColorClass}`}>
+                <span className={`font-display-lg text-display-lg tracking-tighter ${hasCompletedScans ? 'text-primary' : 'text-slate-400'}`}>
+                  {scoreDisplay}
+                </span>
+                <span className={`font-label-sm text-label-sm uppercase tracking-widest px-xs py-[2px] rounded-sm mt-xs ${scoreColorClass}`}>
                   {scoreLabel}
                 </span>
                 <span className="font-label-sm text-label-sm text-on-surface-variant/70 mt-base">
-                  {score >= 80 ? 'System Protected' : 'Remediation Required'}
+                  {scoreSubtext}
                 </span>
               </div>
             </div>
@@ -646,12 +658,12 @@ export const Dashboard = () => {
           <div className="flex items-center justify-between text-body-sm font-body-sm border-t border-outline-variant pt-sm mt-sm">
             <span className="text-on-surface-variant">Live security posture</span>
             <span className={`font-medium flex items-center ${
-              score >= 80 ? 'text-green-600' : score >= 50 ? 'text-orange-600' : 'text-error'
+              !hasCompletedScans ? 'text-slate-500' : score >= 80 ? 'text-green-600' : score >= 50 ? 'text-orange-600' : 'text-error'
             }`}>
               <span className="material-symbols-outlined text-[16px] mr-[2px]">
-                {score >= 80 ? 'trending_up' : score >= 50 ? 'trending_flat' : 'trending_down'}
+                {!hasCompletedScans ? 'sensors_off' : score >= 80 ? 'trending_up' : score >= 50 ? 'trending_flat' : 'trending_down'}
               </span>
-              {score >= 80 ? 'Stable' : score >= 50 ? 'Needs Attention' : 'Critical Risk'}
+              {!hasCompletedScans ? 'Pending Initial Scan' : score >= 80 ? 'Stable' : score >= 50 ? 'Needs Attention' : 'Critical Risk'}
             </span>
           </div>
         </div>

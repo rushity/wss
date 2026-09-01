@@ -2191,7 +2191,7 @@ def get_vulnerabilities_summary(current_user):
                 'summary': {
                     'vulnerabilities_count': {'critical': 0, 'high': 0, 'medium': 0, 'low': 0, 'total': 0},
                     'scans_count': 0,
-                    'average_security_score': 100,
+                    'average_security_score': None,
                     'by_category': {},
                     'score_history': []
                 }
@@ -2214,7 +2214,7 @@ def get_vulnerabilities_summary(current_user):
         
         # Avg score
         avg_score_raw = db.session.query(func.avg(Scan.security_score)).filter(*scan_filter, Scan.security_score.isnot(None)).scalar()
-        avg_score = int(avg_score_raw) if avg_score_raw else 100
+        avg_score = int(avg_score_raw) if avg_score_raw is not None else None
         
         # Categories breakdown
         cat_counts = db.session.query(

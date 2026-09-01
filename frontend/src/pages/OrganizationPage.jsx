@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../components/AuthContext';
 import { Shield, Activity, Users, Globe, Lock, ShieldAlert, ArrowLeft, BarChart3, PieChart as PieChartIcon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -88,7 +88,7 @@ export const OrganizationPage = () => {
   const completedScans = filteredScans.filter(s => s.status === 'completed' && s.security_score !== null);
   const score = completedScans.length > 0 
     ? Math.round(completedScans.reduce((sum, s) => sum + s.security_score, 0) / completedScans.length) 
-    : 100;
+    : null;
 
   const totalVulnerabilities = filteredScans.reduce((sum, s) => {
     const vc = s.vulnerabilities_count;
@@ -203,7 +203,7 @@ export const OrganizationPage = () => {
       {/* Top Metrics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md mb-xl">
         {[
-          { title: 'SECURITY SCORE', value: `${score}/100`, icon: Shield, color: score > 80 ? 'text-green-500' : score > 50 ? 'text-orange-500' : 'text-error', bg: score > 80 ? 'bg-green-500/10 border-green-500/20' : score > 50 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-error/10 border-error/20' },
+          { title: 'SECURITY SCORE', value: score !== null ? `${score}/100` : 'N/A', icon: Shield, color: score === null ? 'text-slate-400' : score > 80 ? 'text-green-500' : score > 50 ? 'text-orange-500' : 'text-error', bg: score === null ? 'bg-slate-500/10 border-slate-500/20' : score > 80 ? 'bg-green-500/10 border-green-500/20' : score > 50 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-error/10 border-error/20' },
           { title: 'ACTIVE ASSETS', value: activeAssets.toString(), icon: Globe, color: 'text-blue-500', bg: 'bg-blue-500/10 border-blue-500/20' },
           { title: 'TOTAL SCANS', value: filteredScans.length.toString(), icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10 border-purple-500/20' },
           { title: 'OPEN RISKS', value: totalVulnerabilities.toString(), icon: ShieldAlert, color: totalVulnerabilities > 0 ? 'text-orange-500' : 'text-green-500', bg: totalVulnerabilities > 0 ? 'bg-orange-500/10 border-orange-500/20' : 'bg-green-500/10 border-green-500/20' }
