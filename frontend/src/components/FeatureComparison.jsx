@@ -138,134 +138,133 @@ export const FeatureComparison = () => {
   };
 
   return (
-    <section id="comparison" className="py-xl md:py-2xl bg-surface relative border-t border-outline-variant/50">
-      <div className="max-w-container-max mx-auto px-gutter">
+    <section id="comparison" className="py-12 md:py-16 bg-gradient-to-b from-slate-50/50 to-white relative border-t border-slate-200/70">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center mb-xl">
-          <span className="bg-primary/10 text-primary font-bold px-sm py-[4px] rounded-full text-[12px] uppercase tracking-wider mb-xs border border-primary/20 inline-block">
+        <div className="text-center mb-8">
+          <span className="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider mb-2 border border-blue-200/60 inline-block">
             Competitive Advantage
           </span>
-          <h2 className="font-headline-lg text-[28px] md:text-[36px] font-extrabold text-on-surface mb-xs tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 mb-2 tracking-tight">
             How LarShield Compares
           </h2>
-          <p className="font-body-md text-on-surface-variant max-w-[680px] mx-auto text-[15px] leading-relaxed">
+          <p className="text-slate-600 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
             See why modern engineering and security teams choose LarShield over legacy vulnerability scanners.
           </p>
         </div>
 
         {/* Table Container */}
-        <div className="bg-surface-container-lowest border border-outline-variant/80 rounded-2xl shadow-xl overflow-hidden">
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-xl shadow-slate-200/60 overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[760px]">
+            <table className="w-full text-left border-collapse min-w-[680px]">
               
               {/* Header Row */}
               <thead>
-                <tr className="border-b border-outline-variant/80">
-                  <th className="py-md px-lg bg-[#0B0C10] text-white font-bold text-[15px] w-[30%]">
+                <tr className="border-b border-slate-800">
+                  <th className="py-3.5 px-5 bg-slate-900 text-white font-bold text-sm w-[34%]">
                     Feature
                   </th>
 
                   {/* LarShield Column Header */}
-                  <th className="py-md px-md bg-gradient-to-b from-blue-600 to-blue-700 text-white font-bold text-[16px] text-center w-[20%] relative shadow-md">
+                  <th className="py-3.5 px-4 bg-gradient-to-b from-blue-600 to-blue-700 text-white font-bold text-center w-[20%] relative shadow-md">
                     <div className="flex items-center justify-center gap-2">
-                      <div className="w-7 h-7 rounded-lg bg-white/10 p-1 flex items-center justify-center border border-white/20">
+                      <div className="w-6 h-6 rounded-md bg-white/15 p-0.5 flex items-center justify-center border border-white/20">
                         <img src="/logo.png" alt="LarShield" className="w-full h-full object-contain" />
                       </div>
-                      <span className="tracking-tight font-display font-extrabold text-[17px] text-white">LarShield</span>
+                      <span className="tracking-tight font-extrabold text-base text-white">LarShield</span>
                     </div>
                   </th>
 
                   {/* Nessus */}
-                  <th className="py-md px-md bg-[#0B0C10] text-white font-bold text-[15px] text-center w-[16.66%]">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-600 text-white font-black text-[12px] flex items-center justify-center shadow-inner">
+                  <th className="py-3.5 px-4 bg-slate-900 text-white font-semibold text-sm text-center w-[15%]">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-600 text-white font-bold text-[11px] flex items-center justify-center shadow-inner">
                         N
                       </div>
-                      <span className="font-bold">Nessus</span>
+                      <span>Nessus</span>
                     </div>
                   </th>
 
                   {/* OpenVAS */}
-                  <th className="py-md px-md bg-[#0B0C10] text-white font-bold text-[15px] text-center w-[16.66%]">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-[15px]">bug_report</span>
+                  <th className="py-3.5 px-4 bg-slate-900 text-white font-semibold text-sm text-center w-[15%]">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-[13px]">bug_report</span>
                       </div>
-                      <span className="font-bold">OpenVAS</span>
+                      <span>OpenVAS</span>
                     </div>
                   </th>
 
                   {/* Qualys */}
-                  <th className="py-md px-md bg-[#0B0C10] text-white font-bold text-[15px] text-center w-[16.66%]">
-                    <div className="flex items-center justify-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-red-600 text-white font-bold text-[12px] flex items-center justify-center shadow-inner">
+                  <th className="py-3.5 px-4 bg-slate-900 text-white font-semibold text-sm text-center w-[16%]">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-red-600 text-white font-bold text-[11px] flex items-center justify-center shadow-inner">
                         Q
                       </div>
-                      <span className="font-bold">Qualys</span>
+                      <span>Qualys</span>
                     </div>
                   </th>
                 </tr>
               </thead>
 
               {/* Table Body */}
-              <tbody className="divide-y divide-outline-variant/40 text-[14px]">
+              <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
                 {comparisonData.map((row, idx) => (
                   <tr 
                     key={idx} 
-                    className={`${idx % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface/40'} hover:bg-surface-container-low/80 transition-colors`}
+                    className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/30 transition-colors`}
                   >
                     {/* Feature Name */}
-                    <td className="py-3.5 px-lg font-semibold text-on-surface">
+                    <td className="py-2.5 px-5 font-semibold text-slate-800">
                       {row.feature}
                     </td>
 
                     {/* LarShield Cell (Highlighted Column) */}
-                    <td className="py-3.5 px-md text-center bg-blue-50/70 border-x border-blue-100 font-bold">
+                    <td className="py-2.5 px-4 text-center bg-blue-50/60 border-x border-blue-100/80 font-bold">
                       {renderCell(row.larshield)}
                     </td>
 
                     {/* Nessus Cell */}
-                    <td className="py-3.5 px-md text-center">
+                    <td className="py-2.5 px-4 text-center">
                       {renderCell(row.nessus, row.nessusLabel)}
                     </td>
 
                     {/* OpenVAS Cell */}
-                    <td className="py-3.5 px-md text-center">
+                    <td className="py-2.5 px-4 text-center">
                       {renderCell(row.openvas, row.openvasLabel)}
                     </td>
 
                     {/* Qualys Cell */}
-                    <td className="py-3.5 px-md text-center">
+                    <td className="py-2.5 px-4 text-center">
                       {renderCell(row.qualys, row.qualysLabel)}
                     </td>
                   </tr>
                 ))}
 
                 {/* Pricing Row */}
-                <tr className="bg-surface-container-low font-bold border-t-2 border-outline-variant/60">
-                  <td className="py-4 px-lg text-on-surface text-[15px]">
-                    Pricing
+                <tr className="bg-slate-100/70 font-bold border-t-2 border-slate-200">
+                  <td className="py-3 px-5 text-slate-900 text-sm">
+                    Pricing Model
                   </td>
                   
                   {/* LarShield Pricing */}
-                  <td className="py-4 px-md text-center bg-blue-100/60 border-x border-blue-200 text-primary text-[14.5px] font-extrabold">
+                  <td className="py-3 px-4 text-center bg-blue-100/70 border-x border-blue-200/80 text-blue-700 text-xs sm:text-sm font-extrabold">
                     Flexible &amp; Affordable
                   </td>
 
                   {/* Nessus Pricing */}
-                  <td className="py-4 px-md text-center text-on-surface-variant font-medium">
+                  <td className="py-3 px-4 text-center text-slate-600 font-medium text-xs">
                     Subscription
                   </td>
 
                   {/* OpenVAS Pricing */}
-                  <td className="py-4 px-md text-center text-on-surface-variant font-medium">
-                    Free <br className="sm:hidden" />
-                    <span className="text-[12px] opacity-80">(Open Source)</span>
+                  <td className="py-3 px-4 text-center text-slate-600 font-medium text-xs">
+                    Free <span className="text-[11px] text-slate-500">(Open Source)</span>
                   </td>
 
                   {/* Qualys Pricing */}
-                  <td className="py-4 px-md text-center text-on-surface-variant font-medium">
+                  <td className="py-3 px-4 text-center text-slate-600 font-medium text-xs">
                     Subscription
                   </td>
                 </tr>
