@@ -133,11 +133,11 @@ export const FeatureComparison = () => {
 
   return (
     <section id="comparison" className="py-4 md:py-6 bg-slate-50/50 relative border-t border-slate-200/60">
-      <div className="max-w-5xl mx-auto px-3 sm:px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Header Text */}
         <div className="text-center mb-3">
-          <p className="text-slate-600 max-w-2xl mx-auto text-xs md:text-sm font-medium">
+          <p className="text-slate-600 max-w-3xl mx-auto text-xs md:text-sm font-medium">
             See how LarShield compares against legacy vulnerability scanners on coverage, automation, and reporting.
           </p>
         </div>
@@ -145,17 +145,17 @@ export const FeatureComparison = () => {
         {/* Comparison Table Card */}
         <div className="bg-white border border-slate-200/80 rounded-2xl shadow-xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse min-w-[620px]">
+            <table className="w-full text-left border-collapse min-w-[640px]">
               
               {/* Header Row */}
               <thead>
                 <tr className="bg-[#0B132B] text-white">
-                  <th className="py-2.5 px-4 font-bold text-xs sm:text-sm w-[30%]">
+                  <th className="py-2.5 px-5 font-bold text-xs sm:text-sm w-[34%]">
                     Feature
                   </th>
 
                   {/* LarShield Column Header */}
-                  <th className="py-2.5 px-3 font-extrabold text-xs sm:text-sm text-center w-[20%] bg-[#0B132B] text-sky-400">
+                  <th className="py-2.5 px-3 font-extrabold text-xs sm:text-sm text-center w-[19%] bg-[#0B132B] text-sky-400">
                     <div className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 rounded bg-white/15 p-0.5 flex items-center justify-center border border-white/20 shrink-0">
                         <img src="/logo.png" alt="LarShield" className="w-full h-full object-contain" />
@@ -165,7 +165,7 @@ export const FeatureComparison = () => {
                   </th>
 
                   {/* Nessus Header */}
-                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
+                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[15%] text-slate-100">
                     <div className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 rounded bg-[#00A86B] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
                         N
@@ -185,7 +185,7 @@ export const FeatureComparison = () => {
                   </th>
 
                   {/* Qualys Header */}
-                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[18%] text-slate-100">
+                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
                     <div className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 rounded bg-[#ED1C24] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
                         Q
@@ -204,7 +204,7 @@ export const FeatureComparison = () => {
                     className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'} hover:bg-blue-50/20 transition-colors`}
                   >
                     {/* Feature Name */}
-                    <td className="py-2 px-4 font-bold text-slate-800">
+                    <td className="py-2 px-5 font-bold text-slate-800">
                       {row.feature}
                     </td>
 
@@ -232,7 +232,7 @@ export const FeatureComparison = () => {
 
                 {/* Pricing Row */}
                 <tr className="bg-white font-bold border-t border-slate-200">
-                  <td className="py-2.5 px-4 text-slate-900 text-xs sm:text-sm font-bold">
+                  <td className="py-2.5 px-5 text-slate-900 text-xs sm:text-sm font-bold">
                     Pricing
                   </td>
                   
