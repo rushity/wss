@@ -155,28 +155,28 @@ export const FeatureComparison = () => {
               
               {/* Header Row */}
               <thead>
-                <tr className="bg-[#0B132B] text-white">
+                <tr className="bg-[#0A1128] text-white">
                   <th className="py-3.5 px-5 font-bold text-xs sm:text-sm w-[34%]">
                     Feature
                   </th>
 
-                  {/* LarShield Column Header */}
-                  <th className="py-3.5 px-4 font-extrabold text-xs sm:text-sm text-center w-[19%] bg-[#0B132B] text-sky-400">
+                  {/* LarShield Column Header - Highlighted with Brand Blue Accent */}
+                  <th className="py-3.5 px-4 font-extrabold text-xs sm:text-sm text-center w-[19%] bg-gradient-to-b from-blue-600 to-blue-700 text-white shadow-md">
                     LarShield
                   </th>
 
                   {/* Nessus Header */}
-                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[15%] text-slate-100">
+                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[15%] text-slate-200">
                     Nessus
                   </th>
 
                   {/* OpenVAS Header */}
-                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
+                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-200">
                     OpenVAS
                   </th>
 
                   {/* Qualys Header */}
-                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
+                  <th className="py-3.5 px-4 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-200">
                     Qualys
                   </th>
                 </tr>
