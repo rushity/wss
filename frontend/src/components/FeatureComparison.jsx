@@ -156,42 +156,22 @@ export const FeatureComparison = () => {
 
                   {/* LarShield Column Header */}
                   <th className="py-2.5 px-3 font-extrabold text-xs sm:text-sm text-center w-[19%] bg-[#0B132B] text-sky-400">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <div className="w-4 h-4 rounded bg-white/15 p-0.5 flex items-center justify-center border border-white/20 shrink-0">
-                        <img src="/logo.png" alt="LarShield" className="w-full h-full object-contain" />
-                      </div>
-                      <span>LarShield</span>
-                    </div>
+                    LarShield
                   </th>
 
                   {/* Nessus Header */}
                   <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[15%] text-slate-100">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <div className="w-4 h-4 rounded bg-[#00A86B] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
-                        N
-                      </div>
-                      <span>Nessus</span>
-                    </div>
+                    Nessus
                   </th>
 
                   {/* OpenVAS Header */}
                   <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <div className="w-4 h-4 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[10px]">bug_report</span>
-                      </div>
-                      <span>OpenVAS</span>
-                    </div>
+                    OpenVAS
                   </th>
 
                   {/* Qualys Header */}
                   <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
-                    <div className="flex items-center justify-center gap-1.5">
-                      <div className="w-4 h-4 rounded bg-[#ED1C24] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
-                        Q
-                      </div>
-                      <span>Qualys</span>
-                    </div>
+                    Qualys
                   </th>
                 </tr>
               </thead>
