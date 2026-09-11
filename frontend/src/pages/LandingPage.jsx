@@ -1,6 +1,7 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import PricingSection from '../components/PricingSection';
+import FeatureComparison from '../components/FeatureComparison';
 import { useAuth } from '../components/AuthContext';
 import toast from 'react-hot-toast';
 
@@ -391,6 +392,9 @@ export const LandingPage = () => {
             </div>
           </div>
         </section>
+
+        {/* Feature Comparison Table */}
+        <FeatureComparison />
 
         {/* Platform Modules (Replacing How It Works / Feature Cards) */}
         <section id="modules" className="py-xl md:py-2xl bg-surface-container-lowest border-t border-outline-variant/50 relative">
