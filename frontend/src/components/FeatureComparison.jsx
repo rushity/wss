@@ -150,28 +150,48 @@ export const FeatureComparison = () => {
               {/* Header Row */}
               <thead>
                 <tr className="bg-[#0B132B] text-white">
-                  <th className="py-2.5 px-4 font-bold text-xs sm:text-sm w-[32%]">
+                  <th className="py-2.5 px-4 font-bold text-xs sm:text-sm w-[30%]">
                     Feature
                   </th>
 
                   {/* LarShield Column Header */}
                   <th className="py-2.5 px-3 font-extrabold text-xs sm:text-sm text-center w-[20%] bg-[#0B132B] text-sky-400">
-                    LarShield
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-4 rounded bg-white/15 p-0.5 flex items-center justify-center border border-white/20 shrink-0">
+                        <img src="/logo.png" alt="LarShield" className="w-full h-full object-contain" />
+                      </div>
+                      <span>LarShield</span>
+                    </div>
                   </th>
 
-                  {/* Nessus */}
+                  {/* Nessus Header */}
                   <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
-                    Nessus
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-4 rounded bg-[#00A86B] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
+                        N
+                      </div>
+                      <span>Nessus</span>
+                    </div>
                   </th>
 
-                  {/* OpenVAS */}
+                  {/* OpenVAS Header */}
                   <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
-                    OpenVAS
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-4 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[10px]">bug_report</span>
+                      </div>
+                      <span>OpenVAS</span>
+                    </div>
                   </th>
 
-                  {/* Qualys */}
-                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[16%] text-slate-100">
-                    Qualys
+                  {/* Qualys Header */}
+                  <th className="py-2.5 px-3 font-bold text-xs sm:text-sm text-center w-[18%] text-slate-100">
+                    <div className="flex items-center justify-center gap-1.5">
+                      <div className="w-4 h-4 rounded bg-[#ED1C24] text-white flex items-center justify-center font-black text-[10px] shadow-sm shrink-0">
+                        Q
+                      </div>
+                      <span>Qualys</span>
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -248,5 +268,6 @@ export const FeatureComparison = () => {
 };
 
 export default FeatureComparison;
+
 
 
