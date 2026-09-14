@@ -4,7 +4,7 @@ import hmac
 import secrets
 import base64
 import subprocess
-from typing import *
+from typing import Any, cast, List
 import os
 import sys
 import re
@@ -26,12 +26,12 @@ import io
 import html
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image, KeepTogether
-from reportlab.graphics.shapes import Drawing
-from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.lib import colors  # type: ignore[import]
+from reportlab.lib.pagesizes import letter  # type: ignore[import]
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle  # type: ignore[import]
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image, KeepTogether  # type: ignore[import]
+from reportlab.graphics.shapes import Drawing  # type: ignore[import]
+from reportlab.graphics.charts.barcharts import VerticalBarChart  # type: ignore[import]
 
 
 def get_ssl_info(url):
@@ -65,8 +65,8 @@ def get_ssl_info(url):
                     }
                 
                 # Default getpeercert output
-                issuer = dict([x[0] for x in cert.get('issuer', [])])
-                subject = dict([x[0] for x in cert.get('subject', [])])
+                issuer = {k: v for x in cert.get('issuer', []) for k, v in [x[0]]}
+                subject = {k: v for x in cert.get('subject', []) for k, v in [x[0]]}
                 issuer_str = issuer.get('organizationName', issuer.get('commonName', 'Unknown'))
                 subject_str = subject.get('commonName', 'Unknown')
                 not_after = cert.get('notAfter', 'Unknown')
@@ -100,7 +100,7 @@ class ReusableImage(Image):
                 pass
         super().draw()
 
-def create_proportional_image(img_source, max_width=180, max_height=170, hAlign='CENTER'):
+def create_proportional_image(img_source, max_width=180, max_height=170, hAlign: Any = 'CENTER'):
     """
     Creates a ReportLab ReusableImage object that strictly preserves original aspect ratio
     and survives multi-pass ReportLab builds.
@@ -131,8 +131,8 @@ def create_proportional_image(img_source, max_width=180, max_height=170, hAlign=
     except Exception:
         return ReusableImage(img_source, width=max_width, height=max_height, kind='proportional', hAlign=hAlign)
 
-from reportlab.pdfgen import canvas
-from reportlab.platypus import Flowable
+from reportlab.pdfgen import canvas  # type: ignore[import]
+from reportlab.platypus import Flowable  # type: ignore[import]
 
 class PageTrackerCanvas(canvas.Canvas):
     def __init__(self, *args, **kwargs):
@@ -142,7 +142,7 @@ class PageTrackerCanvas(canvas.Canvas):
 
     def showPage(self):
         self.pages.append(dict(self.__dict__))
-        self._startPage()
+        self._startPage()  # type: ignore[attr-defined]
 
     def save(self):
         num_pages = len(self.pages)
@@ -163,7 +163,7 @@ class PageNumberRecorder(Flowable):
 
     def draw(self):
         if self.page_dict is not None:
-            self.page_dict[self.key_name] = self.canv._pageNumber
+            self.page_dict[self.key_name] = self.canv._pageNumber  # type: ignore[attr-defined]
 
 def generate_scan_pdf(scan, vulnerabilities):
     severity_order = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3, "Informational": 4}
@@ -494,8 +494,8 @@ def generate_scan_pdf(scan, vulnerabilities):
         elements.append(Spacer(1, 10))
         elements.append(sev_t)
         
-        from reportlab.graphics.charts.barcharts import VerticalBarChart
-        from reportlab.graphics.shapes import Drawing
+        from reportlab.graphics.charts.barcharts import VerticalBarChart  # type: ignore[import]
+        from reportlab.graphics.shapes import Drawing  # type: ignore[import]
         
         color_map = {
             "Critical": colors.HexColor("#DC2626"),
@@ -732,6 +732,9 @@ def generate_scan_pdf(scan, vulnerabilities):
                             cert = ssock.getpeercert()
                             version = ssock.version() or "TLSv1.2"
                             
+                            if cert is None:
+                                raise ValueError("No certificate returned")
+                            
                             issuer_tuples = cert.get('issuer', ())
                             issuer_parts = []
                             for group in issuer_tuples:
@@ -965,7 +968,7 @@ def generate_scan_pdf(scan, vulnerabilities):
 
 
         # --- APPENDIX: REQUIRES MANUAL VERIFICATION (ONLY IF UNCONFIRMED FINDINGS EXIST) ---
-        target_findings_list = vulnerabilities if 'vulnerabilities' in locals() and vulnerabilities is not None else (findings if 'findings' in locals() and findings is not None else getattr(scan, 'vulnerabilities', []))
+        target_findings_list = vulnerabilities if vulnerabilities is not None else getattr(scan, 'vulnerabilities', [])
         
         unconfirmed_findings = [
             v for v in (target_findings_list or [])
@@ -1128,7 +1131,7 @@ def generate_scan_pdf(scan, vulnerabilities):
              "This report contains sensitive, proprietary vulnerability intelligence regarding the client organization's digital assets. Unauthorized distribution, public exposure, or reproduction of this document without prior written authorization from both the client organization and LarShield is strictly prohibited.")
         ]
 
-        content_flowables = [header_table, Spacer(1, 10)]
+        content_flowables: List[Any] = [header_table, Spacer(1, 10)]
 
         card_cells = []
         for idx, (title, body) in enumerate(disclaimer_items):
@@ -1159,8 +1162,8 @@ def generate_scan_pdf(scan, vulnerabilities):
     
     def header_footer_draw(canvas_obj, doc):
         canvas_obj.saveState()
-        if canvas_obj._pageNumber > 2:
-            from reportlab.lib.utils import ImageReader
+        if canvas_obj._pageNumber > 2:  # type: ignore[attr-defined]
+            from reportlab.lib.utils import ImageReader  # type: ignore[import]
             import pytz
             from datetime import datetime
             
@@ -1222,7 +1225,7 @@ def generate_scan_pdf(scan, vulnerabilities):
                 gen_time = datetime.now().strftime('%d-%b-%Y %H:%M')
             canvas_obj.drawCentredString(letter[0] / 2.0, 30, f"{gen_time}")
             
-            canvas_obj.drawRightString(letter[0] - 40, 30, f"Page {canvas_obj._pageNumber} of {total_pages[0]}")
+            canvas_obj.drawRightString(letter[0] - 40, 30, f"Page {canvas_obj._pageNumber} of {total_pages[0]}")  # type: ignore[attr-defined]
             
         canvas_obj.restoreState()
 
