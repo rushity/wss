@@ -294,7 +294,7 @@ def register():
         db.session.commit()
 
         try:
-            send_welcome_email(email, org_name)
+            send_welcome_email(email_clean, org_name)
         except Exception as e:
             print(f"[Email] Failed to send welcome email: {e}")
 
@@ -852,9 +852,9 @@ def upload_organization_logo(current_user):
     ext = 'png'
     
     # 1. Direct File Upload (Multipart Form Data)
-    if 'logo' in request.files and request.files['logo'].filename != '':
+    if 'logo' in request.files and request.files['logo'].filename:
         file = request.files['logo']
-        filename_raw = secure_filename(file.filename) or "logo.png"
+        filename_raw = secure_filename(file.filename or '') or "logo.png"
         file_bytes = file.read()
         content_type = file.content_type or 'image/png'
         if '.' in filename_raw:
@@ -880,7 +880,7 @@ def upload_organization_logo(current_user):
                     elif 'gif' in content_type: ext = 'gif'
                     else: ext = 'png'
             except Exception as e:
-                current_app.logger.warn(f"Failed to fetch logo_url: {e}")
+                current_app.logger.warning(f"Failed to fetch logo_url: {e}")
 
     if not file_bytes:
         return jsonify({'message': 'No valid logo file or URL provided'}), 400
@@ -2347,7 +2347,7 @@ def generate_pdf_report(current_user, scan_id):
         if not clean_org_name:
             clean_org_name = "Organization"
 
-        scan_date = scan.completed_at or scan.created_at or datetime.utcnow()
+        scan_date = scan.completed_at or scan.started_at or datetime.now(timezone.utc)
         date_str = scan_date.strftime('%d%m%Y')
         filename = f"LarShield_{clean_org_name}_Report_{date_str}.pdf"
         
@@ -2421,7 +2421,7 @@ def generate_public_pdf_report(scan_id):
         if not clean_org_name:
             clean_org_name = "Organization"
 
-        scan_date = scan.completed_at or scan.created_at or datetime.utcnow()
+        scan_date = scan.completed_at or scan.started_at or datetime.now(timezone.utc)
         date_str = scan_date.strftime('%d%m%Y')
         filename = f"LarShield_{clean_org_name}_Report_{date_str}.pdf"
         

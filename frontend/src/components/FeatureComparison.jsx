@@ -32,11 +32,12 @@ export const FeatureComparison = () => {
       qualys: "cross",
     },
     {
-      feature: "Zero-Day Threat Intelligence",
+      feature: "Integrated Multi-Scanner Security Engine",
       larshield: "check",
       nessus: "cross",
       openvas: "cross",
-      qualys: "half",
+      qualys: "cross",
+      isBold: true,
     },
     {
       feature: "Automated Risk Prioritization (AI)",
@@ -81,11 +82,12 @@ export const FeatureComparison = () => {
       qualys: "check",
     },
     {
-      feature: "Real-Time Alerts & Notifications",
+      feature: "Custom Organization-Branded Security Reports",
       larshield: "check",
       nessus: "cross",
       openvas: "cross",
-      qualys: "check",
+      qualys: "cross",
+      isBold: true,
     },
     {
       feature: "Automated Compliance Reporting",
@@ -190,8 +192,12 @@ export const FeatureComparison = () => {
                     className={`${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'} hover:bg-blue-50/20 transition-colors`}
                   >
                     {/* Feature Name */}
-                    <td className="py-2.5 px-5 font-bold text-slate-800">
-                      {row.feature}
+                    <td className="py-2.5 px-5 text-slate-800">
+                      {row.isBold ? (
+                        <span className="font-black text-slate-950 tracking-tight">{row.feature}</span>
+                      ) : (
+                        <span className="font-semibold text-slate-700">{row.feature}</span>
+                      )}
                     </td>
 
                     {/* LarShield Cell (Highlighted Ice-Blue Column) */}
